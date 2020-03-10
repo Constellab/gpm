@@ -1,4 +1,4 @@
-sudo apt-get install libnlopt-dev
+sudo apt-get -y install libnlopt-dev
 
 # Local build and install
 
