@@ -39,5 +39,5 @@ RUN ls -al
 
 EXPOSE 3000
 
-WORKDIR ${APPDIR}/app-py/
+WORKDIR ${APPDIR}/app/app-py/
 CMD python3 manage.py --runserver

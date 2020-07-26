@@ -5,16 +5,14 @@ import os, sys
 import requests
 from zipfile import ZipFile
 import json
+import subprocess
 
 @click.command()
 @click.option('--output', '-o', help='Output dir')
 @click.option('--user', '-u', help='Output dir')
-@click.option('--git-url', '-d', help='Git url')
 @click.option('--git-user', '-s', help='Git user')
 @click.option('--git-pwd', '-w', help='Git password')
-@click.option('--raw-db-url', '-r', help='Raw DB url')
-@click.option('--sqlite-db-url', '-q', help='Sqlite DB url')
-def startup(output, user, git_url, git_user, git_pwd, raw_db_url = None, sqlite_db_url = None):
+def startup(output, user, git_user, git_pwd):
     print("Starting install in ", output)
 
     __cdir__ = os.path.dirname(os.path.abspath(__file__))
@@ -71,6 +69,14 @@ def git_clone(output, url, user, pwd):
         repo.submodule_update(recursive=True)
     except:
         pass
+    
+    req_file = os.path.join(local_path, "requirements.txt")
+    if os.path.exists(req_file):
+        try:
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", req_file])
+        except:
+            pass
+
 
 def download(url, filename):
     print(f"Downloading {url} ...")
