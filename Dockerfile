@@ -37,7 +37,7 @@ RUN ls -al
 #RUN chmod +x install-dlib.sh
 #RUN ./install-dlib.sh
 
-EXPOSE 3000
+#EXPOSE 3000
 
 WORKDIR ${APPDIR}/app/app-py/
 CMD python3 manage.py --runserver
