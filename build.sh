@@ -4,6 +4,8 @@ USER=astroboy
 GIT_USER=astroboy
 GIT_PWD=Astroboy\$Gitea2020
 
+. install-docker
+
 docker build \
     --tag gws:latest \
     --build-arg USER=$USER \
