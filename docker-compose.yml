@@ -1,0 +1,14 @@
+version: '3'
+services:
+    gws:
+        build: .
+        ports:
+            - "3000:80"
+        environment:
+            - USER=$USER 
+            - WORKDIR=$WORKING 
+            - DATA_URL=$DATA_URL 
+            - GIT_USER=$GIT_USER 
+            - GIT_PWD=$GIT_PWD
+        volumes:
+            - /gws/:${WORKDIR}
