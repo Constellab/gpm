@@ -1,4 +1,7 @@
 FROM ubuntu
+
+LABEL maintainer="Gencovery <admin@gencovery.com>"
+
 ARG USER
 ARG WORKDIR
 ARG GIT_USER 

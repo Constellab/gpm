@@ -55,7 +55,9 @@ def git_clone(output, url, user, pwd):
     tab = url.split("://")
     url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
 
-    print("Git clone " + url)
+    #print("Git clone " + url)
+    print("Git clone " + f"{tab[0]}://{tab[1]}")
+
     git.Repo.clone_from(url, local_path, branch='master', depth=1, shallow_submodules=True)
     repo = git.Repo(local_path)
     try:
@@ -64,7 +66,8 @@ def git_clone(output, url, user, pwd):
             tab = sub_url.split("://")
             sub_url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
             sub.config_writer().set_value("url", sub_url).release()
-            print("Submodule " + sub_url)
+            #print("Submodule " + sub_url)
+            print("Submodule " + f"{tab[0]}://{tab[1]}")
 
         repo.submodule_update(recursive=True)
     except:
