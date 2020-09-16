@@ -12,3 +12,4 @@ services:
             - GIT_PWD=$GIT_PWD
         volumes:
             - /gws/:${WORKDIR}
+

@@ -1,0 +1,25 @@
+{
+    "git-repo" : {
+        "gws-y" : "/gws/gws", 
+        "gaia": "/gws/gaia",
+        "gena": "/gws/gena",
+        "biota": "/gws/biota",
+        "biox": "/gws/biox",
+        "collab": "/gws/collab",
+        "app-py": "/app/collab",
+        
+        "gaia-cpp": "/gws/gaia-cpp",
+        "gena-cpp": "/gws/gena-cpp",
+
+        "brenda-py": "/extern/brenda-py", 
+        "distrib-js": "/extern/distrib-js", 
+        "dlib-cpp": "/extern/dlib-cpp",
+        "gflags-cpp": "/extern/gflags-cpp",
+        "glog-cpp": "/extern/glog-cpp",
+        "googletest-cpp": "/extern/googletest-cpp", 
+        "json-cpp": "/extern/json-cpp",
+        "odeint-v2-cpp": "/extern/odeint-v2-cpp"
+    },
+    "biodata-raw" : "/s/ktrKXjbkJjYZLka/download",
+    "biodata-sqlite" :  "/s/rFTRQcBLXE7oGe4/download"
+}

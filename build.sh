@@ -1,15 +1,19 @@
 #!/bin/bash
+. ./sh/install-docker.sh
 
-USER=astroboy
-GIT_USER=astroboy
-GIT_PWD=Astroboy\$Gitea2020
-
-. install-docker
+while :; do
+    case $1 in
+        -l|--lab) lab=$2         
+        ;;
+        -u|--user) user=$2                   
+        ;;
+        *) break
+    esac
+    shift
+done
 
 docker build \
-    --tag gws:latest \
-    --build-arg USER=$USER \
-    --build-arg GIT_USER=$GIT_USER \
-    --build-arg GIT_PWD=$GIT_PWD \
+    --user $user
+    --tag $1:latest \
     .
                 

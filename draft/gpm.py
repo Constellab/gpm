@@ -1,19 +1,37 @@
 
+# LICENSE
+# This software is the exclusive property of Gencovery SAS. 
+# The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
+# About us: https://gencovery.com
+
+# Gencovery Package Manager
+
 import click
 import git
-import os, sys
+import os, sys, json
 import requests
 from zipfile import ZipFile
 import json
 import subprocess
 
 @click.command()
-@click.option('--output', '-o', help='Output dir')
-@click.option('--user', '-u', help='Output dir')
-@click.option('--git-user', '-s', help='Git user')
-@click.option('--git-pwd', '-w', help='Git password')
-def startup(output, user, git_user, git_pwd):
-    print("Starting install in ", output)
+@click.option('--pull', help='Install')
+@click.option('--appdir', help='App dir')
+@click.option('--datadir', help='Data dir')
+def main(pull=False, push=False, appdir=False, datadir=False):
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    with open(os.path.join(dir_path, "private.json")) as f:
+        data = json.load(f)
+        user = data["git_crenditals"]["user"]
+        pwd = data["git_crenditals"]["password"]
+        if pull:
+            repo = pull
+            pull(appdir, datadir, user, pwd, repo=repo)
+        elif push:
+            pass
+
+def pull(appdir, datadir, git_user, git_pwd, repo="all"):
+    print("Installing in ", appdir)
 
     __cdir__ = os.path.dirname(os.path.abspath(__file__))
     os.environ['GIT_ASKPASS'] = os.path.join(__cdir__,'askpass.sh')
@@ -26,31 +44,38 @@ def startup(output, user, git_user, git_pwd):
         except:
             raise Exception("Error while parsing the settings JSON file. Please check file setting file.")
 
-
     # git_clone gws
-    for url in settings["git-urls"]:
-        git_clone(output, url, git_user, git_pwd)
+    if repo == "all":
+        for repo_loc in settings["git-repo"]:
+            git_url = "https://gitea.gencovery.com"
+            url = git_url + "/" + repo_loc.strip("/")
+            git_clone(appdir, url, git_user, git_pwd)
+    else:
+        repo_loc = settings["git-repo"][repo]
+        git_url = "https://gitea.gencovery.com"
+        url = git_url + "/" + repo_loc.strip("/")
+        git_clone(appdir, url, git_user, git_pwd)
 
     # download & extract raw databases
-    if not settings.get("biodata-url", None) is None:
-        zipfile = os.path.join(output,"./extern/biodata.zip")
-        download(settings["biodata-url"], zipfile)
+    if not settings.get("biodata-raw", None) is None:
+        zipfile = os.path.join(datadir,"./biota/biodata.zip")
+        download(settings["biodata-raw"], zipfile)
         unzip(zipfile)
         os.remove(zipfile)
 
     # download sqlite database
-    if not settings.get("sqlite-url",None) is None:
-        os.mkdir(os.path.join(output,"./app/app-py/data/"))
-        zipfile = os.path.join(output,"./app/app-py/data/db.sqlite3.zip")
-        download(settings["sqlite-url"], zipfile)
+    if not settings.get("biodata-sqlite",None) is None:
+        os.mkdir(os.path.join(datadir,"./biota/"))
+        zipfile = os.path.join(datadir,"./biota/db.sqlite3.zip")
+        download(settings["biodata-sqlite"], zipfile)
         unzip(zipfile)
         os.remove(zipfile)
 
-def git_clone(output, url, user, pwd):
+def git_clone(appdir, url, user, pwd):
     print(url)
     repo_group = url.split("/")[-2]
     repo_name = url.split("/")[-1]
-    local_path = os.path.join(output, repo_group, repo_name)
+    local_path = os.path.join(appdir, repo_group, repo_name)
 
     tab = url.split("://")
     url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
@@ -80,8 +105,9 @@ def git_clone(output, url, user, pwd):
         except:
             pass
 
-
 def download(url, filename):
+    data_url = "https://share.gencovery.com"
+    url = data_url + url.strip("/")
     print(f"Downloading {url} ...")
     with open(filename, 'wb') as f:
         response = requests.get(url, stream=True)
@@ -108,5 +134,5 @@ def unzip(filename):
     print(f"Extraction finished.")
 
 if __name__ == "__main__":
-    startup()
+    main()
     
