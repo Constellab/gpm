@@ -20,27 +20,70 @@ import pip
 GIT_URL = "https://bitbucket.org/gencovery"
 
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
-APP_DIR = os.path.join(__cdir__, "./test")
-BRICKS_DIR = os.path.join(APP_DIR, "./gws/bricks")
-DATA_DIR = os.path.join(APP_DIR, "./gws/data")
-LAB_DIR = os.path.join(APP_DIR, "./gws/labs")
-EXTERN_DIR = os.path.join(APP_DIR, "./gws/extern")
-TMP_DIR = os.path.join(APP_DIR, "./gws/tmp")
-
+IS_TEST = False
+APP_DIR = ""
+BRICKS_DIR = ""
+DATA_DIR = ""
+LAB_DIR = ""
+EXTERN_DIR = ""
+TMP_DIR = ""
 ALL_BRICKS = "all"
 PACKAGES = []
 
-def git_pull(repo=ALL_BRICKS):
+@click.command(context_settings=dict(
+    ignore_unknown_options=True,
+    allow_extra_args=True
+))
+@click.pass_context
+@click.option('--pull', help='Pull a brick')
+@click.option('--push', help="Push a brick")
+@click.option('--build', is_flag=True, help="Build docker image")
+@click.option('--start', is_flag=True, help="Start docker container")
+@click.option('--stop', is_flag=True, help="Stop docker container")
+@click.option('--test', is_flag=True, help="Test mode")
+@click.option('--origin', '-o', default=GIT_URL, help="The url of the origin server")
+def main(ctx, pull, push, build, start, stop, test, origin):
+    global APP_DIR
+    global IS_TEST
+    IS_TEST = test
+    
+    _set_dir_paths(workspace=f"./user/")
+    _create_dirs()
 
-    private_file = os.path.join(__cdir__, "./.private.json")
+    _set_dir_paths()
+    _create_dirs()
+
+    if pull:
+        git_pull(repo=pull, origin=origin)
+    else:
+        pass
+
+def git_pull(repo=ALL_BRICKS, origin=GIT_URL):
+
+    private_file = os.path.join(__cdir__, "../.private.json")
     if os.path.exists(private_file):
-        with open(private_file) as f:
+        with open(private_file, 'r') as f:
             private = json.load(f)
     else:
         raise Exception("File .private.json not found")
 
-    git_user = private["git_crenditals"]["login"]
-    git_pwd = private["git_crenditals"]["password"]
+    git_user = private["git"]["login"]
+    git_pwd = private["git"]["password"]
+
+    import crypt
+    if not git_pwd:
+        raise Exception("The private file does not exist")
+    elif len(git_pwd) < 64:
+        git_pwd = crypt.encrypt_message(git_pwd)
+        private["git"]["password"] = git_pwd
+        with open(private_file, 'w') as f:
+            json.dump(private, f)
+    else:
+        _git_pwd = crypt.decrypt_message(git_pwd)
+        git_pwd = ""
+        for i in range(0, len(_git_pwd), 2):
+            git_pwd = git_pwd + _git_pwd[i]
+
     os.environ['GIT_ASKPASS'] = os.path.join(__cdir__,'askpass.sh')
     os.environ['GIT_USERNAME'] = git_user
     os.environ['GIT_PASSWORD'] = git_pwd
@@ -49,26 +92,49 @@ def git_pull(repo=ALL_BRICKS):
 
     if repo == ALL_BRICKS:
         for repo in PACKAGES:
-            _git_pull_repo(repo, git_user, git_pwd)
+            _git_pull_repo(repo, git_user, git_pwd, origin)
     else:
-        _git_pull_repo(repo, git_user, git_pwd)
+        _git_pull_repo(repo, git_user, git_pwd, origin)
 
-def _git_pull_repo(repo, user, pwd):
-    url = _get_repo_url(repo)
+def _set_dir_paths(workspace="./"):
+    global APP_DIR
+    global BRICKS_DIR
+    global DATA_DIR
+    global LAB_DIR
+    global EXTERN_DIR
+    global TMP_DIR
+
+    if IS_TEST:
+        APP_DIR = os.path.join(__cdir__, "../../tests/")
+    else:
+        APP_DIR = os.path.join(__cdir__, "../../")
+
+    BRICKS_DIR = os.path.join(APP_DIR, workspace, "./gws/bricks")
+    DATA_DIR = os.path.join(APP_DIR, workspace, "./gws/data")
+    LAB_DIR = os.path.join(APP_DIR, workspace, "./gws/labs")
+    EXTERN_DIR = os.path.join(APP_DIR, workspace, "./gws/extern")
+    TMP_DIR = os.path.join(APP_DIR, workspace, "./gws/tmp")
+
+def _git_pull_repo(repo, user, pwd, origin=GIT_URL):
+    url = _get_repo_url(repo, origin)
     tab = url.split("://")
-    #url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
-    url = f"{tab[0]}://{user}@{tab[1]}"
+    url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
+    #url = f"{tab[0]}://{user}@{tab[1]}"
 
     if _repo_exists(repo):
-        print("Git update " + f"{tab[0]}://{tab[1]}")
+        print("Git update {repo} from " + f"{tab[0]}://{tab[1]}")
         repo_dir = _get_repo_dir(repo)
         git_repo = git.Repo(repo_dir)
         o = git_repo.remotes.origin
         o.pull()
     else:
-        print("Git clone " + f"{tab[0]}://{tab[1]}")
+        print(f"Git clone brick {repo} from " + f"{tab[0]}://{tab[1]}")
         tmp_repo_dir = _get_tmp_repo_dir(repo)
-        git.Repo.clone_from(url, tmp_repo_dir, branch='master', depth=1, shallow_submodules=True)
+        if IS_TEST:
+            git.Repo.clone_from(url, tmp_repo_dir, branch='master', depth=1, shallow_submodules=True)
+        else:
+            git.Repo.clone_from(url, tmp_repo_dir, branch='master', depth=1, shallow_submodules=True)
+
         if _is_brick(tmp_repo_dir):
             repo_dir = _get_repo_dir(repo)
         else:
@@ -80,10 +146,11 @@ def _git_pull_repo(repo, user, pwd):
     try:
         for sub in git_repo.submodules:
             sub_url = sub.config_reader().get_value("url")
-            tab = sub_url.split("://")
+            import re
+            tab = re.split("://.+@", sub_url)
             sub_url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
             sub.config_writer().set_value("url", sub_url).release()
-            print("Submodule " + f"{tab[0]}://{tab[1]}")
+            print("Getting submodule " + f"{tab[0]}://{tab[1]}")
 
         git_repo.submodule_update(recursive=True)
     except:
@@ -105,14 +172,14 @@ def _is_brick(repo_dir):
         return False
 
 def _read_pkgs():
-    with open(os.path.join(__cdir__,"packages.json")) as f:
+    with open(os.path.join(__cdir__,"../packages.json")) as f:
             try:
                 return json.load(f)
             except:
                 raise Exception("Error while parsing the settings JSON file. Please check file setting file.")
 
-def _get_repo_url(repo):
-    return GIT_URL + "/" + repo.strip("/") + ".git"
+def _get_repo_url(repo, origin=GIT_URL):
+    return origin + "/" + repo.strip("/") + ".git"
 
 def _get_repo_dir(repo):
     return os.path.join(BRICKS_DIR, repo)
@@ -126,10 +193,12 @@ def _get_extern_repo_dir(repo):
 def _repo_exists(repo):
     return os.path.exists( _get_repo_dir(repo) )
 
-def _create_dirs():
+def _create_dirs(wkspace=""):
     if not os.path.exists(BRICKS_DIR):
         os.makedirs(BRICKS_DIR)
-    
+    else:
+        raise Exception(f"Path {BRICKS_DIR} already exists")
+
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
     
@@ -142,18 +211,6 @@ def _create_dirs():
     if not os.path.exists(TMP_DIR):
         os.makedirs(TMP_DIR)
 
-# def _install_requirements(repo_dir):
-#     venv_dir = os.path.join(APP_DIR, "./.venv")
-
-#     if not os.path.exists(venv_dir):
-#         virtualenv.create(venv_dir)
-
-#     execfile(os.path.join(venv_dir, "bin", "activate_this.py"))
-
-#     req_file = os.path.join(repo_dir, "requirements.txt")
-#     if os.path.exists(req_file):
-#         pip.main(["install", "--prefix", venv_dir, "-r", req_file])
-    
 def download(url, filename):
     data_url = "https://share.gencovery.com"
     url = data_url + url.strip("/")
@@ -182,25 +239,6 @@ def unzip(filename):
         zipObj.extractall(path)
     print(f"Extraction finished.")
 
-
-@click.command(context_settings=dict(
-    ignore_unknown_options=True,
-    allow_extra_args=True
-))
-@click.pass_context
-@click.option('--pull', help='Pull a brick')
-@click.option('--push', help="Push a brick")
-@click.option('--build', is_flag=True, help="Build docker image")
-@click.option('--start', is_flag=True, help="Start docker container")
-@click.option('--stop', is_flag=True, help="Stop docker container")
-@click.option('--test', is_flag=True, help="Test mode")
-def run(ctx, pull, push, build, start, stop, test):
-    _create_dirs()
-    if pull:
-        git_pull(repo=pull)
-    else:
-        pass
-
 if __name__ == "__main__":
-    run()
+    main()
     

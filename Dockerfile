@@ -12,16 +12,6 @@ ENV USER_DIR ./users/${USER}
 
 ADD . ${WORKDIR}
 
-# create gws dirs
-WORKDIR ${GWS_DIR}
-RUN chmod +x ../gpm/sh/make_dirs.sh
-RUN ../gpm/sh/make_dirs.sh
-
-# create user dirs
-WORKDIR ${USER_DIR}
-RUN chmod +x ../../gpm/sh/make_dirs.sh
-RUN ../../gpm/sh/make_dirs.sh
-
 WORKDIR ${WORKDIR}
 
 RUN ls -al
