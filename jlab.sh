@@ -1,4 +1,4 @@
 source ../.venv/bin/activate
-cd ../user/
+cd ../
 jupyter lab --ip=0.0.0.0 --port=8888
-cd ../gpm/
+cd ./gpm/
