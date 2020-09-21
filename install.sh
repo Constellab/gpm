@@ -21,6 +21,9 @@ while :; do
     shift
 done
 
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+python3 get-pip.py
+
 python3 -m pip install --upgrade pip
 python3 -m pip install virtualenv
 python3 -m virtualenv ../.venv --python=python3
