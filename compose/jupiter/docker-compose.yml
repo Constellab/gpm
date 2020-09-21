@@ -1,0 +1,15 @@
+version: "3"
+services:
+  jlab:
+    image: jupyter/base-notebook
+    ports:
+      - 8888:8888
+    volumes:
+      - /app:/home/ubuntu/work
+    # networks:
+    #    - nginxproxy_nginx-proxy
+    restart: always
+
+# networks:
+#   nginxproxy_nginx-proxy:
+#     external: true

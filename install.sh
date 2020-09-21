@@ -2,6 +2,7 @@ repo="all"
 test=""
 origin=""
 force=""
+labname=""
 
 while :; do
     case $1 in
@@ -12,6 +13,8 @@ while :; do
         -o|--origin) origin="--origin $2"               
         ;;
         -r|--force) force="--force"               
+        ;;
+        -r|--labname) labname="--labname $2"               
         ;;
         *) break
     esac
@@ -24,7 +27,7 @@ python3 -m virtualenv ../.venv --python=python3
 source ../.venv/bin/activate
 
 python3 -m pip install -r "requirements.txt"
-python ./src/gpm.py --pull $repo $test $origin $force
+python ./src/gpm.py --install $repo $labname $test $origin $force
 
 find ../gws/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
 find ../gws/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;

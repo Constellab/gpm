@@ -8,8 +8,7 @@ import os
 from cryptography.fernet import Fernet
 
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
-secret_file_path = os.path.join(__cdir__, "../.secret.key")
-
+secret_file_path = os.path.join(__cdir__, "../.secret.pub")
 
 def generate_key():
     """

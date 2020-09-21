@@ -21,13 +21,16 @@ GIT_URL = "https://bitbucket.org/gencovery"
 
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
 IS_TEST = False
-APP_DIR = ""
-BRICKS_DIR = ""
+ROOT_DIR = ""
+
+BRICK_DIR = ""
 DATA_DIR = ""
 LAB_DIR = ""
+LOG_DIR = ""
 EXTERN_DIR = ""
+SANDBOX_DIR = ""
 TMP_DIR = ""
-ALL_BRICKS = "all"
+
 PACKAGES = []
 
 @click.command(context_settings=dict(
@@ -35,169 +38,81 @@ PACKAGES = []
     allow_extra_args=True
 ))
 @click.pass_context
+@click.option('--install', is_flag=True, help='Install')
+@click.option('--labname', default="mylab", help='Lab name on install')
 @click.option('--pull', help='Pull a brick')
 @click.option('--push', help="Push a brick")
 @click.option('--build', is_flag=True, help="Build docker image")
 @click.option('--start', is_flag=True, help="Start docker container")
 @click.option('--stop', is_flag=True, help="Stop docker container")
 @click.option('--test', is_flag=True, help="Test mode")
-@click.option('--origin', '-o', default=GIT_URL, help="The url of the origin server")
-def main(ctx, pull, push, build, start, stop, test, origin):
-    global APP_DIR
+@click.option('--userorigin', default="", help="The url of the userorigin server")
+def main(ctx, install, labname, pull, push, build, start, stop, test, userorigin):
+    global ROOT_DIR
     global IS_TEST
     IS_TEST = test
-    
-    _set_dir_paths(workspace=f"./user/")
-    _create_dirs()
 
-    _set_dir_paths()
-    _create_dirs()
+    if install:
+        # pull gws workspace
+        _set_cwd(workspace="./gws/")
+        _create_dirs()
+        git_pull(repo_name="all")
+        
+        # pull user workspace
+        _set_cwd(workspace="./user/")
+        _create_dirs()
+        user_git_origin_exists = (userorigin != "")
+        if user_git_origin_exists:
+            git_pull(repo_name=pull, userorigin=userorigin, username="", userpwd="")
+        
+        # allways create a default lab
+        lab_dirs = [f.path for f in os.scandir(LAB_DIR) if f.is_dir()]
+        no_lab_exists = (len(lab_dirs) == 0)
+        if no_lab_exists:
+            _install_skeleton_to_lab(labname)
 
     if pull:
-        git_pull(repo=pull, origin=origin)
+        # pull gws workspace
+        _set_cwd(workspace="./gws/")
+        git_pull(repo_name=pull)
+
+        # pull user workspace
+        _set_cwd(workspace="./user/")
+        user_git_origin_exists = (userorigin != "")
+        if user_git_origin_exists:
+            git_pull(repo_name=pull, userorigin=userorigin, username="", userpwd="")
+
+    elif push:
+        git_push(repo_name=pull)
+
+# -- B --
+
+def _build_repo_url(repo_name, userorigin=GIT_URL):
+    return userorigin + "/" + repo_name.strip("/") + ".git"
+
+def _build_repo_dir_path(repo_name, repo_type):
+    if repo_type == "brick":
+        return os.path.join(BRICK_DIR, repo_name)
+    elif repo_type == "lab":
+        return os.path.join(LAB_DIR, repo_name)
     else:
-        pass
+        return os.path.join(EXTERN_DIR, repo_name)
 
-def git_pull(repo=ALL_BRICKS, origin=GIT_URL):
+def _build_tmp_repo_dir_path(repo_name):
+    return os.path.join(TMP_DIR, repo_name)
 
-    private_file = os.path.join(__cdir__, "../.private.json")
-    if os.path.exists(private_file):
-        with open(private_file, 'r') as f:
-            private = json.load(f)
+def _is_installed(repo_name):
+    return  _is_installed_brick(repo_name) or \
+            _is_installed_lab(repo_name) or \
+            _is_installed_extern(repo_name)
+
+# -- C --
+
+def _create_dirs():
+    if not os.path.exists(BRICK_DIR):
+        os.makedirs(BRICK_DIR)
     else:
-        raise Exception("File .private.json not found")
-
-    git_user = private["git"]["login"]
-    git_pwd = private["git"]["password"]
-
-    import crypt
-    if not git_pwd:
-        raise Exception("The private file does not exist")
-    elif len(git_pwd) < 64:
-        git_pwd = crypt.encrypt_message(git_pwd)
-        private["git"]["password"] = git_pwd
-        with open(private_file, 'w') as f:
-            json.dump(private, f)
-    else:
-        _git_pwd = crypt.decrypt_message(git_pwd)
-        git_pwd = ""
-        for i in range(0, len(_git_pwd), 2):
-            git_pwd = git_pwd + _git_pwd[i]
-
-    os.environ['GIT_ASKPASS'] = os.path.join(__cdir__,'askpass.sh')
-    os.environ['GIT_USERNAME'] = git_user
-    os.environ['GIT_PASSWORD'] = git_pwd
-
-    PACKAGES = _read_pkgs()
-
-    if repo == ALL_BRICKS:
-        for repo in PACKAGES:
-            _git_pull_repo(repo, git_user, git_pwd, origin)
-    else:
-        _git_pull_repo(repo, git_user, git_pwd, origin)
-
-def _set_dir_paths(workspace="./"):
-    global APP_DIR
-    global BRICKS_DIR
-    global DATA_DIR
-    global LAB_DIR
-    global EXTERN_DIR
-    global TMP_DIR
-
-    if IS_TEST:
-        APP_DIR = os.path.join(__cdir__, "../../tests/")
-    else:
-        APP_DIR = os.path.join(__cdir__, "../../")
-
-    BRICKS_DIR = os.path.join(APP_DIR, workspace, "./gws/bricks")
-    DATA_DIR = os.path.join(APP_DIR, workspace, "./gws/data")
-    LAB_DIR = os.path.join(APP_DIR, workspace, "./gws/labs")
-    EXTERN_DIR = os.path.join(APP_DIR, workspace, "./gws/extern")
-    TMP_DIR = os.path.join(APP_DIR, workspace, "./gws/tmp")
-
-def _git_pull_repo(repo, user, pwd, origin=GIT_URL):
-    url = _get_repo_url(repo, origin)
-    tab = url.split("://")
-    url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
-    #url = f"{tab[0]}://{user}@{tab[1]}"
-
-    if _repo_exists(repo):
-        print("Git update {repo} from " + f"{tab[0]}://{tab[1]}")
-        repo_dir = _get_repo_dir(repo)
-        git_repo = git.Repo(repo_dir)
-        o = git_repo.remotes.origin
-        o.pull()
-    else:
-        print(f"Git clone brick {repo} from " + f"{tab[0]}://{tab[1]}")
-        tmp_repo_dir = _get_tmp_repo_dir(repo)
-        if IS_TEST:
-            git.Repo.clone_from(url, tmp_repo_dir, branch='master', depth=1, shallow_submodules=True)
-        else:
-            git.Repo.clone_from(url, tmp_repo_dir, branch='master', depth=1, shallow_submodules=True)
-
-        if _is_brick(tmp_repo_dir):
-            repo_dir = _get_repo_dir(repo)
-        else:
-            repo_dir = _get_extern_repo_dir(repo)
-        
-        shutil.move(tmp_repo_dir, repo_dir)
-        git_repo = git.Repo(repo_dir)
-
-    try:
-        for sub in git_repo.submodules:
-            sub_url = sub.config_reader().get_value("url")
-            import re
-            tab = re.split("://.+@", sub_url)
-            sub_url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
-            sub.config_writer().set_value("url", sub_url).release()
-            print("Getting submodule " + f"{tab[0]}://{tab[1]}")
-
-        git_repo.submodule_update(recursive=True)
-    except:
-        pass
-
-def _git_push_repo(repo, user, pwd):
-    pass
-
-def _is_brick(repo_dir):
-    settings_file = os.path.join(repo_dir, "settings.json")
-    if os.path.exists(settings_file):
-        with open(settings_file) as f:
-            try:
-                settings = json.load(f)
-                return not settings["name"] is None
-            except:
-                return False
-    else:
-        return False
-
-def _read_pkgs():
-    with open(os.path.join(__cdir__,"../packages.json")) as f:
-            try:
-                return json.load(f)
-            except:
-                raise Exception("Error while parsing the settings JSON file. Please check file setting file.")
-
-def _get_repo_url(repo, origin=GIT_URL):
-    return origin + "/" + repo.strip("/") + ".git"
-
-def _get_repo_dir(repo):
-    return os.path.join(BRICKS_DIR, repo)
-
-def _get_tmp_repo_dir(repo):
-    return os.path.join(TMP_DIR, repo)
-
-def _get_extern_repo_dir(repo):
-    return os.path.join(EXTERN_DIR, repo)
-
-def _repo_exists(repo):
-    return os.path.exists( _get_repo_dir(repo) )
-
-def _create_dirs(wkspace=""):
-    if not os.path.exists(BRICKS_DIR):
-        os.makedirs(BRICKS_DIR)
-    else:
-        raise Exception(f"Path {BRICKS_DIR} already exists")
+        print(f"Path {BRICK_DIR} already exists")
 
     if not os.path.exists(DATA_DIR):
         os.makedirs(DATA_DIR)
@@ -211,7 +126,15 @@ def _create_dirs(wkspace=""):
     if not os.path.exists(TMP_DIR):
         os.makedirs(TMP_DIR)
 
-def download(url, filename):
+    if not os.path.exists(LOG_DIR):
+        os.makedirs(LOG_DIR)
+
+    if not os.path.exists(SANDBOX_DIR):
+        os.makedirs(SANDBOX_DIR)
+
+# -- D --
+
+def _download(url, filename):
     data_url = "https://share.gencovery.com"
     url = data_url + url.strip("/")
     print(f"Downloading {url} ...")
@@ -232,12 +155,226 @@ def download(url, filename):
                 sys.stdout.flush()
     sys.stdout.write('\n')
 
+
+# -- G --
+
+def git_pull(repo_name="all", userorigin=GIT_URL, username="", userpwd=""):
+    if userorigin == GIT_URL:
+        private_file = os.path.join(__cdir__, "../.public.json")
+        if os.path.exists(private_file):
+            with open(private_file, 'r') as f:
+                private = json.load(f)
+        else:
+            raise Exception("File .public.json not found")
+
+        git_user = private["git"]["login"]
+        git_pwd = private["git"]["password"]
+
+        import crypt
+        if not git_pwd:
+            raise Exception("The private file does not exist")
+        elif len(git_pwd) < 64:
+            git_pwd = crypt.encrypt_message(git_pwd)
+            private["git"]["password"] = git_pwd
+            with open(private_file, 'w') as f:
+                json.dump(private, f)
+        else:
+            _git_pwd = crypt.decrypt_message(git_pwd)
+            git_pwd = ""
+            for i in range(0, len(_git_pwd), 2):
+                git_pwd = git_pwd + _git_pwd[i]
+    else:
+        private_file = os.path.join(__cdir__, "../private.json")
+        if os.path.exists(private_file):
+            with open(private_file, 'r') as f:
+                private = json.load(f)
+        else:
+            raise Exception("File .private.json not found")
+
+        git_user = private["git"]["login"]
+        git_pwd = private["git"]["password"]
+
+    os.environ['GIT_ASKPASS'] = os.path.join(__cdir__,'askpass.sh')
+    os.environ['GIT_USERNAME'] = git_user
+    os.environ['GIT_PASSWORD'] = git_pwd
+
+    PACKAGES = _read_pkgs()
+
+    if repo_name == "all":
+        for repo_name in PACKAGES:
+            _git_pull_repo(repo_name, git_user, git_pwd, userorigin)
+    else:
+        _git_pull_repo(repo_name, git_user, git_pwd, userorigin)
+
+def _git_pull_repo(repo_name, user, pwd, userorigin=GIT_URL):
+    url = _build_repo_url(repo_name, userorigin)
+    tab = url.split("://")
+    url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
+    #url = f"{tab[0]}://{user}@{tab[1]}"
+
+    if _is_installed(repo_name):
+        print(f"Git update {repo_name} from " + f"{tab[0]}://{tab[1]}")
+        
+        if _is_installed_brick(repo_name):
+            repo_dir = _build_repo_dir_path(repo_name, "brick")
+            repo_type_msg = "brick"
+        elif _is_installed_lab(repo_name):
+            repo_dir = _build_repo_dir_path(repo_name, "lab")
+            repo_type_msg = "lab"
+        elif _is_installed_extern(repo_name):
+            repo_dir = _build_repo_dir_path(repo_name, "extern")
+            repo_type_msg = "extern repo"
+
+        print(f"Git update {repo_type_msg} {repo_name} from {tab[0]}://{tab[1]}")
+        git_repo = git.Repo(repo_dir)
+        o = git_repo.remotes.origin
+        o.pull()
+    else:
+        print(f"Git clone {repo_name} from {tab[0]}://{tab[1]}")
+        tmp_repo_dir = _build_tmp_repo_dir_path(repo_name)
+        if IS_TEST:
+            git.Repo.clone_from(url, tmp_repo_dir, branch='master', depth=1, shallow_submodules=True)
+        else:
+            git.Repo.clone_from(url, tmp_repo_dir, branch='master', depth=1, shallow_submodules=True)
+
+        repo_type = _read_repo_type(tmp_repo_dir)
+        repo_dir = _build_repo_dir_path(repo_name, repo_type)
+
+        shutil.move(tmp_repo_dir, repo_dir)
+        git_repo = git.Repo(repo_dir)
+
+    try:
+        for sub in git_repo.submodules:
+            sub_url = sub.config_reader().get_value("url")
+            import re
+            tab = re.split("://.+@", sub_url)
+            sub_url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
+            sub.config_writer().set_value("url", sub_url).release()
+            print(f"Getting submodule {tab[0]}://{tab[1]}")
+
+        git_repo.submodule_update(recursive=True)
+    except:
+        pass
+
+def git_push(repo_name="all", userorigin=GIT_URL):
+    pass
+
+def _git_push_repo(repo_name, user, pwd):
+    pass
+
+# -- I --
+
+def _is_installed_brick(repo_name):
+    return os.path.exists( _build_repo_dir_path(repo_name,"brick") ) 
+
+def _is_installed_lab(repo_name):
+    return os.path.exists( _build_repo_dir_path(repo_name,"lab") ) 
+
+def _is_installed_extern(repo_name):
+    return os.path.exists( _build_repo_dir_path(repo_name,"extern") ) 
+
+# -- M --
+
+def _install_skeleton_to_lab(lab_name):
+    _set_cwd(workspace="./gws/")
+    skeleton_dir = _build_repo_dir_path("skeleton", "brick")
+
+    _set_cwd(workspace="./user/")
+    dest_dir = os.path.join(LAB_DIR, lab_name)
+    shutil.copytree(
+        skeleton_dir, 
+        dest_dir
+    )
+
+    # rename module
+    shutil.move(
+        os.path.join(dest_dir, "skeleton"), 
+        os.path.join(dest_dir, lab_name)
+    )
+
+    # remove .git folder
+    shutil.rmtree(os.path.join(dest_dir, ".git"))
+
+    # update settings.json
+    settings_file = os.path.join(dest_dir, "settings.json")
+    with open(settings_file, 'r') as f:
+        settings = json.load(f)
+        settings["type"] = "lab"
+        settings["name"] = lab_name
+        settings["app"]["title"] = "My lab"
+        settings["app"]["description"] = "My lab"
+        
+    with open(settings_file, 'w') as f:
+        json.dump(settings, f, indent=4)
+
+    #replace all words 'skeleton'
+    with open(settings_file, 'r') as f:
+        text = f.read()
+        text = text.replace("skeleton", lab_name)
+
+    with open(settings_file, 'w') as f:
+        f.write(text)
+
+# -- R --
+
+def _read_repo_type(repo_dir):
+    settings_file = os.path.join(repo_dir, "settings.json")
+    if os.path.exists(settings_file):
+        with open(settings_file) as f:
+            try:
+                settings = json.load(f)
+                is_lab = settings.get("type", None) == "lab"
+                if is_lab:
+                    return "lab"
+                else:
+                    return  "brick"
+            except:
+                return "extern"
+    else:
+        return "extern"
+
+def _read_pkgs():
+    with open(os.path.join(__cdir__,"../packages.json")) as f:
+            try:
+                return json.load(f)
+            except:
+                raise Exception("Error while parsing the settings JSON file. Please check file setting file.")
+
+# -- S --
+
+def _set_cwd(workspace="./"):
+    global ROOT_DIR
+    global BRICK_DIR
+    global DATA_DIR
+    global LAB_DIR
+    global LOG_DIR
+    global EXTERN_DIR
+    global SANDBOX_DIR
+    global TMP_DIR
+
+    if IS_TEST:
+        ROOT_DIR = os.path.join(__cdir__, "../../tests/")
+    else:
+        ROOT_DIR = os.path.join(__cdir__, "../../")
+
+    BRICK_DIR = os.path.join(ROOT_DIR, workspace, "./bricks")
+    DATA_DIR = os.path.join(ROOT_DIR, workspace, "./data")
+    LAB_DIR = os.path.join(ROOT_DIR, workspace, "./labs")
+    LOG_DIR = os.path.join(ROOT_DIR, workspace, "./logs")
+    EXTERN_DIR = os.path.join(ROOT_DIR, workspace, "./externs")
+    SANDBOX_DIR = os.path.join(ROOT_DIR, workspace, "./sandbox")
+    TMP_DIR = os.path.join(ROOT_DIR, workspace, "./tmp")
+
+# -- U --
+
 def unzip(filename):
     print(f"Extracting {filename} ...")
     with ZipFile(filename, 'r') as zipObj:
         path = os.path.dirname(filename)
         zipObj.extractall(path)
     print(f"Extraction finished.")
+
+# -- ENTRY POINT --
 
 if __name__ == "__main__":
     main()
