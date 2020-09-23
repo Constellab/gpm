@@ -22,7 +22,6 @@ GIT_URL = "https://bitbucket.org/gencovery"
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
 IS_TEST = False
 ROOT_DIR = ""
-
 BRICK_DIR = ""
 DATA_DIR = ""
 LAB_DIR = ""
@@ -46,8 +45,7 @@ PACKAGES = []
 @click.option('--start', is_flag=True, help="Start docker container")
 @click.option('--stop', is_flag=True, help="Stop docker container")
 @click.option('--test', is_flag=True, help="Test mode")
-@click.option('--userorigin', default="", help="The url of the userorigin server")
-def main(ctx, install, labname, pull, push, build, start, stop, test, userorigin):
+def main(ctx, install, labname, pull, push, build, start, stop, test):
     global ROOT_DIR
     global IS_TEST
     IS_TEST = test
@@ -61,9 +59,6 @@ def main(ctx, install, labname, pull, push, build, start, stop, test, userorigin
         # pull user workspace
         _set_cwd(workspace="./user/")
         _create_dirs()
-        user_git_origin_exists = (userorigin != "")
-        if user_git_origin_exists:
-            git_pull(repo_name=pull, userorigin=userorigin, username="", userpwd="")
         
         # allways create a default lab
         lab_dirs = [f.path for f in os.scandir(LAB_DIR) if f.is_dir()]
@@ -78,17 +73,15 @@ def main(ctx, install, labname, pull, push, build, start, stop, test, userorigin
 
         # pull user workspace
         _set_cwd(workspace="./user/")
-        user_git_origin_exists = (userorigin != "")
-        if user_git_origin_exists:
-            git_pull(repo_name=pull, userorigin=userorigin, username="", userpwd="")
+        git_pull(repo_name=pull)
 
     elif push:
         git_push(repo_name=pull)
 
 # -- B --
 
-def _build_repo_url(repo_name, userorigin=GIT_URL):
-    return userorigin + "/" + repo_name.strip("/") + ".git"
+def _build_repo_url(repo_name, origin=GIT_URL):
+    return origin + "/" + repo_name.strip("/") + ".git"
 
 def _build_repo_dir_path(repo_name, repo_type):
     if repo_type == "brick":
@@ -158,8 +151,18 @@ def _download(url, filename):
 
 # -- G --
 
-def git_pull(repo_name="all", userorigin=GIT_URL, username="", userpwd=""):
-    if userorigin == GIT_URL:
+def git_pull(repo_name="all", origin=GIT_URL, username="", userpwd=""):
+    #if origin == GIT_URL:
+    git_user = ""
+    git_pwd = ""
+    private_file = os.path.join(__cdir__, "../.private.json")
+    if os.path.exists(private_file):
+        with open(private_file, 'r') as f:
+            private = json.load(f)
+            git_user = private["git"]["login"]
+            git_pwd = private["git"]["password"]
+
+    if git_user == "" or git_pwd == "":
         private_file = os.path.join(__cdir__, "../.public.json")
         if os.path.exists(private_file):
             with open(private_file, 'r') as f:
@@ -169,45 +172,40 @@ def git_pull(repo_name="all", userorigin=GIT_URL, username="", userpwd=""):
 
         git_user = private["git"]["login"]
         git_pwd = private["git"]["password"]
-
-        import crypt
+        
+        
         if not git_pwd:
-            raise Exception("The private file does not exist")
+            raise Exception("The invalid git password")
         elif len(git_pwd) < 64:
+            import crypt
             git_pwd = crypt.encrypt_message(git_pwd)
             private["git"]["password"] = git_pwd
             with open(private_file, 'w') as f:
                 json.dump(private, f)
         else:
+            import crypt
             _git_pwd = crypt.decrypt_message(git_pwd)
             git_pwd = ""
             for i in range(0, len(_git_pwd), 2):
                 git_pwd = git_pwd + _git_pwd[i]
-    else:
-        private_file = os.path.join(__cdir__, "../private.json")
-        if os.path.exists(private_file):
-            with open(private_file, 'r') as f:
-                private = json.load(f)
-        else:
-            raise Exception("File .private.json not found")
-
-        git_user = private["git"]["login"]
-        git_pwd = private["git"]["password"]
 
     os.environ['GIT_ASKPASS'] = os.path.join(__cdir__,'askpass.sh')
     os.environ['GIT_USERNAME'] = git_user
     os.environ['GIT_PASSWORD'] = git_pwd
 
+    import urllib
+    git_pwd = urllib.parse.quote(git_pwd)
+    
     PACKAGES = _read_pkgs()
 
     if repo_name == "all":
         for repo_name in PACKAGES:
-            _git_pull_repo(repo_name, git_user, git_pwd, userorigin)
+            _git_pull_repo(repo_name, git_user, git_pwd, origin)
     else:
-        _git_pull_repo(repo_name, git_user, git_pwd, userorigin)
+        _git_pull_repo(repo_name, git_user, git_pwd, origin)
 
-def _git_pull_repo(repo_name, user, pwd, userorigin=GIT_URL):
-    url = _build_repo_url(repo_name, userorigin)
+def _git_pull_repo(repo_name, user, pwd, origin=GIT_URL):
+    url = _build_repo_url(repo_name, origin)
     tab = url.split("://")
     url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
     #url = f"{tab[0]}://{user}@{tab[1]}"
@@ -256,7 +254,7 @@ def _git_pull_repo(repo_name, user, pwd, userorigin=GIT_URL):
     except:
         pass
 
-def git_push(repo_name="all", userorigin=GIT_URL):
+def git_push(repo_name="all", origin=GIT_URL):
     pass
 
 def _git_push_repo(repo_name, user, pwd):
