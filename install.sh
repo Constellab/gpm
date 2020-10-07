@@ -33,7 +33,7 @@ python3 -m virtualenv ../.venv --python=python3
 source ../.venv/bin/activate
 
 python3 -m pip install -r "requirements.txt"
-python ./src/gpm.py --install $repo $labname $test $force $dev
+python3 ./src/gpm.py --install $repo $labname $test $force $dev
 
 find ${install_dir}gws/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
 find ${install_dir}gws/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
