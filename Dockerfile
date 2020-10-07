@@ -31,8 +31,8 @@ RUN python3 -m virtualenv $VIRTUAL_ENV --python=python3
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 RUN chmod +x ./src/askpass.sh
-RUN chmod +x ./install-repo.sh --docker --user-dir ${USERDIR}
-RUN ./install-repo.sh --labname ${LABNAME} 
+RUN chmod +x ./install-repo.sh
+RUN ./install-repo.sh --labname ${LABNAME} --docker --user-dir ${USERDIR}
 RUN ls -al
 
 # bazel
