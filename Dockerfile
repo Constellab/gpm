@@ -1,12 +1,13 @@
 FROM ubuntu
 
 LABEL maintainer="Gencovery Admin <admin@gencovery.com>"
+ 
+ARG APPDIR
+ARG LABNAME
 
-ENV LABNAME mylab
-
-ENV GWSDIR /home/ubuntu/work
-ENV WORKDIR ${GWSDIR}/gpm
-ENV LABDIR ${GWSDIR}/user/labs/${LABNAME}
+ENV APPDIR ${APPDIR}/gpm
+ENV WORKDIR ${APPDIR}/gpm
+ENV LABDIR ${APPDIR}/user/labs/${LABNAME}
 
 ADD . ${WORKDIR}
 
@@ -20,7 +21,7 @@ RUN ./src/install_python.sh
 RUN ls -al
 
 RUN chmod +x ./src/askpass.sh
-RUN ./install.sh --labname ${LABNAME}  
+RUN ./install.sh --labname ${LABNAME} 
 RUN ls -al
 
 # bazel

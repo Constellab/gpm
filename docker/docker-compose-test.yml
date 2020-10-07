@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+
+  gws:
+    build:
+      context: ../../
+      args:
+        APPDIR: /app/gws
+        LABNAME: mylab
+
+    image: gws:latest
+    ports:
+      - 3000:80
+    volumes:
+      - /home/ubuntu/work:/app/gws/user
+      - /app/gws-data:/app/gws/gws/data
+      - /app/gws-logs:/app/gws/gws/logs
+    restart: always

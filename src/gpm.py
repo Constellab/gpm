@@ -21,6 +21,7 @@ GIT_URL = "https://bitbucket.org/gencovery"
 
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
 IS_TEST = False
+
 ROOT_DIR = ""
 BRICK_DIR = ""
 DATA_DIR = ""
@@ -45,7 +46,8 @@ PACKAGES = []
 @click.option('--start', is_flag=True, help="Start docker container")
 @click.option('--stop', is_flag=True, help="Stop docker container")
 @click.option('--test', is_flag=True, help="Test mode")
-def main(ctx, install, labname, pull, push, build, start, stop, test):
+@click.option('--no_single_branch', is_flag=True, help="Get all git branches")
+def main(ctx, install, labname, pull, push, build, start, stop, test, no_single_branch):
     global ROOT_DIR
     global IS_TEST
     IS_TEST = test
@@ -54,10 +56,10 @@ def main(ctx, install, labname, pull, push, build, start, stop, test):
         # pull gws workspace
         _set_cwd(workspace="./gws/")
         _create_dirs()
-        git_pull(repo_name="all")
+        git_pull(repo_name="all", no_single_branch=no_single_branch)
         
         # pull user workspace
-        _set_cwd(workspace="./user/")
+        _set_cwd(workspace="./user/", no_single_branch=no_single_branch)
         _create_dirs()
         
         # allways create a default lab
@@ -69,11 +71,11 @@ def main(ctx, install, labname, pull, push, build, start, stop, test):
     if pull:
         # pull gws workspace
         _set_cwd(workspace="./gws/")
-        git_pull(repo_name=pull)
+        git_pull(repo_name=pull, no_single_branch=no_single_branch)
 
         # pull user workspace
         _set_cwd(workspace="./user/")
-        git_pull(repo_name=pull)
+        git_pull(repo_name=pull, no_single_branch=no_single_branch)
 
     elif push:
         git_push(repo_name=pull)
@@ -151,7 +153,7 @@ def _download(url, filename):
 
 # -- G --
 
-def git_pull(repo_name="all", origin=GIT_URL, username="", userpwd=""):
+def git_pull(repo_name="all", origin=GIT_URL, username="", userpwd="", no_single_branch=true):
     #if origin == GIT_URL:
     git_user = ""
     git_pwd = ""
@@ -200,11 +202,11 @@ def git_pull(repo_name="all", origin=GIT_URL, username="", userpwd=""):
 
     if repo_name == "all":
         for repo_name in PACKAGES:
-            _git_pull_repo(repo_name, git_user, git_pwd, origin)
+            _git_pull_repo(repo_name, git_user, git_pwd, origin, no_single_branch)
     else:
-        _git_pull_repo(repo_name, git_user, git_pwd, origin)
+        _git_pull_repo(repo_name, git_user, git_pwd, origin, no_single_branch)
 
-def _git_pull_repo(repo_name, user, pwd, origin=GIT_URL):
+def _git_pull_repo(repo_name, user, pwd, origin=GIT_URL, no_single_branch=True):
     url = _build_repo_url(repo_name, origin)
     tab = url.split("://")
     url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
@@ -230,10 +232,14 @@ def _git_pull_repo(repo_name, user, pwd, origin=GIT_URL):
     else:
         print(f"Git clone {repo_name} from {tab[0]}://{tab[1]}")
         tmp_repo_dir = _build_tmp_repo_dir_path(repo_name)
-        if IS_TEST:
-            git.Repo.clone_from(url, tmp_repo_dir, branch='master', depth=1, shallow_submodules=True)
-        else:
-            git.Repo.clone_from(url, tmp_repo_dir, branch='master', depth=1, shallow_submodules=True)
+
+        git.Repo.clone_from(
+            url, 
+            tmp_repo_dir, 
+            no_single_branch=no_single_branch, 
+            depth=1, 
+            shallow_submodules=True
+        )
 
         repo_type = _read_repo_type(tmp_repo_dir)
         repo_dir = _build_repo_dir_path(repo_name, repo_type)
