@@ -7,6 +7,7 @@ services:
       context: ../
       args:
         APPDIR: /app/gws
+        USERDIR: /home/ubuntu/work
         LABNAME: mylab
 
     image: gws:latest

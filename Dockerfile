@@ -4,10 +4,10 @@ LABEL maintainer="Gencovery Admin <admin@gencovery.com>"
  
 ARG APPDIR
 ARG LABNAME
+ARG USERDIR
 
-ENV APPDIR ${APPDIR}/gpm
-ENV WORKDIR ${APPDIR}/gpm
-ENV LABDIR ${APPDIR}/user/labs/${LABNAME}
+ENV WORKDIR ${APPDIR}
+ENV LABDIR ${USERDIR}/labs/${LABNAME}
 
 ADD . ${WORKDIR}
 
@@ -20,9 +20,19 @@ RUN ./src/install_python.sh
 
 RUN ls -al
 
+# install python and venv
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+RUN python3 get-pip.py
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install virtualenv
+
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m virtualenv $VIRTUAL_ENV --python=python3
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 RUN chmod +x ./src/askpass.sh
-RUN chmod +x ./install.sh
-RUN ./install.sh --labname ${LABNAME} 
+RUN chmod +x ./install-repo.sh --docker --user-dir ${USERDIR}
+RUN ./install-repo.sh --labname ${LABNAME} 
 RUN ls -al
 
 # bazel
