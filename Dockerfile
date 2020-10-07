@@ -21,6 +21,7 @@ RUN ./src/install_python.sh
 RUN ls -al
 
 RUN chmod +x ./src/askpass.sh
+RUN chmod +x ./install.sh
 RUN ./install.sh --labname ${LABNAME} 
 RUN ls -al
 
