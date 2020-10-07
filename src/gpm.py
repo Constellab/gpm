@@ -153,7 +153,7 @@ def _download(url, filename):
 
 # -- G --
 
-def git_pull(repo_name="all", origin=GIT_URL, username="", userpwd="", no_single_branch=true):
+def git_pull(repo_name="all", origin=GIT_URL, username="", userpwd="", no_single_branch=True):
     #if origin == GIT_URL:
     git_user = ""
     git_pwd = ""
