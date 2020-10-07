@@ -4,7 +4,7 @@ services:
 
   gws:
     build:
-      context: ../../
+      context: ../
       args:
         APPDIR: /app/gws
         LABNAME: mylab
