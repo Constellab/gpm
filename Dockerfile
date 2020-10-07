@@ -6,7 +6,12 @@ ARG APPDIR
 ARG LABNAME
 ARG USERDIR
 
-ENV WORKDIR ${APPDIR}
+
+RUN echo ${APPDIR}
+RUN echo ${LABNAME}
+RUN echo ${USERDIR}
+
+ENV WORKDIR ${APPDIR}/gpm
 ENV LABDIR ${USERDIR}/labs/${LABNAME}
 
 ADD . ${WORKDIR}
@@ -46,4 +51,7 @@ RUN ls -al
 #RUN ./sh/install_dlib.sh
 
 WORKDIR ${LABDIR}
+
+RUN ls -al
+
 CMD python3 manage.py --runserver
