@@ -20,9 +20,6 @@ import pip
 GIT_URL = "https://bitbucket.org/gencovery"
 
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
-IS_TEST = False
-
-ROOT_DIR = ""
 BRICK_DIR = ""
 DATA_DIR = ""
 LAB_DIR = ""
@@ -39,42 +36,46 @@ PACKAGES = []
 ))
 @click.pass_context
 @click.option('--install', is_flag=True, help='Install')
-@click.option('--labname', default="mylab", help='Lab name on install')
 @click.option('--pull', help='Pull a brick')
 @click.option('--push', help="Push a brick")
-@click.option('--build', is_flag=True, help="Build docker image")
-@click.option('--start', is_flag=True, help="Start docker container")
-@click.option('--stop', is_flag=True, help="Stop docker container")
-@click.option('--test', is_flag=True, help="Test mode")
-@click.option('--no_single_branch', is_flag=True, help="Get all git branches")
-def main(ctx, install, labname, pull, push, build, start, stop, test, no_single_branch):
-    global ROOT_DIR
-    global IS_TEST
-    IS_TEST = test
+
+@click.option('--gws-dir', help="GWS workspace directory", required=True)
+@click.option('--user-dir', help="User workspace directory", required=True)
+@click.option('--lab-name', default="mylab", help='Lab name on install')
+@click.option('--no-single-branch', is_flag=True, help="Get all git branches")
+def main(ctx, install, pull, push, gws_dir, user_dir, lab_name, no_single_branch):
+
+    if not gws_dir.startswith("/"):
+        print("Error: Invalid option '--gws-dir'. Absolute path required.")
+        return
+
+    if not user_dir.startswith("/"):
+        print("Error: Invalid option '--user_dir'. Absolute path required.")
+        return
 
     if install:
         # pull gws workspace
-        _set_cwd(workspace="./gws/")
+        _set_cwd(workspace=gws_dir)
         _create_dirs()
         git_pull(repo_name="all", no_single_branch=no_single_branch)
         
         # pull user workspace
-        _set_cwd(workspace="./user/")
+        _set_cwd(workspace=user_dir)
         _create_dirs()
         
         # allways create a default lab
         lab_dirs = [f.path for f in os.scandir(LAB_DIR) if f.is_dir()]
         no_lab_exists = (len(lab_dirs) == 0)
         if no_lab_exists:
-            _install_skeleton_to_lab(labname)
+            _install_skeleton_to_lab(lab_name, gws_dir, user_dir)
 
     if pull:
         # pull gws workspace
-        _set_cwd(workspace="./gws/")
+        _set_cwd(workspace=gws_dir)
         git_pull(repo_name=pull, no_single_branch=no_single_branch)
 
         # pull user workspace
-        _set_cwd(workspace="./user/")
+        _set_cwd(workspace=user_dir)
         git_pull(repo_name=pull, no_single_branch=no_single_branch)
 
     elif push:
@@ -279,11 +280,11 @@ def _is_installed_extern(repo_name):
 
 # -- M --
 
-def _install_skeleton_to_lab(lab_name):
-    _set_cwd(workspace="./gws/")
+def _install_skeleton_to_lab(lab_name, gws_dir, user_dir):
+    _set_cwd(workspace=gws_dir)
     skeleton_dir = _build_repo_dir_path("skeleton", "brick")
 
-    _set_cwd(workspace="./user/")
+    _set_cwd(workspace=user_dir)
     dest_dir = os.path.join(LAB_DIR, lab_name)
     shutil.copytree(
         skeleton_dir, 
@@ -355,8 +356,7 @@ def _read_pkgs():
 
 # -- S --
 
-def _set_cwd(workspace="./"):
-    global ROOT_DIR
+def _set_cwd(workspace):
     global BRICK_DIR
     global DATA_DIR
     global LAB_DIR
@@ -365,18 +365,13 @@ def _set_cwd(workspace="./"):
     global SANDBOX_DIR
     global TMP_DIR
 
-    if IS_TEST:
-        ROOT_DIR = os.path.join(__cdir__, "../../tests/")
-    else:
-        ROOT_DIR = os.path.join(__cdir__, "../../")
-
-    BRICK_DIR = os.path.join(ROOT_DIR, workspace, "./bricks")
-    DATA_DIR = os.path.join(ROOT_DIR, workspace, "./data")
-    LAB_DIR = os.path.join(ROOT_DIR, workspace, "./labs")
-    LOG_DIR = os.path.join(ROOT_DIR, workspace, "./logs")
-    EXTERN_DIR = os.path.join(ROOT_DIR, workspace, "./externs")
-    SANDBOX_DIR = os.path.join(ROOT_DIR, workspace, "./sandbox")
-    TMP_DIR = os.path.join(ROOT_DIR, workspace, "./tmp")
+    BRICK_DIR = os.path.join(workspace, "./bricks")
+    DATA_DIR = os.path.join(workspace, "./data")
+    LAB_DIR = os.path.join(workspace, "./labs")
+    LOG_DIR = os.path.join(workspace, "./logs")
+    EXTERN_DIR = os.path.join(workspace, "./externs")
+    SANDBOX_DIR = os.path.join(workspace, "./sandbox")
+    TMP_DIR = os.path.join(workspace, "./tmp")
 
 # -- U --
 

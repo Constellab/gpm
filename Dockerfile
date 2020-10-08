@@ -3,42 +3,32 @@ FROM ubuntu
 LABEL maintainer="Gencovery Admin <admin@gencovery.com>"
  
 ARG APPDIR
-ARG LABNAME
 ARG USERDIR
-
-
-RUN echo ${APPDIR}
-RUN echo ${LABNAME}
-RUN echo ${USERDIR}
+ARG LABNAME
 
 ENV WORKDIR ${APPDIR}/gpm
+ENV GWSDIR ${APPDIR}/gws
 ENV LABDIR ${USERDIR}/labs/${LABNAME}
 
 ADD . ${WORKDIR}
 
 WORKDIR ${WORKDIR}
 
-RUN ls -al
-
+# install python, pip and venv
 RUN chmod +x ./src/install_python.sh
 RUN bash ./src/install_python.sh
-
-RUN ls -al
-
-# install python and venv
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 RUN python3 get-pip.py
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install virtualenv
-
 ENV VIRTUAL_ENV=/opt/venv
 RUN python3 -m virtualenv $VIRTUAL_ENV --python=python3
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
+# install app
 RUN chmod +x ./src/askpass.sh
-RUN chmod +x ./install-repo.sh
-RUN bash ./install-repo.sh --labname ${LABNAME} --docker --user-dir ${USERDIR}
-RUN ls -al
+RUN chmod +x ./gpm.sh
+RUN bash ./gpm.sh --gws-dir ${GWSDIR} --user-dir ${USERDIR} --lab-name ${LABNAME} --docker
 
 # bazel
 #RUN chmod +x ./sh/install_bazel.sh
@@ -54,9 +44,5 @@ WORKDIR ${LABDIR}
 
 RUN ls -al
 RUN ls ../ -al
-
-RUN echo ${APPDIR}
-RUN echo ${LABNAME}
-RUN echo ${USERDIR}
 
 CMD python3 manage.py --runserver

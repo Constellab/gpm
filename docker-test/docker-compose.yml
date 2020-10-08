@@ -15,6 +15,4 @@ services:
       - 3000:80
     volumes:
       - /home/ubuntu/work:/app/gws/user
-      - /app/gws-data:/app/gws/gws/data
-      - /app/gws-logs:/app/gws/gws/logs
     restart: always
