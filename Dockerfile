@@ -13,6 +13,8 @@ ENV LAB_DIR ${USER_DIR}/labs/${LAB_NAME}
 ADD . ${WORK_DIR}
 WORKDIR ${WORK_DIR}
 
+VOLUME ${USER_DIR}
+
 # install python, pip and venv
 RUN chmod +x ./src/install_python.sh
 RUN bash ./src/install_python.sh
@@ -39,4 +41,8 @@ RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-na
 #RUN chmod +x ./sh/install_dlib.sh
 #RUN ./sh/install_dlib.sh
 
-CMD python3 ${LAB_DIR}/manage.py --runserver
+WORKDIR ${LAB_DIR}
+
+RUN ls ${LAB_DIR} -al
+
+CMD python3 manage.py --runserver
