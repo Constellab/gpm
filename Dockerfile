@@ -44,5 +44,6 @@ RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-na
 WORKDIR ${LAB_DIR}
 
 RUN ls ${LAB_DIR} -al
+RUN ls ${USER_DIR} -al
 
-CMD python3 manage.py --runserver
+CMD python3 ${USER_DIR}/manage.py --runserver
