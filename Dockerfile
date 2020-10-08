@@ -51,11 +51,6 @@ RUN chmod +x ./gpm.sh
 #RUN chmod +x ./sh/install_dlib.sh
 #RUN ./sh/install_dlib.sh
 
-
-
-RUN ls ${LAB_DIR} -al
-RUN ls ${#} -al
-
 COPY docker-entrypoint.sh /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD [ ${GWS_DIR}, ${USER_DIR}, ${LAB_DIR}, ${LAB_NAME} ]
