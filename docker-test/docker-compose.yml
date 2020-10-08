@@ -6,7 +6,7 @@ services:
     build:
       context: ../
       args:
-        APP_DIR: /app
+        APP_DIR: /app/gws
         LAB_NAME: mylab
 
     image: gws:latest
