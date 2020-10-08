@@ -39,9 +39,4 @@ RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-na
 #RUN chmod +x ./sh/install_dlib.sh
 #RUN ./sh/install_dlib.sh
 
-WORKDIR ${LAB_DIR}
-
-RUN ls -al
-RUN ls ../ -al
-
-CMD python3 manage.py --runserver
+CMD python3 ${LAB_DIR}/manage.py --runserver
