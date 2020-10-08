@@ -5,7 +5,7 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 ARG APP_DIR
 ARG LAB_NAME
 
-ENV WORK_DIR ${APP_DIR}/gpm
+ENV GPM_DIR ${APP_DIR}/gpm
 ENV GWS_DIR ${APP_DIR}/gws
 
 ENV USER_DIR ${APP_DIR}/user
@@ -15,10 +15,8 @@ ENV LAB_DIR ${USER_DIR}/labs/${LAB_NAME}
 
 VOLUME ${USER_DIR}
 
-ADD . ${WORK_DIR}
-WORKDIR ${WORK_DIR}
-
-
+ADD . ${GPM_DIR}
+WORKDIR ${GPM_DIR}
 
 # install python, pip and venv
 RUN chmod +x ./src/install_python.sh
@@ -47,12 +45,12 @@ RUN chmod +x ./gpm.sh
 
 # dlib
 #COPY ./sh/install_dlib.sh ./extern/dlib-cpp
-#WORK_DIR ${WORK_DIR}/extern/dlib-cpp
+#GPM_DIR ${GPM_DIR}/extern/dlib-cpp
 #RUN chmod +x ./sh/install_dlib.sh
 #RUN ./sh/install_dlib.sh
 
-COPY docker-entrypoint.sh /entrypoint.sh
-ENTRYPOINT [ "/entrypoint.sh" ]
-CMD [ ${GWS_DIR}, ${USER_DIR}, ${LAB_DIR}, ${LAB_NAME} ]
+COPY docker-entrypoint.sh ${APP_DIR}/entrypoint.sh
+ENTRYPOINT [ "${APP_DIR}/entrypoint.sh" ]
+CMD [ "${GWS_DIR}", "${USER_DIR}", "${LAB_DIR}", "${LAB_NAME}" ]
 
 #CMD python3 ${LAB_DIR}/manage.py --runserver
