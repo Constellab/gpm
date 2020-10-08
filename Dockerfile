@@ -13,7 +13,7 @@ ENV LAB_DIR ${USER_DIR}/labs/${LAB_NAME}
 ADD . ${WORK_DIR}
 WORKDIR ${WORK_DIR}
 
-VOLUME ${USER_DIR}
+
 
 # install python, pip and venv
 RUN chmod +x ./src/install_python.sh
@@ -29,7 +29,9 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # install app
 RUN chmod +x ./src/askpass.sh
 RUN chmod +x ./gpm.sh
+
 RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-name ${LAB_NAME} --docker
+VOLUME ${USER_DIR}
 
 # bazel
 #RUN chmod +x ./sh/install_bazel.sh
