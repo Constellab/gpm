@@ -8,7 +8,9 @@ ARG LAB_NAME
 ENV WORK_DIR ${APP_DIR}/gpm
 ENV GWS_DIR ${APP_DIR}/gws
 ENV USER_DIR ${APP_DIR}/user
-ENV LAB_DIR ${USER_DIR}/labs/${LAB_NAME}
+ENV LAB_DIR ${TMP_USER_DIR}/labs/${LAB_NAME}
+ENV TMP_USER_DIR ${APP_DIR}/tmp_user
+ENV TMP_LAB_DIR ${TMP_USER_DIR}/labs/${LAB_NAME}
 
 ADD . ${WORK_DIR}
 WORKDIR ${WORK_DIR}
@@ -30,9 +32,14 @@ RUN python3 -m pip install --upgrade pip
 RUN chmod +x ./src/askpass.sh
 RUN chmod +x ./gpm.sh
 
-RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-name ${LAB_NAME} --docker
+RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${TMP_USER_DIR} --lab-name ${LAB_NAME} --docker
 
-#VOLUME ${USER_DIR}
+RUN ls ${TMP_USER_DIR} -al
+
+
+VOLUME ${USER_DIR}
+COPY ${TMP_USER_DIR} ${USER_DIR}
+RUN rm -rf ${TMP_USER_DIR}
 
 # bazel
 #RUN chmod +x ./sh/install_bazel.sh
@@ -44,7 +51,7 @@ RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-na
 #RUN chmod +x ./sh/install_dlib.sh
 #RUN ./sh/install_dlib.sh
 
-WORKDIR ${LAB_DIR}
+
 
 RUN ls ${LAB_DIR} -al
 RUN ls ${USER_DIR} -al
