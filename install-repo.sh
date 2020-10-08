@@ -43,7 +43,8 @@ while :; do
     shift
 done
 
-if [ $docker == "no" ]; then
+if [ $docker == "no" ]
+then
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
     python3 get-pip.py
 

@@ -53,5 +53,10 @@ RUN ls -al
 WORKDIR ${LABDIR}
 
 RUN ls -al
+RUN ls ../ -al
+
+RUN echo ${APPDIR}
+RUN echo ${LABNAME}
+RUN echo ${USERDIR}
 
 CMD python3 manage.py --runserver
