@@ -27,7 +27,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # install app
 RUN chmod +x ./src/askpass.sh
 RUN chmod +x ./gpm.sh
-RUN bash ./gpm.sh --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-name ${LAB_NAME} --docker
+RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-name ${LAB_NAME} --docker
 
 # bazel
 #RUN chmod +x ./sh/install_bazel.sh
