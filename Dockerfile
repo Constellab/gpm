@@ -35,7 +35,7 @@ RUN python3 -m pip install --upgrade pip
 RUN chmod +x ./src/askpass.sh
 RUN chmod +x ./gpm.sh
 
-RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-name ${LAB_NAME} --docker
+#RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-name ${LAB_NAME} --docker
 
 #RUN ls ${TMP_USER_DIR} -al
 #RUN cp -r ${TMP_USER_DIR}/** ${USER_DIR}
@@ -54,6 +54,10 @@ RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-na
 
 
 RUN ls ${LAB_DIR} -al
-RUN ls ${USER_DIR} -al
+RUN ls ${#} -al
 
-CMD python3 ${LAB_DIR}/manage.py --runserver
+COPY docker-entrypoint.sh /entrypoint.sh
+ENTRYPOINT [ "/entrypoint.sh" ]
+CMD [ ${GWS_DIR}, ${USER_DIR}, ${LAB_DIR}, ${LAB_NAME} ]
+
+#CMD python3 ${LAB_DIR}/manage.py --runserver
