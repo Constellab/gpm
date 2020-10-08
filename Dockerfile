@@ -1,18 +1,17 @@
 FROM ubuntu
 
-LABEL maintainer="Gencovery Admin <admin@gencovery.com>"
+LABEL maintainer="Admin <admin@gencovery.com>"
  
-ARG APPDIR
-ARG USERDIR
-ARG LABNAME
+ARG APP_DIR
+ARG LAB_NAME
 
-ENV WORKDIR ${APPDIR}/gpm
-ENV GWSDIR ${APPDIR}/gws
-ENV LABDIR ${USERDIR}/labs/${LABNAME}
+ENV WORK_DIR ${APP_DIR}/gpm
+ENV GWS_DIR ${APP_DIR}/gws
+ENV USER_DIR ${APP_DIR}/user
+ENV LAB_DIR ${USER_DIR}/labs/${LAB_NAME}
 
-ADD . ${WORKDIR}
-
-WORKDIR ${WORKDIR}
+ADD . ${WORK_DIR}
+WORKDIR ${WORK_DIR}
 
 # install python, pip and venv
 RUN chmod +x ./src/install_python.sh
@@ -28,7 +27,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 # install app
 RUN chmod +x ./src/askpass.sh
 RUN chmod +x ./gpm.sh
-RUN bash ./gpm.sh --gws-dir ${GWSDIR} --user-dir ${USERDIR} --lab-name ${LABNAME} --docker
+RUN bash ./gpm.sh --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-name ${LAB_NAME} --docker
 
 # bazel
 #RUN chmod +x ./sh/install_bazel.sh
@@ -36,11 +35,11 @@ RUN bash ./gpm.sh --gws-dir ${GWSDIR} --user-dir ${USERDIR} --lab-name ${LABNAME
 
 # dlib
 #COPY ./sh/install_dlib.sh ./extern/dlib-cpp
-#WORKDIR ${WORKDIR}/extern/dlib-cpp
+#WORK_DIR ${WORK_DIR}/extern/dlib-cpp
 #RUN chmod +x ./sh/install_dlib.sh
 #RUN ./sh/install_dlib.sh
 
-WORKDIR ${LABDIR}
+WORKDIR ${LAB_DIR}
 
 RUN ls -al
 RUN ls ../ -al
