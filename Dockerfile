@@ -46,4 +46,4 @@ WORKDIR ${LAB_DIR}
 RUN ls ${LAB_DIR} -al
 RUN ls ${USER_DIR} -al
 
-CMD python3 ${USER_DIR}/manage.py --runserver
+CMD python3 ${LAB_DIR}/manage.py --runserver
