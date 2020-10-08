@@ -44,6 +44,6 @@ RUN chmod +x ./gpm.sh
 RUN chmod 755 docker-entrypoint.sh
 
 ENTRYPOINT [ "/app/gws/gpm/docker-entrypoint.sh" ]
-CMD [ "/app/gws/gws", "/app/gws/user", "/app/gws/labs/mylab", "mylab" ]
+CMD [ "/app/gws/gpm", "/app/gws/gws", "/app/gws/user", "/app/gws/labs/mylab", "mylab" ]
 
 #CMD python3 ${LAB_DIR}/manage.py --runserver
