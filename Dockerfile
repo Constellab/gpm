@@ -30,7 +30,9 @@ RUN python3 -m pip install --upgrade pip
 RUN chmod +x ./src/askpass.sh
 RUN chmod +x ./gpm.sh
 
-VOLUME ${USER_DIR}
+RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-name ${LAB_NAME} --docker
+
+#VOLUME ${USER_DIR}
 
 # bazel
 #RUN chmod +x ./sh/install_bazel.sh
@@ -42,12 +44,9 @@ VOLUME ${USER_DIR}
 #RUN chmod +x ./sh/install_dlib.sh
 #RUN ./sh/install_dlib.sh
 
-#WORKDIR ${LAB_DIR}
+WORKDIR ${LAB_DIR}
 
-# RUN ls ${LAB_DIR} -al
-# RUN ls ${USER_DIR} -al
+RUN ls ${LAB_DIR} -al
+RUN ls ${USER_DIR} -al
 
-COPY docker-entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
-CMD [ ${GWS_DIR}, ${USER_DIR}, ${LAB_DIR}, ${LAB_NAME} ]
-#CMD python3 ${LAB_DIR}/manage.py --runserver
+CMD python3 ${LAB_DIR}/manage.py --runserver

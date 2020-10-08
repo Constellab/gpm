@@ -12,6 +12,6 @@ services:
     image: gws:latest
     ports:
       - 3000:80
-    volumes:
-      - /home/ubuntu/work:/app/gws/user
+    #volumes:
+    #  - /home/ubuntu/work:/app/gws/user
     restart: always
