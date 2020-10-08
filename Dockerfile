@@ -44,9 +44,10 @@ VOLUME ${USER_DIR}
 
 #WORKDIR ${LAB_DIR}
 
-RUN ls ${LAB_DIR} -al
-RUN ls ${USER_DIR} -al
+# RUN ls ${LAB_DIR} -al
+# RUN ls ${USER_DIR} -al
 
+COPY docker-entrypoint.sh /entrypoint.sh
 ENTRYPOINT ["entrypoint.sh"]
 CMD [ ${GWS_DIR}, ${USER_DIR}, ${LAB_DIR}, ${LAB_NAME} ]
 #CMD python3 ${LAB_DIR}/manage.py --runserver
