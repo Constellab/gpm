@@ -62,10 +62,10 @@ python3 ./src/gpm.py $cmd \
     $arg_user_dir   \
     $arg_gws_dir
 
-# find ${gws_dir}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-# find ${gws_dir}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-# find ${gws_dir}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+find ${gws_dir}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+find ${gws_dir}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+find ${gws_dir}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
 
-# find ${user_dir}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-# find ${user_dir}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-# find ${user_dir}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+find ${user_dir}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+find ${user_dir}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+find ${user_dir}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
