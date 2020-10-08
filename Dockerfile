@@ -21,7 +21,7 @@ WORKDIR ${WORKDIR}
 RUN ls -al
 
 RUN chmod +x ./src/install_python.sh
-RUN ./src/install_python.sh
+RUN bash ./src/install_python.sh
 
 RUN ls -al
 
@@ -37,7 +37,7 @@ ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 RUN chmod +x ./src/askpass.sh
 RUN chmod +x ./install-repo.sh
-RUN ./install-repo.sh --labname ${LABNAME} --docker --user-dir ${USERDIR}
+RUN bash ./install-repo.sh --labname ${LABNAME} --docker --user-dir ${USERDIR}
 RUN ls -al
 
 # bazel
