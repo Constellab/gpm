@@ -2,16 +2,13 @@ FROM ubuntu
 
 LABEL maintainer="Admin <admin@gencovery.com>"
  
-ARG APP_DIR
-ARG LAB_NAME
+ENV LAB_NAME mylab
+ENV APP_DIR /app/gws
+ENV GPM_DIR /app/gws/gpm
+ENV GWS_DIR /app/gws/gws
 
-ENV GPM_DIR ${APP_DIR}/gpm
-ENV GWS_DIR ${APP_DIR}/gws
-
-ENV USER_DIR ${APP_DIR}/user
-ENV LAB_DIR ${USER_DIR}/labs/${LAB_NAME}
-
-#ENV TMP_USER_DIR ${APP_DIR}/tmp_user
+ENV USER_DIR /app/gws/user
+ENV LAB_DIR /app/gws/labs/mylab
 
 VOLUME ${USER_DIR}
 
@@ -35,22 +32,16 @@ RUN chmod +x ./gpm.sh
 
 #RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-name ${LAB_NAME} --docker
 
-#RUN ls ${TMP_USER_DIR} -al
-#RUN cp -r ${TMP_USER_DIR}/** ${USER_DIR}
-#RUN rm -rf ${TMP_USER_DIR}
-
 # bazel
 #RUN chmod +x ./sh/install_bazel.sh
 #RUN ./sh/install_bazel.sh
-
 # dlib
 #COPY ./sh/install_dlib.sh ./extern/dlib-cpp
 #GPM_DIR ${GPM_DIR}/extern/dlib-cpp
 #RUN chmod +x ./sh/install_dlib.sh
 #RUN ./sh/install_dlib.sh
 
-COPY docker-entrypoint.sh ${APP_DIR}/entrypoint.sh
-ENTRYPOINT [ "${APP_DIR}/entrypoint.sh" ]
-CMD [ "${GWS_DIR}", "${USER_DIR}", "${LAB_DIR}", "${LAB_NAME}" ]
+ENTRYPOINT [ "docker-entrypoint.sh" ]
+CMD [ "/app/gws/gws", "/app/gws/user", "/app/gws/labs/mylab", "mylab" ]
 
 #CMD python3 ${LAB_DIR}/manage.py --runserver
