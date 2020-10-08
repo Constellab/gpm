@@ -42,11 +42,11 @@ VOLUME ${USER_DIR}
 #RUN chmod +x ./sh/install_dlib.sh
 #RUN ./sh/install_dlib.sh
 
-WORKDIR ${LAB_DIR}
+#WORKDIR ${LAB_DIR}
 
 RUN ls ${LAB_DIR} -al
 RUN ls ${USER_DIR} -al
 
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["entrypoint.sh"]
 CMD [ ${GWS_DIR}, ${USER_DIR}, ${LAB_DIR}, ${LAB_NAME} ]
 #CMD python3 ${LAB_DIR}/manage.py --runserver
