@@ -21,16 +21,15 @@ RUN bash ./src/install_python.sh
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 RUN python3 get-pip.py
 RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install virtualenv
-ENV VIRTUAL_ENV=/opt/venv
-RUN python3 -m virtualenv $VIRTUAL_ENV --python=python3
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+# RUN python3 -m pip install virtualenv
+# ENV VIRTUAL_ENV=/opt/venv
+# RUN python3 -m virtualenv $VIRTUAL_ENV --python=python3
+# ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # install app
 RUN chmod +x ./src/askpass.sh
 RUN chmod +x ./gpm.sh
 
-RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-name ${LAB_NAME} --docker
 VOLUME ${USER_DIR}
 
 # bazel
@@ -48,4 +47,6 @@ WORKDIR ${LAB_DIR}
 RUN ls ${LAB_DIR} -al
 RUN ls ${USER_DIR} -al
 
-CMD python3 ${LAB_DIR}/manage.py --runserver
+ENTRYPOINT ["/entrypoint.sh"]
+CMD [ ${GWS_DIR}, ${USER_DIR}, ${LAB_DIR}, ${LAB_NAME} ]
+#CMD python3 ${LAB_DIR}/manage.py --runserver
