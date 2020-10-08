@@ -38,7 +38,9 @@ RUN ls ${TMP_USER_DIR} -al
 
 
 VOLUME ${USER_DIR}
-COPY ${TMP_USER_DIR} ${USER_DIR}
+
+WORKDIR ${TMP_USER_DIR}
+RUN cp -r ${TMP_USER_DIR}/** ${USER_DIR}
 RUN rm -rf ${TMP_USER_DIR}
 
 # bazel
