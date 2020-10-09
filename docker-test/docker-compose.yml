@@ -7,6 +7,7 @@ services:
       context: ../
       args:
         LAB_NAME: main
+        SERVER_ARGS: "--demo"
 
     image: gws:latest
     ports:

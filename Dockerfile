@@ -4,10 +4,11 @@ LABEL maintainer="Admin <admin@gencovery.com>"
  
 ARG APP_DIR
 ARG LAB_NAME
+ARG SERVER_ARGS
 
 ENV APP_DIR /app/gws
 ENV WORK_DIR ${APP_DIR}/gpm
-ENV GWS_DIR ${APP_DIR}/.gws
+ENV GWS_DIR ${APP_DIR}/gws
 ENV USER_DIR ${APP_DIR}/user
 ENV LAB_DIR ${USER_DIR}/labs/${LAB_NAME}
 
@@ -44,4 +45,4 @@ RUN bash ./gpm.sh --install --gws-dir ${GWS_DIR} --user-dir ${USER_DIR} --lab-na
 RUN ls ${LAB_DIR} -al
 RUN ls ${USER_DIR} -al
 
-CMD python3 ${LAB_DIR}/manage.py --runserver
+CMD python3 ${LAB_DIR}/manage.py --runserver ${SERVER_ARGS}
