@@ -16,7 +16,6 @@ done
 #     --user $user
 #     --tag $1:latest \
 #     .
-                
 
 docker-compose up -d \
     --build-arg LABNAME="mylab"

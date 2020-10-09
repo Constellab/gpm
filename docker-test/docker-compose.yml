@@ -6,8 +6,7 @@ services:
     build:
       context: ../
       args:
-        APP_DIR: /app/gws
-        LAB_NAME: mylab
+        LAB_NAME: main
 
     image: gws:latest
     ports:
