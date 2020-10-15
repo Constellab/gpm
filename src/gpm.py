@@ -152,7 +152,7 @@ class GPM():
 
 
     def _install_skeleton_in_user_lab(self):
-        skeleton_dir = os.path.join(self.get_gws_dir(), "bricks", "skeleton")
+        skeleton_dir = os.path.join(self.get_user_dir(), "bricks", "skeleton")
         dest_dir = os.path.join(self.get_user_dir(), "labs", self.lab_name)
 
         shutil.copytree(
