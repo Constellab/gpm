@@ -45,5 +45,7 @@ RUN find ${GWS_DIR}/labs -name 'requirements.txt' -exec python3 -m pip install -
 #RUN bash ./sh/install_dlib.sh
 
 EXPOSE 3000 
-ENTRYPOINT [ "entrypoint.sh", ${USER_DIR} ]
+
+RUN chmod +x entrypoint.sh
+ENTRYPOINT [ "entrypoint.sh", "${USER_DIR}" ]
 CMD python3 ${LAB_DIR}/manage.py --runserver ${SERVER_ARGS}
