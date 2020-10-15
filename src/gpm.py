@@ -19,7 +19,7 @@ import pip
 
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
 
-class Gpm():
+class GPM():
     git_url = "https://bitbucket.org/gencovery"
     settings = []
     structure = ["./bricks", "./data", "./labs", "./logs", "./externs", "./sandbox", "./tmp"]
@@ -383,7 +383,7 @@ class Gpm():
 @click.option('--lab-name', default="main", help='Lab name on install')
 @click.option('--no-single-branch', is_flag=True, help="Get all git branches")
 def main(ctx, install_gws, install_user, pull, push, lab_name, no_single_branch):
-    g = Gpm(gws_dir=install_gws, user_dir=install_user, no_single_branch=no_single_branch)
+    g = GPM(gws_dir=install_gws, user_dir=install_user, no_single_branch=no_single_branch)
 
     if install_gws != "":
         g.install_gws()
