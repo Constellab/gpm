@@ -24,16 +24,15 @@ RUN bash ./src/install_python.sh
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 RUN python3 get-pip.py
 RUN python3 -m pip install --upgrade pip
-# RUN python3 -m pip install virtualenv
-# ENV VIRTUAL_ENV=/opt/venv
-# RUN python3 -m virtualenv $VIRTUAL_ENV --python=python3
-# ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # install app
 RUN chmod +x ./src/askpass.sh
 RUN chmod +x ./gpm.sh
 
-RUN bash ./gpm.sh --install-gws ${GWS_DIR} --user-dir ${USER_DIR} --lab-name ${LAB_NAME} --docker
+RUN python3 ./src/gpm.py --install-gws ${GWS_DIR} --lab-name ${LAB_NAME}
+RUN find ${GWS_DIR}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+RUN find ${GWS_DIR}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+RUN find ${GWS_DIR}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
 
 # bazel
 #RUN chmod +x ./sh/install_bazel.sh
@@ -46,4 +45,5 @@ RUN bash ./gpm.sh --install-gws ${GWS_DIR} --user-dir ${USER_DIR} --lab-name ${L
 #RUN bash ./sh/install_dlib.sh
 
 EXPOSE 3000 
+ENTRYPOINT [ "entrypoint.sh", ${USER_DIR} ]
 CMD python3 ${LAB_DIR}/manage.py --runserver ${SERVER_ARGS}

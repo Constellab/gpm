@@ -10,15 +10,21 @@ while :; do
     shift
 done
 
-bash gpm.sh --install-user /home/ubuntu/work/
+# install python & deps
+venv_dir="./.venv"
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+python3 get-pip.py
+python3 -m pip install --upgrade pip
+python3 -m pip install virtualenv
+python3 -m virtualenv ${venv_dir} --python=python3
+. ${venv_dir}/bin/activate
+python3 -m pip install -r "requirements.txt"
 
-if [ $? -eq 0 ]; then
-  echo "Successfully installed user file"
-else
-  echo "Could not install user files"
-  exit 1
-fi
+# create user workspace
+user_dir="/home/ubuntu/work/"
+python3 ./src/gpm.py --install-user ${user_dir}
 
+# build docker
 if [[ $test == "yes" ]]; then
     cd ./docker-test
 else
@@ -26,5 +32,4 @@ else
 fi
 
 docker-compose up --build
-
 cd ../

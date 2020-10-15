@@ -133,9 +133,9 @@ class GPM():
             self.pull(self.get_gws_dir(), repo_name="all")
 
             # pull biota data
-            url = self.settings["biota_db_url"]
-            dest_dir = os.path.join(self.get_gws_dir(), "./data/biota/db/")
-            self.download(url, dest_dir, "db.sqlite3.zip")
+            #url = self.settings["biota_db_url"]
+            #dest_dir = os.path.join(self.get_gws_dir(), "./data/biota/db/")
+            #self.download(url, dest_dir, "db.sqlite3.zip")
 
     def install_user(self):
         if self.get_user_dir().startswith("/"):

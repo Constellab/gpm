@@ -74,14 +74,16 @@ if [[ $cmd != "" ]]; then
         $arg_lab_name
 fi
 
-if [[ -n "$gws_dir" ]]; then
-    find ${gws_dir}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-    find ${gws_dir}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-    find ${gws_dir}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-fi
+if [[ $arg_docker == "no" ]]; then
+    if [[ -n "$gws_dir" ]]; then
+        find ${gws_dir}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+        find ${gws_dir}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+        find ${gws_dir}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+    fi
 
-if [[ -n "$user_dir" ]]; then
-    find ${user_dir}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-    find ${user_dir}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-    find ${user_dir}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+    if [[ -n "$user_dir" ]]; then
+        find ${user_dir}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+        find ${user_dir}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+        find ${user_dir}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+    fi
 fi
