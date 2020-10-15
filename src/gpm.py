@@ -139,6 +139,9 @@ class GPM():
 
     def install_user(self):
         if self.get_user_dir().startswith("/"):
+            if os.path.exists(self.get_user_dir()):
+                raise Exception("")
+
             # pull user workspace
             self.create_dir(self.get_user_dir())
             self.pull(self.get_user_dir(), repo_name="skeleton")
