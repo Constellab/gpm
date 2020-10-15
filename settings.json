@@ -1,0 +1,15 @@
+{
+    "packages": [
+        "gws",
+        "biota",
+        "biox",
+        "collab",
+        "gaia",
+        "gena",
+        "jlab",
+        "skeleton",
+        "brenda-py",
+        "distrib-js"
+    ],
+    "biota_db_url": "https://share.gencovery.com/s/Wiid5cpze2pW8BH/download"
+}

@@ -4,11 +4,18 @@ cmd=""
 arg_repo="all"
 arg_lab_name=""
 arg_docker="no"
+gws_dir=""
+user_dir=""
 
 while :; do
     case $1 in
-        --install) 
-            cmd="--install"
+        --install-gws) 
+            cmd="--install-gws ${2%/}"
+            gws_dir=${2%/}
+        ;;
+        --install-user) 
+            cmd="--install-user ${2%/}"
+            user_dir=${2%/}
         ;;
         --pull) 
             cmd="--pull"     
@@ -27,16 +34,6 @@ while :; do
         --docker) 
             arg_docker="yes"               
         ;;
-        --user-dir) 
-            user_dir=${2%/}
-            arg_user_dir="--user-dir $2"
-            shift
-        ;;
-        --gws-dir)
-            gws_dir=${2%/}
-            arg_gws_dir="--gws-dir $2"
-            shift
-        ;;
         --update-pip-dep-only)
             update_pip_dep_only="yes"
         ;;
@@ -47,7 +44,7 @@ done
 
 # activate venv (if arg_docker="no")
 if [[ $arg_docker == "no" ]]; then
-    venv_dir = "../.venv"
+    venv_dir="../.venv"
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
     python3 get-pip.py
 
@@ -62,15 +59,17 @@ python3 -m pip install -r "requirements.txt"
 if [[ $cmd != "" ]]; then
     python3 ./src/gpm.py $cmd \
         $arg_repo       \
-        $arg_lab_name   \
-        $arg_user_dir   \
-        $arg_gws_dir
+        $arg_lab_name
 fi
 
-find ${gws_dir}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-find ${gws_dir}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-find ${gws_dir}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+if [[ -n "$gws_dir" ]]; then
+    find ${gws_dir}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+    find ${gws_dir}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+    find ${gws_dir}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+fi
 
-find ${user_dir}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-find ${user_dir}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-find ${user_dir}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+if [[ -n "$user_dir" ]]; then
+    find ${user_dir}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+    find ${user_dir}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+    find ${user_dir}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+fi
