@@ -14,37 +14,37 @@ from zipfile import ZipFile
 import json
 import subprocess
 import shutil
-#import virtualenv
 import pip
+import urllib
 
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
 
 class GPM():
     git_url = "https://bitbucket.org/gencovery"
-    settings = []
+    config = []
     structure = ["./bricks", "./data", "./labs", "./logs", "./externs", "./sandbox", "./tmp"]
     lab_name = "main"
 
-    def __init__(self, gws_dir="", user_dir="", no_single_branch=None):
-        self._read_settings()
+    def __init__(self, gws_wks="", user_wks="", no_single_branch=None):
+        self._read_config()
 
-        if gws_dir != "":
-            self.settings["gws_dir"] = gws_dir
+        if gws_wks != "":
+            self.config["gws_wks"] = gws_wks
         
-        if user_dir != "":
-            self.settings["user_dir"] = user_dir
+        if user_wks != "":
+            self.config["user_wks"] = user_wks
 
         if not no_single_branch is None:
-            if not 'no_single_branch' in self.settings:
-                self.settings["no_single_branch"] = True
+            if not 'no_single_branch' in self.config:
+                self.config["no_single_branch"] = True
         else:
-            self.settings["no_single_branch"] = no_single_branch
+            self.config["no_single_branch"] = no_single_branch
 
-        self._write_settings()
+        self._write_config()
 
     # -- C -- 
 
-    def create_dir(self, workspace):
+    def create_wks_dirs(self, workspace):
         for k in self.structure:
             d = os.path.join(workspace, k)
             if not os.path.exists(d):
@@ -84,36 +84,36 @@ class GPM():
 
     # -- G --
 
-    def get_gws_dir(self):
-        if "gws_dir" in self.settings:
-            return self.settings["gws_dir"]
+    def get_gws_wks(self):
+        if "gws_wks" in self.config:
+            return self.config["gws_wks"]
         else:
             return ""
 
-    def get_user_dir(self):
-        if "user_dir" in self.settings:
-            return self.settings["user_dir"]
+    def get_user_wks(self):
+        if "user_wks" in self.config:
+            return self.config["user_wks"]
         else:
             return ""
 
     def get_repo_dir(self, repo_name):
-        file_path = os.path.join(self.get_gws_dir(), "bricks", repo_name)
+        file_path = os.path.join(self.get_gws_wks(), "bricks", repo_name)
         if os.path.exists(file_path):
             return file_path, "brick", "gws"
 
-        file_path = os.path.join(self.get_gws_dir(), "externs", repo_name)
+        file_path = os.path.join(self.get_gws_wks(), "externs", repo_name)
         if os.path.exists(file_path):
             return file_path, "externs", "gws"
 
-        file_path = os.path.join(self.get_user_dir(), "bricks", repo_name)
+        file_path = os.path.join(self.get_user_wks(), "bricks", repo_name)
         if os.path.exists(file_path):
             return file_path, "brick", "user"
 
-        file_path = os.path.join(self.get_user_dir(), "labs", repo_name)
+        file_path = os.path.join(self.get_user_wks(), "labs", repo_name)
         if os.path.exists(file_path):
             return file_path, "lab", "user"
 
-        file_path = os.path.join(self.get_user_dir(), "externs", repo_name)
+        file_path = os.path.join(self.get_user_wks(), "externs", repo_name)
         if os.path.exists(file_path):
             return file_path, "externs", "user"
 
@@ -121,33 +121,23 @@ class GPM():
 
     # -- I --
 
-    def is_gws_dir_ready(self):
-        return not self.get_gws_dir() is None and self.get_gws_dir().startswith("/")
-
-    def is_user_dir_ready(self):
-        return not self.get_user_dir() is None and self.get_user_dir().startswith("/")
-
     def install_gws(self):
-        if self.is_gws_dir_ready():
-            self.create_dir(self.get_gws_dir())
-            self.pull(self.get_gws_dir(), repo_name="all")
+        if self.get_gws_wks().startswith("/"):
+            self.create_wks_dirs(self.get_gws_wks())
+            self.pull(self.get_gws_wks(), repo_name="all", force=False)
 
             # pull biota data
-            #url = self.settings["biota_db_url"]
-            #dest_dir = os.path.join(self.get_gws_dir(), "./data/biota/db/")
-            #self.download(url, dest_dir, "db.sqlite3.zip")
+            # url = self.config["biota_db_url"]
+            # dest_dir = os.path.join(self.get_gws_wks(), "./data/biota/db/")
+            # self.download(url, dest_dir, "db.sqlite3.zip")
 
     def install_user(self):
-        if self.get_user_dir().startswith("/"):
-            if os.path.exists(self.get_user_dir()):
-                raise Exception("")
-
-            # pull user workspace
-            self.create_dir(self.get_user_dir())
-            self.pull(self.get_user_dir(), repo_name="skeleton")
+        if self.get_user_wks().startswith("/"):
+            self.create_wks_dirs(self.get_user_wks())
+            self.pull(self.get_user_wks(), repo_name="skeleton", force=False)
 
             # allways create a default lab
-            lab_dir = os.path.join(self.get_user_dir(), './labs')
+            lab_dir = os.path.join(self.get_user_wks(), './labs')
             lab_subdirs = [f.path for f in os.scandir(lab_dir) if f.is_dir()]
             no_lab_exists = len(lab_subdirs) == 0
             if no_lab_exists:
@@ -155,10 +145,10 @@ class GPM():
 
 
     def _install_skeleton_in_user_lab(self):
-        skeleton_dir = os.path.join(self.get_user_dir(), "bricks", "skeleton")
-        dest_dir = os.path.join(self.get_user_dir(), "labs", self.lab_name)
+        skeleton_dir = os.path.join(self.get_user_wks(), "bricks", "skeleton")
+        dest_dir = os.path.join(self.get_user_wks(), "labs", self.lab_name)
 
-        shutil.copytree(
+        shutil.move(
             skeleton_dir, 
             dest_dir
         )
@@ -226,26 +216,23 @@ class GPM():
 
     # -- R --
 
-    def _read_settings(self):
-        if not os.path.exists(self.setting_file_path):
-            shutil.copyfile(os.path.join(__cdir__,"../settings.json"), self.setting_file_path)
-        with open( self.setting_file_path, 'r') as f:
+    def _read_config(self):
+        with open( self.config_file_path, 'r') as f:
             try:
-                self.settings = json.load(f)
+                self.config = json.load(f)
                 return
             except:
-                raise Exception("Cannot parse the setting file. Please check file setting file.")
+                raise Exception("Cannot parse the config file. Please check file config file.")
         
-        raise Exception("Cannot open the setting file")
+        raise Exception("Cannot open the config file")
     
     # -- P -- 
 
     @property
     def packages(self):
-        return self.settings["packages"]
+        return self.config["bricks"]
 
-    def pull(   self, workspace_dir, repo_name="all", \
-                origin=None, username="", userpwd=""):
+    def pull(self, workspace_dir, repo_name="all", origin=None, username="", userpwd="", force=False):
         if origin == None:
             origin = self.git_url
 
@@ -288,17 +275,32 @@ class GPM():
         os.environ['GIT_USERNAME'] = git_user
         os.environ['GIT_PASSWORD'] = git_pwd
 
-        import urllib
         git_pwd = urllib.parse.quote(git_pwd)
         
         if repo_name == "all":
-            for repo_name in self.packages:
-                self._pull_repo(workspace_dir, repo_name, git_user, git_pwd, origin)
+            repos = self.packages
         else:
-            self._pull_repo(workspace_dir, repo_name, git_user, git_pwd, origin)
+            repos = [ repo_name ]
+        
+        for repo_name in repos:
+            self._pull_repo(workspace_dir, repo_name, git_user, git_pwd, origin, force)
+
+            # pull sub repos
+            repo_dir, _, _ = self.get_repo_dir(repo_name)
+            settings_file = os.path.join(repo_dir, "./settings.json")
+            if os.path.exists(settings_file):
+                with open(settings_file) as f:
+                    try:
+                        settings = json.load(f)
+                        deps = settings.get("dependencies",[]) + settings.get("externs",[])
+                        for dep in deps:
+                            if not self.repo_exists(dep):
+                                self.pull(workspace_dir, repo_name=dep, origin=origin, username=git_user, userpwd=git_pwd, force=force)
+                    except:
+                        pass
 
 
-    def _pull_repo(self, workspace_dir, repo_name, user, pwd, origin):
+    def _pull_repo(self, workspace_dir, repo_name, user, pwd, origin, force):
         url = origin + "/" + repo_name.strip("/") + ".git"
 
         tab = url.split("://")
@@ -307,20 +309,19 @@ class GPM():
 
         repo_dir, repo_type, wk = self.get_repo_dir(repo_name)
         alredy_exists = not repo_dir is None
-        if alredy_exists:            
-            print(f"Git update {repo_type} {repo_name} (in {wk}) from {tab[0]}://{tab[1]}")
-            git_repo = git.Repo(repo_dir)
-            o = git_repo.remotes.origin
-            o.pull()
+        if alredy_exists:
+            if force:            
+                print(f"Git update {repo_type} {repo_name} (in {wk}) from {tab[0]}://{tab[1]}")
+                git_repo = git.Repo(repo_dir)
+                o = git_repo.remotes.origin
+                o.pull()
         else:
             print(f"Git clone {repo_name} from {tab[0]}://{tab[1]}")
-            
             tmp_repo_dir = os.path.join(workspace_dir, "tmp", repo_name)
-
             git.Repo.clone_from(
                 url, 
                 tmp_repo_dir, 
-                no_single_branch=self.settings["no_single_branch"], 
+                no_single_branch=self.config["no_single_branch"], 
                 depth=1, 
                 shallow_submodules=True
             )
@@ -349,11 +350,17 @@ class GPM():
         except:
             pass
 
+    # -- R --
+
+    def repo_exists(self, repo_name):
+        _repo_dir, _, _ = self.get_repo_dir(repo_name)
+        return not _repo_dir is None
+
     # -- S --
 
     @property
-    def setting_file_path(self):
-        return os.path.join(__cdir__,"../.settings.json")
+    def config_file_path(self):
+        return os.path.join(__cdir__,"../.config.json")
     
     # -- U --
 
@@ -366,12 +373,12 @@ class GPM():
 
     # -- W --
 
-    def _write_settings(self):
-        with open(self.setting_file_path, 'w') as f:
+    def _write_config(self):
+        with open(self.config_file_path, 'w') as f:
             try:
-                json.dump(self.settings, f, indent=4)
+                json.dump(self.config, f, indent=4)
             except:
-                raise Exception("Cannot parse the setting file. Please check file setting file.")
+                raise Exception("Cannot parse the config file. Please check file config file.")
     
 
 @click.command(context_settings=dict(
@@ -381,12 +388,13 @@ class GPM():
 @click.pass_context
 @click.option('--install-gws', help='Install gws', required=False, default="")
 @click.option('--install-user', help='Install user', required=False, default="")
-@click.option('--pull', help='Pull a brick')
-@click.option('--push', help="Push a brick")
+@click.option('--pull', help='Pull a brick or a lab')
+@click.option('--push', help="Push a brick or a lab")
+@click.option('--tag', help="Tag name (for push command)")
 @click.option('--lab-name', default="main", help='Lab name on install')
 @click.option('--no-single-branch', is_flag=True, help="Get all git branches")
-def main(ctx, install_gws, install_user, pull, push, lab_name, no_single_branch):
-    g = GPM(gws_dir=install_gws, user_dir=install_user, no_single_branch=no_single_branch)
+def main(ctx, install_gws, install_user, pull, push, tag, lab_name, no_single_branch):
+    g = GPM(gws_wks=install_gws, user_wks=install_user, no_single_branch=no_single_branch)
 
     if install_gws != "":
         g.install_gws()
@@ -394,6 +402,12 @@ def main(ctx, install_gws, install_user, pull, push, lab_name, no_single_branch)
     if install_user != "":
         g.lab_name = lab_name
         g.install_user()
+
+    if pull:
+        pass
+
+    if push:
+        pass
 
 
 # -- ENTRY POINT --

@@ -1,35 +1,66 @@
+#!/bin/bash
 
 test="no"
+app_dir="/Users/djomangan/Dev"
+lab_name="main"
+start_mode="--prod"
+config=""
+
 while :; do
     case $1 in
         --test) 
             test="yes"
+        ;;
+        --dev) 
+            start_mode="--dev"
+        ;;
+        --app-dir) 
+            app_dir=${2%/}
+            shift
+        ;;
+        --lab-name) 
+            lab_name=$2
+            shift
+        ;;
+        --start-mode) 
+            start_mode=$2
+            shift
+        ;;
+        --config) 
+            config=$2
+            shift
         ;;
         *) break
     esac
     shift
 done
 
-# install python & deps
-venv_dir="./.venv"
-curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
-python3 get-pip.py
-python3 -m pip install --upgrade pip
-python3 -m pip install virtualenv
-python3 -m virtualenv ${venv_dir} --python=python3
-. ${venv_dir}/bin/activate
-python3 -m pip install -r "requirements.txt"
+if [ "$config" != "" ]; then
+    . ./install-raw.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
 
-# create user workspace
-user_dir="/home/ubuntu/work/"
-python3 ./src/gpm.py --install-user ${user_dir}
+    if [ $? -eq 0 ]; then
+        # build docker
+        echo "Building docker ..."
+        if [ "$test" == "yes" ]; then
+            cd ./docker-test
+            sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
+                -e "s/(LAB_NAME)/${lab_name}/g" \
+                -e "s/(START_MODE)/--dev/g" \
+                docker-compose.yml > .docker-compose.yml
+        else
+            cd ./docker
+            sed "s/(APP_DIR)/${app_dir//\//\\/}/g" docker-compose.yml > .docker-compose.yml
+            sed "s/(LAB_NAME)/${lab_name}/g" .docker-compose.yml > .docker-compose.yml
+            sed "s/(START_MODE)/($start_mode)/g" .docker-compose.yml > .docker-compose.yml
+        fi
 
-# build docker
-if [[ $test == "yes" ]]; then
-    cd ./docker-test
+        docker-compose -f .docker-compose.yml up --build
+        cd ../
+    else
+        echo ""
+    fi
+
+    deactivate
 else
-    cd ./docker
+    echo "No config file found."
 fi
-
-docker-compose up --build
-cd ../

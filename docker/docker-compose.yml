@@ -3,16 +3,16 @@ version: "3"
 services:
 
   gws:
+    image: gws:latest
     build:
       context: ../
-      args:
-        APPDIR: /app/gws
-        LABNAME: mylab
-      
-    image: gws:latest
     ports:
       - 3000:80
     environment:
+       - LAB_NAME:main
+       - START_MODE:--prod
+       - WORKSPACE:/home/ubuntu/work
+
        - VIRTUAL_HOST=lab.gencovery.com
        - LETSENCRYPT_HOST=lab.gencovery.com
        - LETSENCRYPT_EMAIL=admin@gencovery.com

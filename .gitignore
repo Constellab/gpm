@@ -1,11 +1,13 @@
 *.DS_Store
 
 # -----------------------------------------------------------
-# Private
+# Private and local files
 # -----------------------------------------------------------
 .private.json
 .private.txt
 .settings.json
+.config.json
+.docker-compose.yml
 
 # -----------------------------------------------------------
 # Bazel
