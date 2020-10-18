@@ -58,6 +58,11 @@ class GPM():
         print(f"Downloading {url} ...")
         os.makedirs(dest_dir)
         dest_file_path = os.path.join(dest_dir,dest_filename)
+
+        if os.path.exists(dest_file_path):
+            print(f"Data {dest_file_path} already exists")
+            return
+            
         with open(dest_file_path, 'wb') as f:
             response = requests.get(url, stream=True)
             total = response.headers.get('content-length')
@@ -127,9 +132,9 @@ class GPM():
             self.pull(self.get_gws_wks(), repo_name="all", force=False)
 
             # pull biota data
-            # url = self.config["biota_db_url"]
-            # dest_dir = os.path.join(self.get_gws_wks(), "./data/biota/db/")
-            # self.download(url, dest_dir, "db.sqlite3.zip")
+            url = self.config["biota_db_url"]
+            dest_dir = os.path.join(self.get_gws_wks(), "./data/biota/db/")
+            self.download(url, dest_dir, "db.sqlite3.zip")
 
     def install_user(self):
         if self.get_user_wks().startswith("/"):

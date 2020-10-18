@@ -1,23 +1,22 @@
 version: "3"
 
 services:
-
   gws:
     image: gws:latest
     build:
       context: ../
+    command: ["--runserver", "(LAB_NAME)"]
     ports:
-      - 3000:80
+      - 80:3000
+      - 8888:8888
     environment:
-       - LAB_NAME:main
-       - START_MODE:--prod
-       - WORKSPACE:/home/ubuntu/work
-
-       - VIRTUAL_HOST=lab.gencovery.com
-       - LETSENCRYPT_HOST=lab.gencovery.com
-       - LETSENCRYPT_EMAIL=admin@gencovery.com
+      - LAB_NAME:(LAB_NAME)
+      - START_MODE:(START_MODE)
+      - VIRTUAL_HOST=*.glab.gencovery.com
+      - LETSENCRYPT_HOST=*.glab.gencovery.com
+      - LETSENCRYPT_EMAIL=admin@gencovery.com
     volumes:
-      - /home/ubuntu/work:/app/gws/user
+      - (APP_DIR):/app/gws/
     networks:
        - nginx-proxy
     restart: always
@@ -28,6 +27,7 @@ services:
     ports:
       - 80:80
       - 443:443
+      - 8888:8888
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - /app/nginx/vhost.d:/etc/nginx/vhost.d
