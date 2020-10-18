@@ -47,10 +47,9 @@ services:
       - /app/nginx/vhost.d:/etc/nginx/vhost.d
       - /app/nginx/certs:/etc/nginx/certs:rw
       - /app/nginx/html:/usr/share/nginx/html
-    volumes_from:
-      - nginx-proxy
     networks:
       - nginx-proxy
+    restart: always
 
 networks:
   nginx-proxy:
