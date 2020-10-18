@@ -40,12 +40,16 @@ services:
 
   letsencrypt:
     image: jrcs/letsencrypt-nginx-proxy-companion
+    environment:
+      - NGINX_PROXY_CONTAINER:nginx-proxy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - /app/nginx/vhost.d:/etc/nginx/vhost.d
       - /app/nginx/certs:/etc/nginx/certs:rw
       - /app/nginx/html:/usr/share/nginx/html
     networks:
+      - nginx-proxy
+    depends_on:
       - nginx-proxy
     restart: always
 
