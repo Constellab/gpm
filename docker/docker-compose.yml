@@ -33,7 +33,7 @@ services:
       - /app/nginx/vhost.d:/etc/nginx/vhost.d
       - /app/nginx/certs:/etc/nginx/certs:ro
       - /app/nginx/html:/usr/share/nginx/html
-      - /app/nginx/conf.d/client_max_body_size.conf:/etc/nginx/conf.d/client_max_body_size.conf:ro
+      - (APP_DIR)/nginx/conf.d/client_max_body_size.conf:/etc/nginx/conf.d/client_max_body_size.conf:ro
     labels:
       com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "true"
     networks:

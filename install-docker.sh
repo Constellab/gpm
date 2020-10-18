@@ -49,9 +49,12 @@ if [ "$config" != "" ]; then
                 docker-compose.yml > .docker-compose.yml
         else
             cd ./docker
-            sed "s/(APP_DIR)/${app_dir//\//\\/}/g" docker-compose.yml > .docker-compose.yml
-            sed "s/(LAB_NAME)/${lab_name}/g" .docker-compose.yml > .docker-compose.yml
-            sed "s/(START_MODE)/($start_mode)/g" .docker-compose.yml > .docker-compose.yml
+            sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
+                -e "s/(LAB_NAME)/${lab_name}/g" \
+                -e "s/(START_MODE)/$start_mode/g" \
+                docker-compose.yml > .docker-compose.yml
+            
+            cp client_max_body_size.conf $app_dir/nginx/conf.d/client_max_body_size.conf
         fi
 
         docker-compose -f .docker-compose.yml up --build
