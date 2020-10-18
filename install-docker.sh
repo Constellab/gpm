@@ -61,10 +61,9 @@ if [ "$config" != "" ]; then
         docker-compose -f .docker-compose.yml up --build
         cd ../
     else
-        echo ""
+        echo "An error occured."
     fi
 
-    deactivate
 else
     echo "No config file found."
 fi
