@@ -54,7 +54,8 @@ if [ "$config" != "" ]; then
                 -e "s/(START_MODE)/$start_mode/g" \
                 docker-compose.yml > .docker-compose.yml
             
-            cp client_max_body_size.conf $app_dir/nginx/conf.d/client_max_body_size.conf
+            mkdir -p ${app_dir}/nginx/conf.d/
+            cp client_max_body_size.conf ${app_dir}/nginx/conf.d/client_max_body_size.conf
         fi
 
         docker-compose -f .docker-compose.yml up --build
