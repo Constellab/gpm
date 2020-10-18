@@ -6,13 +6,12 @@ services:
     build:
       context: ../
     command: ["--runserver", "(LAB_NAME)"]
-    ports:
-      - 80:3000
-      - 8888:8888
+
     environment:
       - LAB_NAME:(LAB_NAME)
       - START_MODE:(START_MODE)
       - VIRTUAL_HOST=*.glab.gencovery.com
+      - VIRTUAL_PORT=3000,8888
       - LETSENCRYPT_HOST=*.glab.gencovery.com
       - LETSENCRYPT_EMAIL=admin@gencovery.com
     volumes:
@@ -27,7 +26,6 @@ services:
     ports:
       - 80:80
       - 443:443
-      - 8888:8888
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - /app/nginx/vhost.d:/etc/nginx/vhost.d
