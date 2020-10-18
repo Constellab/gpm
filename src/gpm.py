@@ -56,13 +56,15 @@ class GPM():
 
     def download(self, url, dest_dir, dest_filename):
         print(f"Downloading {url} ...")
-        os.makedirs(dest_dir)
         dest_file_path = os.path.join(dest_dir,dest_filename)
 
         if os.path.exists(dest_file_path):
             print(f"Data {dest_file_path} already exists")
             return
-            
+        
+        if not os.path.exists(dest_dir):
+            os.makedirs(dest_dir)
+        
         with open(dest_file_path, 'wb') as f:
             response = requests.get(url, stream=True)
             total = response.headers.get('content-length')
