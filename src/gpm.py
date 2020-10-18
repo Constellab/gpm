@@ -10,12 +10,14 @@ import click
 import git
 import os, sys, json
 import requests
-from zipfile import ZipFile
 import json
 import subprocess
 import shutil
 import pip
 import urllib
+import re
+
+from zipfile import ZipFile
 
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
 
@@ -62,6 +64,12 @@ class GPM():
             print(f"Data {dest_file_path} already exists")
             return
         
+        
+        if dest_file_path.endswith(".zip"):
+            if os.path.exists(re.sub(r"\.zip$", "", dest_file_path)):
+                print(f"Unzipped data {dest_file_path} already exists")
+                return
+
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
         
