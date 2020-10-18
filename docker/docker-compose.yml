@@ -11,7 +11,7 @@ services:
       - LAB_NAME:(LAB_NAME)
       - START_MODE:(START_MODE)
       - VIRTUAL_HOST=astro.lab.gencovery.com
-      - VIRTUAL_PORT=3000,8888
+      - VIRTUAL_PORT=3000
       - LETSENCRYPT_HOST=astro.lab.gencovery.com
       - LETSENCRYPT_EMAIL=admin@gencovery.com
     volumes:
