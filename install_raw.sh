@@ -46,6 +46,10 @@ fi
 if [ "$config" != "" ]; then
     cp $config ./.config.json
 
+    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+    python3 get-pip.py
+    python3 -m pip install --upgrade pip
+
     python3 -m pip install -r "requirements.txt"
     python3 ./src/gpm.py --install-gws $gws_wks
     python3 ./src/gpm.py --install-user $user_wks --lab-name $lab_name
