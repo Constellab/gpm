@@ -1,6 +1,6 @@
-# GWS package manger
+# GWS Package Manager
 
-This python module allows to manage gws bricks an labs
+This python module allows to manage gws packages (i.e. bricks and labs packages)
 
 ## Raw installation (without docker)
 

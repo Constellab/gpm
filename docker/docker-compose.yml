@@ -10,9 +10,11 @@ services:
     environment:
       - LAB_NAME:(LAB_NAME)
       - START_MODE:(START_MODE)
-      - VIRTUAL_HOST=astro.lab.gencovery.com:3000,astro.lab.gencovery.com:8888
-      #- VIRTUAL_PORT=3000
-      - LETSENCRYPT_HOST=astro.lab.gencovery.com
+      - URI:(URI)
+      - TOKEN:(TOKEN)
+      - VIRTUAL_HOST=astro.lab.gencovery.com,jlab.astro.lab.gencovery.com
+      - VIRTUAL_PORT=3000
+      - LETSENCRYPT_HOST=astro.lab.gencovery.com,jlab.astro.lab.gencovery.com
       - LETSENCRYPT_EMAIL=admin@gencovery.com
     volumes:
       - (APP_DIR):/app/gws/
@@ -21,8 +23,7 @@ services:
     restart: always
     
   nginx-proxy:
-    #image: jwilder/nginx-proxy
-    image: dbendelman/nginx-proxy
+    image: jwilder/nginx-proxy
     container_name: nginx-proxy
     ports:
       - 80:80

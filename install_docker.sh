@@ -1,9 +1,13 @@
 #!/bin/bash
 
 test="no"
-app_dir="/Users/djomangan/Dev"
+app_dir=""
 lab_name="main"
+lab_uri=""
+lab_token=""
+
 start_mode="--prod"
+
 config=""
 
 while :; do
@@ -36,7 +40,7 @@ while :; do
 done
 
 if [ "$config" != "" ]; then
-    . ./install-raw.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
+    . ./install_raw.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
 
     if [ $? -eq 0 ]; then
         # build docker
@@ -45,12 +49,18 @@ if [ "$config" != "" ]; then
             cd ./docker-test
             sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
                 -e "s/(LAB_NAME)/${lab_name}/g" \
+                -e "s/(LAB_TOKEN)/$lab_token/g" \
+                -e "s/(LAB_URI)/$lab_uri/g" \
                 -e "s/(START_MODE)/--dev/g" \
+                -e "s/(TOKEN)/$token/g" \
+                -e "s/(URI)/$uri/g" \
                 docker-compose.yml > .docker-compose.yml
         else
             cd ./docker
             sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
                 -e "s/(LAB_NAME)/${lab_name}/g" \
+                -e "s/(LAB_TOKEN)/$lab_token/g" \
+                -e "s/(LAB_URI)/$lab_uri/g" \
                 -e "s/(START_MODE)/$start_mode/g" \
                 docker-compose.yml > .docker-compose.yml
             

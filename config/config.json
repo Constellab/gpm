@@ -1,4 +1,13 @@
 {
+    "lab":{
+        "name": "main",
+        "title": "My digital lab",
+        "description": "My digital lab",
+        "start_mode": "prod",
+        "uri": "",
+        "token": "",
+        "host": "astro.lab.gencovery.com"
+    },
     "bricks": [
         "biox",
         "collab"

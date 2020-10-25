@@ -1,14 +1,34 @@
 #!/bin/bash
 set -e
 if [ "$1" == "--runserver" ]; then
+    ip=""
+    port=""
+    lab_uri=""
+    lab_token=""
     lab_name=$2
 
     if [ -n "$LAB_NAME" ]; then
         lab_name=$LAB_NAME
     fi
 
+    if [ -n "$LAB_TOKEN" -a "$LAB_TOKEN" != "" ]; then
+        lab_token="--lab-token $LAB_TOKEN"
+    fi
+
+    if [ -n "$LAB_URI" ]; then
+        lab_uri="--lab-uri $LAB_URI"
+    fi
+
     if [ -n "$START_MODE" -a "$START_MODE" = "--dev" ]; then
         start_mode="--demo"
+    fi
+
+    if [ -n "$VIRTUAL_HOST" ]; then
+        ip="--ip $VIRTUAL_HOST"
+    fi
+
+    if [ -n "$VIRTUAL_PORT" ]; then
+        port="--port $VIRTUAL_PORT"
     fi
 
     # install dependencies
@@ -20,7 +40,7 @@ if [ "$1" == "--runserver" ]; then
     find /app/gws/user/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
 
     # run server
-    exec python3 "/app/gws/user/labs/${lab_name}/manage.py" --runserver $start_mode
+    exec python3 "/app/gws/user/labs/${lab_name}/manage.py" --runserver $lab_uri $lab_token $ip $port $start_mode
 else
     exec "$@"
 fi

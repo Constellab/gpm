@@ -25,7 +25,7 @@ class GPM():
     git_url = "https://bitbucket.org/gencovery"
     config = []
     structure = ["./bricks", "./data", "./labs", "./logs", "./externs", "./sandbox", "./tmp"]
-    lab_name = "main"
+    _lab_name = "main"
 
     def __init__(self, gws_wks="", user_wks="", no_single_branch=None):
         self._read_config()
@@ -150,32 +150,26 @@ class GPM():
         if self.get_user_wks().startswith("/"):
             self.create_wks_dirs(self.get_user_wks())
             self.pull(self.get_user_wks(), repo_name="skeleton", force=False)
+            self._install_user_lab()
 
-            # allways create a default lab
-            lab_dir = os.path.join(self.get_user_wks(), './labs')
-            lab_subdirs = [f.path for f in os.scandir(lab_dir) if f.is_dir()]
-            no_lab_exists = len(lab_subdirs) == 0
-            if no_lab_exists:
-                self._install_skeleton_in_user_lab()
-
-
-    def _install_skeleton_in_user_lab(self):
+    def _install_user_lab(self):
         skeleton_dir = os.path.join(self.get_user_wks(), "bricks", "skeleton")
         dest_dir = os.path.join(self.get_user_wks(), "labs", self.lab_name)
 
-        shutil.move(
-            skeleton_dir, 
-            dest_dir
-        )
+        if not os.path.exists(dest_dir):
+            shutil.move(
+                skeleton_dir, 
+                dest_dir
+            )
 
-        # rename module
-        shutil.move(
-            os.path.join(dest_dir, "skeleton"), 
-            os.path.join(dest_dir, self.lab_name)
-        )
+            # rename module
+            shutil.move(
+                os.path.join(dest_dir, "skeleton"), 
+                os.path.join(dest_dir, self.lab_name)
+            )
 
-        # remove .git folder
-        shutil.rmtree(os.path.join(dest_dir, ".git"))
+            # remove .git folder
+            shutil.rmtree(os.path.join(dest_dir, ".git"))
 
         # update settings.json
         settings_file = os.path.join(dest_dir, "settings.json")
@@ -183,8 +177,10 @@ class GPM():
             settings = json.load(f)
             settings["type"] = "lab"
             settings["name"] = self.lab_name
-            settings["app"]["title"] = "My lab"
-            settings["app"]["description"] = "My lab"
+            settings["uri"] = self.lab_uri
+            settings["host"] = self.lab_host
+            settings["app"]["title"] = self.lab_title
+            settings["app"]["description"] = self.lab_description
             
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=4)
@@ -228,6 +224,36 @@ class GPM():
                     return "extern"
         else:
             return "extern"
+
+    # -- L --
+
+    @property
+    def lab_uri(self):
+        return self.config["lab"].get("uri", "")
+
+    @property
+    def lab_name(self):
+        return self.config["lab"].get("name", "main")
+
+    @property
+    def lab_title(self):
+        return self.config["lab"].get("title", "")
+
+    @property
+    def lab_description(self):
+        return self.config["lab"].get("description", "")
+
+    @property
+    def lab_start_mode(self):
+        return self.config["lab"].get("start_mode", "prod")
+
+    @property
+    def lab_host(self):
+        return self.config["lab"].get("host", "astro.lab.gencovery.com")
+
+    @property
+    def lab_token(self):
+        return self.config["lab"].get("token", "")
 
     # -- R --
 
@@ -274,14 +300,14 @@ class GPM():
             if not git_pwd:
                 raise Exception("The invalid git password")
             elif len(git_pwd) < 64:
-                import crypt
-                git_pwd = crypt.encrypt_message(git_pwd)
+                import _crypt
+                git_pwd = _crypt.encrypt_message(git_pwd)
                 private["git"]["password"] = git_pwd
                 with open(private_file, 'w') as f:
                     json.dump(private, f, indent=4)
             else:
-                import crypt
-                _git_pwd = crypt.decrypt_message(git_pwd)
+                import _crypt
+                _git_pwd = _crypt.decrypt_message(git_pwd)
                 git_pwd = ""
                 for i in range(0, len(_git_pwd), 2):
                     git_pwd = git_pwd + _git_pwd[i]

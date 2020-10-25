@@ -13,6 +13,8 @@ services:
     environment:
       - LAB_NAME:(LAB_NAME)
       - START_MODE:(START_MODE)
+      - URI:(URI)
+      - TOKEN:(TOKEN)
     volumes:
       - (APP_DIR):/app/gws/
     restart: always
