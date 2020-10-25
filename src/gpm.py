@@ -432,16 +432,14 @@ class GPM():
 @click.option('--pull', help='Pull a brick or a lab')
 @click.option('--push', help="Push a brick or a lab")
 @click.option('--tag', help="Tag name (for push command)")
-@click.option('--lab-name', default="main", help='Lab name on install')
 @click.option('--no-single-branch', is_flag=True, help="Get all git branches")
-def main(ctx, install_gws, install_user, pull, push, tag, lab_name, no_single_branch):
+def main(ctx, install_gws, install_user, pull, push, tag, no_single_branch):
     g = GPM(gws_wks=install_gws, user_wks=install_user, no_single_branch=no_single_branch)
 
     if install_gws != "":
         g.install_gws()
     
     if install_user != "":
-        g.lab_name = lab_name
         g.install_user()
 
     if pull:
