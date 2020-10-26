@@ -5,8 +5,7 @@
         "description": "My digital lab",
         "start_mode": "prod",
         "uri": "",
-        "token": "",
-        "host": "astro.lab.gencovery.com"
+        "token": ""
     },
     "bricks": [
         "biox",
