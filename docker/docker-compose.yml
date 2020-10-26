@@ -11,12 +11,12 @@ services:
       - "traefik.http.routers.gws.rule=Host(`astro.lab.gencovery.com`)"
       - "traefik.http.routers.gws.entrypoints=websecure"
       - "traefik.http.routers.gws.tls.certresolver=myresolver"
-      - "traefik.http.services.gws-http-service.loadbalancer.server.port=3000"
-     
-      - "traefik.http.routers.jlab.rule=Host(`jlab.astro.lab.gencovery.com`)"
+      - "traefik.http.services.gws.loadbalancer.server.port=3000"
+
+      - "traefik.http.routers.jlab.rule=Host(`astro.lab.gencovery.com`)"
       - "traefik.http.routers.jlab.entrypoints=websecure"
       - "traefik.http.routers.jlab.tls.certresolver=myresolver"
-      - "traefik.http.services.jlab-http-service.loadbalancer.server.port=8888"
+      - "traefik.http.services.jlab.loadbalancer.server.port=8888"
     environment:
       - LAB_NAME:(LAB_NAME)
       - START_MODE:(START_MODE)
