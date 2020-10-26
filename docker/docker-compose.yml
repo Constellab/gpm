@@ -6,54 +6,37 @@ services:
     build:
       context: ../
     command: ["--runserver", "(LAB_NAME)"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gws.rule=Host(`astro.lab.gencovery.com`)"
+      - "traefik.http.routers.gws.entrypoints=websecure"
+      - "traefik.http.routers.gws.tls.certresolver=myresolver"
+      - "traefik.http.routers.gws.service=gws-service"
+      - "traefik.http.services.gws-service.loadbalancer.server.port=3000"
 
+      - "traefik.http.routers.jlab.rule=Host(`astro.lab.gencovery.com`)"
+      - "traefik.http.routers.jlab.entrypoints=websecure"
+      - "traefik.http.routers.jlab.tls.certresolver=myresolver"
+      - "traefik.http.routers.jlab.service=jlab-service"
+      - "traefik.http.services.jlab-service.loadbalancer.server.port=8888"
     environment:
       - LAB_NAME:(LAB_NAME)
       - START_MODE:(START_MODE)
       - URI:(URI)
       - TOKEN:(TOKEN)
-      - VIRTUAL_HOST=astro.lab.gencovery.com
-      - LETSENCRYPT_HOST=astro.lab.gencovery.com
-      - LETSENCRYPT_EMAIL=admin@gencovery.com
     volumes:
       - (APP_DIR):/app/gws/
-    networks:
-       - nginx-proxy
     restart: always
-    
-  nginx-proxy:
-    image: jwilder/nginx-proxy
-    container_name: nginx-proxy
+  
+  traefik:
+    image: "traefik:v2.3"
+    container_name: "traefik"
     ports:
-      - 80:80
-      - 443:443
+      - "3000:80"
+      - "8888:8888"
+      - "8080:8080"
     volumes:
-      - /var/run/docker.sock:/tmp/docker.sock:ro
-      - /app/nginx/vhost.d:/etc/nginx/vhost.d
-      - /app/nginx/certs:/etc/nginx/certs:ro
-      - /app/nginx/html:/usr/share/nginx/html
-      - (APP_DIR)/nginx/conf.d/client_max_body_size.conf:/etc/nginx/conf.d/client_max_body_size.conf:ro
-    labels:
-      com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy: "true"
-    networks:
-      - nginx-proxy
-    restart: always
-
-  letsencrypt:
-    image: jrcs/letsencrypt-nginx-proxy-companion
-    environment:
-      - NGINX_PROXY_CONTAINER:nginx-proxy
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /app/nginx/vhost.d:/etc/nginx/vhost.d
-      - /app/nginx/certs:/etc/nginx/certs:rw
-      - /app/nginx/html:/usr/share/nginx/html
-    networks:
-      - nginx-proxy
+      - "./letsencrypt:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
     depends_on:
-      - nginx-proxy
-    restart: always
-
-networks:
-  nginx-proxy:
-    external: false
+      - gws
