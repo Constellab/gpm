@@ -1,0 +1,36 @@
+FROM ubuntu
+
+LABEL maintainer="Admin <admin@gencovery.com>"
+
+# ENV VIRTUAL_HOST mylab.lab.gencovery.com
+# ENV VIRTUAL_HOST_JLAB  jlab.mylab.lab.gencovery.com
+ENV WORK_DIR /app/gpm
+ENV GWS_EXTERN_DIR /app/gws/gws/externs
+
+ADD ./src/ ${WORK_DIR}
+WORKDIR ${WORK_DIR}
+
+# install python, pip and venv
+RUN chmod +x install_python.sh
+RUN bash install_python.sh
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+RUN python3 get-pip.py
+RUN python3 -m pip install --upgrade pip
+
+# bazel
+#RUN chmod +x ./sh/install_bazel.sh
+#RUN bash ./sh/install_bazel.sh
+
+# dlib
+#COPY ./sh/install_dlib.sh ${GWS_EXTERN_DIR}/dlib-cpp
+#WORK_DIR ${GWS_EXTERN_DIR}/dlib-cpp
+#RUN chmod +x ./sh/install_dlib.sh
+#RUN bash ./sh/install_dlib.sh
+
+EXPOSE 3000 
+EXPOSE 8888
+
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT [ "/entrypoint.sh" ]
+CMD [ "--runserver", "main" ]
