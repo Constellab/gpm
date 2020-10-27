@@ -4,7 +4,7 @@ services:
   gws:
     image: gws:latest
     build:
-      context: ./
+      context: ../
     command: ["--runserver", "(LAB_NAME)"]
     labels:
       - "traefik.enable=true"
