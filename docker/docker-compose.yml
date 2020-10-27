@@ -12,7 +12,7 @@ services:
       - START_MODE:(START_MODE)
       - URI:(URI)
       - TOKEN:(TOKEN)
-      - VIRTUAL_HOST=astro.lab.gencovery.com,astro.lab.gencovery.com:8888
+      - VIRTUAL_HOST=astro.lab.gencovery.com:3000,astro.lab.gencovery.com:8888
       - LETSENCRYPT_HOST=astro.lab.gencovery.com
       - LETSENCRYPT_EMAIL=admin@gencovery.com
     volumes:
@@ -26,7 +26,7 @@ services:
     container_name: nginx-proxy
     ports:
       - 8888:8888
-      - 80:80
+      - 3000:80
       - 443:443
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
