@@ -13,7 +13,7 @@ services:
       - URI:(URI)
       - TOKEN:(TOKEN)
       - VIRTUAL_HOST=astro.lab.gencovery.com:3000
-      - VIRTUAL_HOST=astro.lab.gencovery.com:8808
+      - VIRTUAL_HOST=astro.lab.gencovery.com:8888
       - LETSENCRYPT_HOST=astro.lab.gencovery.com
       - LETSENCRYPT_EMAIL=admin@gencovery.com
     volumes:
