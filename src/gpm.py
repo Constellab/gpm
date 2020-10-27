@@ -335,8 +335,8 @@ class GPM():
                         settings = json.load(f)
                         deps = settings.get("dependencies",[]) + settings.get("externs",[])
                         for dep in deps:
-                            if not self.repo_exists(dep):
-                                self.pull(workspace_dir, repo_name=dep, origin=origin, username=git_user, userpwd=git_pwd, force=force)
+                            #if not self.repo_exists(dep):
+                            self.pull(workspace_dir, repo_name=dep, origin=origin, username=git_user, userpwd=git_pwd, force=force)
                     except:
                         pass
 
