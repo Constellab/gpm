@@ -341,8 +341,9 @@ class GPM():
                             #if not self.repo_exists(dep):
                             is_already_pulled = (dep in self.__is_pulled)
                             if not is_already_pulled:
-                                self.pull(workspace_dir, repo_name=dep, origin=origin, username=git_user, userpwd=git_pwd, force=force)
                                 self.__is_pulled.append(dep)
+                                self.pull(workspace_dir, repo_name=dep, origin=origin, username=git_user, userpwd=git_pwd, force=force)
+                                
                     except:
                         pass
 
