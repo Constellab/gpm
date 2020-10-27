@@ -19,7 +19,7 @@ RUN python3 -m pip install --upgrade pip
 
 RUN echo -e "#Added by Gencovery" >> /etc/hosts
 RUN echo -e "127.0.0.1    ${VIRTUAL_HOST}" >> /etc/hosts
-RUN echo -e "127.0.0.1    ${VIRTUAL_HOST_JLAB}" >> /etc/hosts
+RUN echo -e "127.0.0.1    jlab.${VIRTUAL_HOST}" >> /etc/hosts
 RUN echo -e "#End section" >> /etc/hosts
 
 RUN cat /etc/hosts

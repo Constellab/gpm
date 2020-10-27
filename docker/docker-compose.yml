@@ -14,7 +14,6 @@ services:
       - TOKEN:(TOKEN)
       - VIRTUAL_HOST=3000
       - VIRTUAL_HOST=astro.lab.gencovery.com
-      - VIRTUAL_HOST_JLAB=jlab.astro.lab.gencovery.com
       - LETSENCRYPT_HOST=astro.lab.gencovery.com
       - LETSENCRYPT_EMAIL=admin@gencovery.com
     volumes:

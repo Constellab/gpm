@@ -51,8 +51,8 @@ class GPM():
             d = os.path.join(workspace, k)
             if not os.path.exists(d):
                 os.makedirs(d)
-            else:
-                print(f"Path {d} already exists")
+            #else:
+            #    print(f"Path {d} already exists")
 
     # -- D --
 
@@ -351,11 +351,11 @@ class GPM():
         repo_dir, repo_type, wk = self.get_repo_dir(repo_name)
         alredy_exists = not repo_dir is None
         if alredy_exists:
-            if force:            
-                print(f"Git update {repo_type} {repo_name} (in {wk}) from {tab[0]}://{tab[1]}")
-                git_repo = git.Repo(repo_dir)
-                o = git_repo.remotes.origin
-                o.pull()
+            #if force:            
+            print(f"Git update {repo_type} {repo_name} (in {wk}) from {tab[0]}://{tab[1]}")
+            git_repo = git.Repo(repo_dir)
+            o = git_repo.remotes.origin
+            o.pull()
         else:
             print(f"Git clone {repo_name} from {tab[0]}://{tab[1]}")
             tmp_repo_dir = os.path.join(workspace_dir, "tmp", repo_name)
