@@ -10,13 +10,13 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.gws.rule=Host(`astro.lab.gencovery.com`)"
       - "traefik.http.routers.gws.entrypoints=websecure"
-      - "traefik.http.routers.gws.tls.certresolver=tlschallenge"
+      - "traefik.http.routers.gws.tls.certresolver=mytlschallenge"
       - "traefik.http.routers.gws.service=gws-service"
       - "traefik.http.services.gws-service.loadbalancer.server.port=3000"
 
       - "traefik.http.routers.jlab.rule=Host(`astro.lab.gencovery.com`)"
       - "traefik.http.routers.jlab.entrypoints=websecure"
-      - "traefik.http.routers.jlab.tls.certresolver=tlschallenge"
+      - "traefik.http.routers.jlab.tls.certresolver=mytlschallenge"
       - "traefik.http.routers.jlab.service=jlab-service"
       - "traefik.http.services.jlab-service.loadbalancer.server.port=8888"
 
