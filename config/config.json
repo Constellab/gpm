@@ -4,6 +4,7 @@
         "title": "My digital lab",
         "description": "My digital lab",
         "start_mode": "prod",
+        "host": "astro.lab.gencvoery.com",
         "uri": "",
         "token": ""
     },
