@@ -46,7 +46,7 @@ if [ "$config" != "" ]; then
         # build docker
         echo "Building docker ..."
         if [ "$test" == "yes" ]; then
-            cd ./docker-test
+            cd ./docker
             sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
                 -e "s/(LAB_NAME)/${lab_name}/g" \
                 -e "s/(LAB_TOKEN)/$lab_token/g" \
@@ -54,18 +54,18 @@ if [ "$config" != "" ]; then
                 -e "s/(START_MODE)/--dev/g" \
                 -e "s/(TOKEN)/$token/g" \
                 -e "s/(URI)/$uri/g" \
-                docker-compose.yml > .docker-compose.yml
+                ./docker-compose-test.yml > ./.docker-compose.yml
         else
-            cd ./docker
+            cd ./docker-test
             sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
                 -e "s/(LAB_NAME)/${lab_name}/g" \
                 -e "s/(LAB_TOKEN)/$lab_token/g" \
                 -e "s/(LAB_URI)/$lab_uri/g" \
                 -e "s/(START_MODE)/$start_mode/g" \
-                docker-compose.yml > .docker-compose.yml
+                ./docker-compose.yml > ./.docker-compose.yml
             
             mkdir -p ${app_dir}/nginx/conf.d/
-            cp client_max_body_size.conf ${app_dir}/nginx/conf.d/client_max_body_size.conf
+            cp ./client_max_body_size.conf ${app_dir}/nginx/conf.d/client_max_body_size.conf
         fi
 
         docker-compose -f .docker-compose.yml up --build
