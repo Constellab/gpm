@@ -46,7 +46,7 @@ if [ "$config" != "" ]; then
         # build docker
         echo "Building docker ..."
         if [ "$test" == "yes" ]; then
-            cd ./docker
+            cd ./docker-test
             sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
                 -e "s/(LAB_NAME)/${lab_name}/g" \
                 -e "s/(LAB_TOKEN)/$lab_token/g" \
@@ -56,7 +56,7 @@ if [ "$config" != "" ]; then
                 -e "s/(URI)/$uri/g" \
                 ./docker-compose-test.yml > ./.docker-compose.yml
         else
-            cd ./docker-test
+            cd ./docker
             sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
                 -e "s/(LAB_NAME)/${lab_name}/g" \
                 -e "s/(LAB_TOKEN)/$lab_token/g" \
