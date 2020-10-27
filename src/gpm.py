@@ -26,6 +26,7 @@ class GPM():
     config = []
     structure = ["./bricks", "./data", "./labs", "./logs", "./externs", "./sandbox", "./tmp"]
     _lab_name = "main"
+    __is_pulled = []
 
     def __init__(self, gws_wks="", user_wks="", no_single_branch=None):
         self._read_config()
@@ -137,6 +138,7 @@ class GPM():
     # -- I --
 
     def install_gws(self):
+        self.__is_pulled = []
         if self.get_gws_wks().startswith("/"):
             self.create_wks_dirs(self.get_gws_wks())
             self.pull(self.get_gws_wks(), repo_name="all", force=False)
@@ -147,6 +149,7 @@ class GPM():
             self.download(url, dest_dir, "db.sqlite3.zip")
 
     def install_user(self):
+        self.__is_pulled = []
         if self.get_user_wks().startswith("/"):
             self.create_wks_dirs(self.get_user_wks())
             self.pull(self.get_user_wks(), repo_name="skeleton", force=False)
@@ -336,7 +339,10 @@ class GPM():
                         deps = settings.get("dependencies",[]) + settings.get("externs",[])
                         for dep in deps:
                             #if not self.repo_exists(dep):
-                            self.pull(workspace_dir, repo_name=dep, origin=origin, username=git_user, userpwd=git_pwd, force=force)
+                            is_already_pulled = (dep in self.__is_pulled)
+                            if not is_already_pulled:
+                                self.pull(workspace_dir, repo_name=dep, origin=origin, username=git_user, userpwd=git_pwd, force=force)
+                                self.__is_pulled.append(dep)
                     except:
                         pass
 

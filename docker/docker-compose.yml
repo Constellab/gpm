@@ -12,7 +12,7 @@ services:
       - START_MODE:(START_MODE)
       - URI:(URI)
       - TOKEN:(TOKEN)
-      - VIRTUAL_HOST=3000
+      - VIRTUAL_PORT=3000
       - VIRTUAL_HOST=astro.lab.gencovery.com
       - LETSENCRYPT_HOST=astro.lab.gencovery.com
       - LETSENCRYPT_EMAIL=admin@gencovery.com
