@@ -18,7 +18,7 @@ Command: ```install-raw.sh --config </config/file/path.json> --app-dir </absolut
 ### Example
 
 ```
-. install-raw.sh --app-dir /Users/djomangan/Dev/docker --config ./config/config.json --lab-name foo
+. install-raw.sh --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
 ```
 
 * OPTION ```--lab-name``` is the name of lab used as entrypoint. Defaults to ```main```
@@ -27,10 +27,8 @@ Command: ```install-raw.sh --config </config/file/path.json> --app-dir </absolut
 
 To build the docker image, use the file ```install-docker.sh```. The docker compose template files is in ```./docker```.
 
-Command: ```install-docker.sh --config </config/file/path.json> --app-dir </absolute/path> [--test] [--lab-name <name>] [--prod | --dev]```.
+Command: ```install-docker.sh --config </config/file/path.json> --app-dir </absolute/path> [--lab-name <name>] [--prod | --dev]```.
 The options are the same as in the raw installation. Supplementary options are:
-
-* OPTION ```--test``` to test the build process. Only basic files will be compiled in development mode (```--dev``` forced). The docker will not be runnable.
 
 ### Environment variables
 
@@ -41,7 +39,6 @@ environment:
   - LAB_NAME: ...
   - START_MODE: ...
 ```
-* ```WORKSPACE```, defaults to ```/home/ubuntu/work```. It is the workspace of the user. This folder is mounted as a volume ans and will contain all the necessary bricks, labs, externs libs, data and tmp files.
 * ```LAB_NAME```, default to ```main```. It is the main user lab used as entrypoint. This lab must exists in the labs sub-directory in the ```WORKSPACE```.
 * ```START_MODE```, defaults to ```--prod```. Allows starting the server in production (```--prod```) or development (```--dev```) mode. No token is required to access the lab in development. 
 
@@ -50,9 +47,17 @@ WARNING: For security reasons, nether starts the server in developement mode whi
 
 ### Example
 
+* Build and run in dev mode
 ```
-. install-docker.sh --test --app-dir /Users/djomangan/Dev/docker --config ./config/config.json --lab-name foo
+. install-docker.sh --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
 ```
+
+* Build and run in production mode
+
+```
+. install-docker.sh --dev --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
+```
+
 # Push/pull bricks and labs
 
 Not yet implemented

@@ -4,7 +4,7 @@
         "title": "My digital lab",
         "description": "My digital lab",
         "start_mode": "prod",
-        "virtual_host": "astro.lab.gencvoery.com",
+        "virtual_host": "test.gencovery.com",
         "uri": "",
         "token": ""
     },

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-test="no"
 app_dir=""
 lab_name="main"
 lab_uri=""
@@ -11,9 +10,6 @@ config=""
 
 while :; do
     case $1 in
-        --test) 
-            test="yes"
-        ;;
         --dev) 
             start_mode="--dev"
         ;;
