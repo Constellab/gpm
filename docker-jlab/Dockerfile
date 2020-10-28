@@ -15,10 +15,9 @@ RUN apt-get -y install python3-pip
 RUN apt-get -y install git
 
 # Install Jupyter & JupyterLab
-RUN pip install jupyter
+RUN pip install jupyterlab
 RUN pip install ipywidgets
 RUN jupyter nbextension enable --py widgetsnbextension
-RUN pip install jupyterlab && jupyter serverextension enable --py jupyterlab
 
 EXPOSE 8888
 
