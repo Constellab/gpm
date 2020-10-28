@@ -57,7 +57,7 @@ if [ "$config" != "" ]; then
             ./docker-compose.yml > ./.docker-compose.yml
         
         mkdir -p ${app_dir}/nginx/conf.d/
-        cp ./client_max_body_size.conf ${app_dir}/nginx/conf.d/client_max_body_size.conf
+        cp ./nginx/client_max_body_size.conf ${app_dir}/nginx/conf.d/client_max_body_size.conf
 
         docker-compose -f .docker-compose.yml up --build
     else
