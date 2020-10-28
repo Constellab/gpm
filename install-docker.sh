@@ -59,6 +59,9 @@ if [ "$config" != "" ]; then
         mkdir -p ${app_dir}/nginx/conf.d/
         cp ./client_max_body_size.conf ${app_dir}/nginx/conf.d/client_max_body_size.conf
 
+        mkdir -p ./build-gws
+        mkdir -p ./build-jlab
+
         docker-compose -f .docker-compose.yml up --build
     else
         echo "An error occured."
