@@ -14,9 +14,14 @@ RUN apt-get -y install python3-distutils
 RUN apt-get -y install python3-pip
 RUN apt-get -y install git
 
-# Install Jupyter & JupyterLab
-RUN pip install jupyterlab
-RUN pip install ipywidgets
+# install pip
+#RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+#RUN python3 get-pip.py
+#RUN python3 -m pip install --upgrade pip
+#RUN python3 -m pip install --upgrade setuptools
+
+RUN python3 -m pip install jupyterlab
+RUN python3 -m pip install ipywidgets
 RUN jupyter nbextension enable --py widgetsnbextension
 
 EXPOSE 8888
