@@ -9,21 +9,21 @@ ADD ./ ${WORK_DIR}
 WORKDIR ${WORK_DIR}
 
 # install python, pip and venv
-RUN chmod +x ./src/install_python.sh
-RUN bash ./src/install_python.sh
+RUN chmod +x ./src/install-python.sh
+RUN bash ./src/install-python.sh
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 RUN python3 get-pip.py
 RUN python3 -m pip install --upgrade pip
 
 # bazel
-#RUN chmod +x ./sh/install_bazel.sh
-#RUN bash ./sh/install_bazel.sh
+#RUN chmod +x ./sh/install-bazel.sh
+#RUN bash ./sh/install-bazel.sh
 
 # dlib
-#COPY ./sh/install_dlib.sh ${GWS_EXTERN_DIR}/dlib-cpp
+#COPY ./sh/install-dlib.sh ${GWS_EXTERN_DIR}/dlib-cpp
 #WORK_DIR ${GWS_EXTERN_DIR}/dlib-cpp
-#RUN chmod +x ./sh/install_dlib.sh
-#RUN bash ./sh/install_dlib.sh
+#RUN chmod +x ./sh/install-dlib.sh
+#RUN bash ./sh/install-dlib.sh
 
 EXPOSE 3000 
 EXPOSE 8888

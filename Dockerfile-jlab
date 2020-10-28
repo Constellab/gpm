@@ -4,12 +4,12 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 
 ENV WORK_DIR /app/gpm
 
-ADD ./src/install_python.sh ${WORK_DIR}
+ADD ./src/install-python.sh ${WORK_DIR}
 WORKDIR ${WORK_DIR}
 
 # install python, pip and venv
-RUN chmod +x ./src/install_python.sh
-RUN bash ./src/install_python.sh
+RUN chmod +x ./src/install-python.sh
+RUN bash ./src/install-python.sh
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 RUN python3 get-pip.py
 RUN python3 -m pip install --upgrade pip
