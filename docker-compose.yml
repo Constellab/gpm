@@ -31,8 +31,8 @@ services:
     command: ["--runserver"]
     environment:
       - VIRTUAL_PORT=8888
-      - VIRTUAL_HOST=(VIRTUAL_HOST)
-      - LETSENCRYPT_HOST=(VIRTUAL_HOST)
+      - VIRTUAL_HOST=jlab.(VIRTUAL_HOST)
+      - LETSENCRYPT_HOST=jlab.(VIRTUAL_HOST)
       - LETSENCRYPT_EMAIL=admin@gencovery.com
     volumes:
       - (APP_DIR):/app/gws/
