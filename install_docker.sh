@@ -5,9 +5,8 @@ app_dir=""
 lab_name="main"
 lab_uri=""
 lab_token=""
-
 start_mode="--prod"
-
+virtual_host="test.lab.gencovery.com"
 config=""
 
 while :; do
@@ -34,6 +33,10 @@ while :; do
             config=$2
             shift
         ;;
+        --virtual_host) 
+            virtual_host=$2
+            shift
+        ;;
         *) break
     esac
     shift
@@ -45,31 +48,18 @@ if [ "$config" != "" ]; then
     if [ $? -eq 0 ]; then
         # build docker
         echo "Building docker ..."
-        if [ "$test" == "yes" ]; then
-            cd ./docker-test
-            sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
-                -e "s/(LAB_NAME)/${lab_name}/g" \
-                -e "s/(LAB_TOKEN)/$lab_token/g" \
-                -e "s/(LAB_URI)/$lab_uri/g" \
-                -e "s/(START_MODE)/--dev/g" \
-                -e "s/(TOKEN)/$token/g" \
-                -e "s/(URI)/$uri/g" \
-                ./docker-compose-test.yml > ./.docker-compose.yml
-        else
-            cd ./docker
-            sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
-                -e "s/(LAB_NAME)/${lab_name}/g" \
-                -e "s/(LAB_TOKEN)/$lab_token/g" \
-                -e "s/(LAB_URI)/$lab_uri/g" \
-                -e "s/(START_MODE)/$start_mode/g" \
-                ./docker-compose.yml > ./.docker-compose.yml
-            
-            mkdir -p ${app_dir}/nginx/conf.d/
-            cp ./client_max_body_size.conf ${app_dir}/nginx/conf.d/client_max_body_size.conf
-        fi
+        sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
+            -e "s/(LAB_NAME)/${lab_name}/g" \
+            -e "s/(LAB_TOKEN)/$lab_token/g" \
+            -e "s/(LAB_URI)/$lab_uri/g" \
+            -e "s/(START_MODE)/$start_mode/g" \
+            -e "s/(VIRTUAL_HOST)/$virtual_host/g" \
+            ./docker-compose.yml > ./.docker-compose.yml
+        
+        mkdir -p ${app_dir}/nginx/conf.d/
+        cp ./client_max_body_size.conf ${app_dir}/nginx/conf.d/client_max_body_size.conf
 
         docker-compose -f .docker-compose.yml up --build
-        cd ../
     else
         echo "An error occured."
     fi

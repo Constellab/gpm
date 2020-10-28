@@ -1,13 +1,11 @@
 FROM ubuntu
-
 LABEL maintainer="Admin <admin@gencovery.com>"
 
-# ENV VIRTUAL_HOST mylab.lab.gencovery.com
-# ENV VIRTUAL_HOST_JLAB  jlab.mylab.lab.gencovery.com
+
 ENV WORK_DIR /app/gpm
 ENV GWS_EXTERN_DIR /app/gws/gws/externs
 
-ADD . ${WORK_DIR}
+ADD ../ ${WORK_DIR}
 WORKDIR ${WORK_DIR}
 
 # install python, pip and venv

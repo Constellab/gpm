@@ -181,7 +181,8 @@ class GPM():
             settings["type"] = "lab"
             settings["name"] = self.lab_name
             settings["uri"] = self.lab_uri
-            #settings["host"] = self.lab_host
+            settings["host"] = self.lab_host
+            settings["virtual_host"] = self.lab_virtual_host
             settings["app"]["title"] = self.lab_title
             settings["app"]["description"] = self.lab_description
             
@@ -250,9 +251,13 @@ class GPM():
     def lab_start_mode(self):
         return self.config["lab"].get("start_mode", "prod")
 
-    # @property
-    # def lab_host(self):
-    #     return self.config["lab"].get("host", "astro.lab.gencovery.com")
+    @property
+    def lab_host(self):
+         return self.config["lab"].get("host", "0.0.0.0")
+
+    @property
+    def lab_virtual_host(self):
+         return self.config["lab"].get("virtual_host", "astro.lab.gencovery.com")
 
     @property
     def lab_token(self):
