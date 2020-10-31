@@ -43,6 +43,7 @@ while :; do
     shift
 done
 
+machine=""
 uname_out="$(uname -s)"
 case "${uname_out}" in
     Linux*)     machine=Linux;;
@@ -52,7 +53,9 @@ case "${uname_out}" in
     *)          machine="UNKNOWN:${uname_out}"
 esac
 
-if ["$machine" == "Linux"]; then
+echo $machine
+
+if [ "$machine" == "Linux" ]; then
     sudo apt-get -y update
     sudo apt-get -y install jq
 
