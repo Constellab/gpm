@@ -52,21 +52,19 @@ case "${uname_out}" in
     *)          machine="UNKNOWN:${uname_out}"
 esac
 
-if [ "$config" != "" ]; then
-    if ["$uname_out" == "Linux"]
-        sudo apt-get -y install jq
-        lab_name=`jq '.lab.name' $config`
-        lab_uri=`jq '.lab.uri' $config`
-        lab_token=`jq '.lab.token' $config`
-        jlab_token=`jq '.lab.jlab_token' $config`
-        start_mode=`jq '.lab.start_mode' $config`
-        virtual_host=`jq '.lab.virtual_host' $config`
-        app_dir=`jq '.lab.app_dir' $config`
+if ["$uname_out" == "Linux"]
+    sudo apt-get -y install jq
+    lab_name=`jq '.lab.name' $config`
+    lab_uri=`jq '.lab.uri' $config`
+    lab_token=`jq '.lab.token' $config`
+    jlab_token=`jq '.lab.jlab_token' $config`
+    start_mode=`jq '.lab.start_mode' $config`
+    virtual_host=`jq '.lab.virtual_host' $config`
+    app_dir=`jq '.lab.app_dir' $config`
+fi
 
-        . ./install-raw.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
-    else
-        . ./install-raw.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
-    fi
+if [ "$config" != "" ]; then
+    . ./install-raw.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
 
     if [ $? -eq 0 ]; then
         # build docker
