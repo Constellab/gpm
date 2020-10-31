@@ -52,7 +52,7 @@ case "${uname_out}" in
     *)          machine="UNKNOWN:${uname_out}"
 esac
 
-if ["$uname_out" == "Linux"]; then
+if ["$machine" == "Linux"]; then
     sudo apt-get -y update
     sudo apt-get -y install jq
 
