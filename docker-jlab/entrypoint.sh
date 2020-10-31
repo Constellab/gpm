@@ -15,7 +15,7 @@ if [ "$1" == "--runserver" ]; then
     find /app/gws/user/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
 
     # run server
-    exec jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir=/app/gws/user/ --allow-root --NotebookApp.tokenUnicode=$token
+    exec jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir=/app/gws/user/ --allow-root --NotebookApp.token=\'${token}\' --NotebookApp.password=\'\'
 else
     exec "$@"
 fi
