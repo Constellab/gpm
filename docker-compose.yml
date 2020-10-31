@@ -9,10 +9,10 @@ services:
       context: ./
     command: ["--runserver", "(LAB_NAME)"]
     environment:
-      - LAB_NAME:(LAB_NAME)
-      - LAB_TOKEN:(LAB_TOKEN)
-      - LAB_URI:(LAB_URI)
-      - START_MODE:(START_MODE)
+      - LAB_NAME=(LAB_NAME)
+      - LAB_TOKEN=(LAB_TOKEN)
+      - LAB_URI=(LAB_URI)
+      - START_MODE=(START_MODE)
       - VIRTUAL_PORT=3000
       - VIRTUAL_HOST=(VIRTUAL_HOST)
       - LETSENCRYPT_HOST=(VIRTUAL_HOST)

@@ -12,7 +12,7 @@ config="./config/config.json"
 while :; do
     case $1 in
         --dev) 
-start_mode="--dev"
+            start_mode="--dev"
         ;;
         --app-dir) 
             app_dir=${2%/}
@@ -54,7 +54,7 @@ esac
 
 if ["$uname_out" == "Linux"]; then
     sudo apt-get -y install jq
-    lab_name=`jq '.lab.name' $config`
+    lab_name=`jq '.lab.name' ${config}`
     lab_uri=`jq '.lab.uri' $config`
     lab_token=`jq '.lab.token' $config`
     jlab_token=`jq '.lab.jlab_token' $config`
@@ -69,13 +69,13 @@ if [ "$config" != "" ]; then
     if [ $? -eq 0 ]; then
         # build docker
         echo "Building docker ..."
-        sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
+        sed -e "s/(APP_DIR)/${app_dir}//\//\\/}/g" \
             -e "s/(LAB_NAME)/${lab_name}/g" \
-            -e "s/(LAB_TOKEN)/$lab_token/g" \
-            -e "s/(LAB_URI)/$lab_uri/g" \
-            -e "s/(START_MODE)/$start_mode/g" \
-            -e "s/(JLAB_TOKEN)/$jlab_token/g" \
-            -e "s/(VIRTUAL_HOST)/$virtual_host/g" \
+            -e "s/(LAB_TOKEN)/${lab_token}/g" \
+            -e "s/(LAB_URI)/${lab_uri}/g" \
+            -e "s/(START_MODE)/${start_mode}/g" \
+            -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
+            -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
             ./docker-compose.yml > ./.docker-compose.yml
         
         mkdir -p ${app_dir}/nginx/conf.d/
