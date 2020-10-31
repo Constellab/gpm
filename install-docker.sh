@@ -60,12 +60,12 @@ if [ "$machine" == "Linux" ]; then
     sudo apt-get -y install jq
 
     lab_name=`jq '.lab.name' ${config}`
-    lab_uri=`jq '.lab.uri' $config`
-    lab_token=`jq '.lab.token' $config`
-    jlab_token=`jq '.lab.jlab_token' $config`
-    start_mode=`jq '.lab.start_mode' $config`
-    virtual_host=`jq '.lab.virtual_host' $config`
-    app_dir=`jq '.lab.app_dir' $config`
+    lab_uri=`jq '.lab.uri' ${config}`
+    lab_token=`jq '.lab.token' ${config}`
+    jlab_token=`jq '.lab.jlab_token' ${config}`
+    start_mode=`jq '.lab.start_mode' ${config}`
+    virtual_host=`jq '.lab.virtual_host' ${config}`
+    app_dir=`jq '.lab.app_dir' ${config}`
 fi
 
 if [ "$config" != "" ]; then
