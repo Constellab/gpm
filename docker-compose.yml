@@ -10,9 +10,9 @@ services:
     command: ["--runserver", "(LAB_NAME)"]
     environment:
       - LAB_NAME:(LAB_NAME)
+      - LAB_TOKEN:(LAB_TOKEN)
+      - LAB_URI:(LAB_URI)
       - START_MODE:(START_MODE)
-      - URI:(URI)
-      - TOKEN:(TOKEN)
       - VIRTUAL_PORT=3000
       - VIRTUAL_HOST=(VIRTUAL_HOST)
       - LETSENCRYPT_HOST=(VIRTUAL_HOST)
@@ -34,6 +34,7 @@ services:
       - VIRTUAL_HOST=jlab.(VIRTUAL_HOST)
       - LETSENCRYPT_HOST=jlab.(VIRTUAL_HOST)
       - LETSENCRYPT_EMAIL=admin@gencovery.com
+      - JLAB_TOKEN=(JLAB_TOKEN)
     volumes:
       - (APP_DIR):/app/gws/
     networks:

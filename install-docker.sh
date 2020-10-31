@@ -4,6 +4,7 @@ app_dir=""
 lab_name="main"
 lab_uri=""
 lab_token=""
+jlab_token=""
 start_mode="--prod"
 virtual_host="test.lab.gencovery.com"
 config=""
@@ -19,6 +20,10 @@ while :; do
         ;;
         --lab-name) 
             lab_name=$2
+            shift
+        ;;
+        --jlab-name) 
+            jlab_name=$2
             shift
         ;;
         --start-mode) 
@@ -38,8 +43,29 @@ while :; do
     shift
 done
 
+uname_out="$(uname -s)"
+case "${uname_out}" in
+    Linux*)     machine=Linux;;
+    Darwin*)    machine=Mac;;
+    CYGWIN*)    machine=Cygwin;;
+    MINGW*)     machine=MinGw;;
+    *)          machine="UNKNOWN:${uname_out}"
+esac
+
 if [ "$config" != "" ]; then
-    . ./install-raw.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
+    if ["$uname_out" == "Linux"]
+        sudo apt-get -y install jq
+        lab_name=`jq '.lab.name' config.json`
+        lab_uri=`jq '.lab.uri' config.json`
+        lab_token=`jq '.lab.token' config.json`
+        jlab_token=`jq '.lab.jlab_token' config.json`
+        start_mode=`jq '.lab.start_mode' config.json`
+        virtual_host=`jq '.lab.virtual_host' config.json`
+
+        . ./install-raw.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
+    else
+        . ./install-raw.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
+    fi
 
     if [ $? -eq 0 ]; then
         # build docker
@@ -49,6 +75,7 @@ if [ "$config" != "" ]; then
             -e "s/(LAB_TOKEN)/$lab_token/g" \
             -e "s/(LAB_URI)/$lab_uri/g" \
             -e "s/(START_MODE)/$start_mode/g" \
+            -e "s/(JLAB_TOKEN)/$jlab_token/g" \
             -e "s/(VIRTUAL_HOST)/$virtual_host/g" \
             ./docker-compose.yml > ./.docker-compose.yml
         

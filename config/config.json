@@ -4,9 +4,10 @@
         "title": "My digital lab",
         "description": "My digital lab",
         "start_mode": "prod",
-        "virtual_host": "test.gencovery.com",
-        "uri": "",
-        "token": ""
+        "virtual_host": "test.lab.gencovery.com",
+        "uri": "1234567890abcdefghijklmnopqrstuvwxyz",
+        "token": "1234567890abcdefghijklmnopqrstuvwxyz",
+        "jlab_token": "1234567890abcdefghijklmnopqrstuvwxyz"
     },
     "bricks": [
         "biox",
