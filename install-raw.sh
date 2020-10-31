@@ -3,7 +3,7 @@
 app_dir=""
 lab_name="main"
 is_docker="no"
-config=""
+config="./config/config.json"
 
 while :; do
     case $1 in

@@ -1,18 +1,18 @@
 #!/bin/bash
 
-app_dir=""
+app_dir="/home/ubuntu/app"
 lab_name="main"
 lab_uri=""
 lab_token=""
 jlab_token=""
 start_mode="--prod"
 virtual_host="test.lab.gencovery.com"
-config=""
+config="./config/config.json"
 
 while :; do
     case $1 in
         --dev) 
-            start_mode="--dev"
+start_mode="--dev"
         ;;
         --app-dir) 
             app_dir=${2%/}
@@ -55,12 +55,13 @@ esac
 if [ "$config" != "" ]; then
     if ["$uname_out" == "Linux"]
         sudo apt-get -y install jq
-        lab_name=`jq '.lab.name' config.json`
-        lab_uri=`jq '.lab.uri' config.json`
-        lab_token=`jq '.lab.token' config.json`
-        jlab_token=`jq '.lab.jlab_token' config.json`
-        start_mode=`jq '.lab.start_mode' config.json`
-        virtual_host=`jq '.lab.virtual_host' config.json`
+        lab_name=`jq '.lab.name' $config`
+        lab_uri=`jq '.lab.uri' $config`
+        lab_token=`jq '.lab.token' $config`
+        jlab_token=`jq '.lab.jlab_token' $config`
+        start_mode=`jq '.lab.start_mode' $config`
+        virtual_host=`jq '.lab.virtual_host' $config`
+        app_dir=`jq '.lab.app_dir' $config`
 
         . ./install-raw.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
     else

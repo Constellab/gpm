@@ -1,12 +1,10 @@
 #!/bin/bash
 set -e
 if [ "$1" == "--runserver" ]; then
-    ip=""
-    port=""
+    lab_name=$2
     lab_uri=""
     lab_token=""
-    lab_name=$2
-
+    
     if [ -n "$LAB_NAME" ]; then
         lab_name=$LAB_NAME
     fi
@@ -32,7 +30,7 @@ if [ "$1" == "--runserver" ]; then
     find /app/gws/user/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
 
     # run server
-    exec python3 "/app/gws/user/labs/${lab_name}/manage.py" --runserver $lab_uri $lab_token $ip $port $start_mode
+    exec python3 "/app/gws/user/labs/${lab_name}/manage.py" --runserver $lab_uri $lab_token $start_mode
 else
     exec "$@"
 fi

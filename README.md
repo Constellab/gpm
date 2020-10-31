@@ -9,11 +9,9 @@ To install the packages without docker, use the file ```install-raw.sh```.
 Command: ```install-raw.sh --config </config/file/path.json> --app-dir </absolute/path> [--lab-name <name>] [--prod | --dev]```
 
 * OPTION ```--app-dir```. The installation path of the application
-* OPTION ```--config```. The path of the configuration file (JSON file). A default config file is given in folder ```./config/```
+* OPTION ```--config```. The path of the configuration file (JSON file). Defaults to ```./config/config.json```. A default config file is given by ```./config/config.json```
 * OPTION ```--lab-name```. The name of lab used as entrypoint. Defaults to ```main```
 * OPTION ```--prod``` or ```--dev``` to install in production or development mode. Defaults to ```--prod```.
-
-
 
 ### Example
 
@@ -27,8 +25,10 @@ Command: ```install-raw.sh --config </config/file/path.json> --app-dir </absolut
 
 To build the docker image, use the file ```install-docker.sh```. The docker compose template files is in ```./docker```.
 
-Command: ```install-docker.sh --config </config/file/path.json> --app-dir </absolute/path> [--lab-name <name>] [--prod | --dev]```.
+Command: ```install-docker.sh --config </config/file/path.json> --app-dir </absolute/path> [--lab-name <name>] [--lab-token <token>] [--jlab-token <jlab-token>] [--prod | --dev]```.
 The options are the same as in the raw installation. Supplementary options are:
+* OPTION ```--lab-token```. The token of lab
+* OPTION ```--jlab-token```. The token of the juptyter lab
 
 ### Environment variables
 
@@ -49,7 +49,7 @@ WARNING: For security reasons, nether starts the server in developement mode whi
 
 * Build and run in dev mode
 ```
-. install-docker.sh --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
+. install-docker.sh --app-dir </user/work/dir> --config ./config/config.json --lab-name foo --lab-token 12345abcd --jlab-token 12345abcd
 ```
 
 * Build and run in production mode
