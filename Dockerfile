@@ -11,8 +11,8 @@ WORKDIR ${WORK_DIR}
 RUN apt-get -y update
 RUN apt-get -y install python3
 RUN apt-get -y install python3-distutils
+RUN apt-get -y install python3-pip
 RUN apt-get -y install git
-RUN python3 -m pip install --upgrade pip
 
 # bazel
 #RUN chmod +x ./sh/install-bazel.sh
