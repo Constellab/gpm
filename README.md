@@ -4,9 +4,9 @@ This python module allows to manage gws packages (i.e. bricks and labs packages)
 
 ## Raw installation (without docker)
 
-To install the packages without docker, use the file ```install-raw.sh```.
+To install the packages without docker, use the file ```install-raw-app.sh```.
 
-Command: ```install-raw.sh --config </config/file/path.json> --app-dir </absolute/path> [--lab-name <name>] [--prod | --dev]```
+Command: ```install-raw-app.sh --config </config/file/path.json> --app-dir </absolute/path> [--lab-name <name>] [--prod | --dev]```
 
 * OPTION ```--app-dir```. The installation path of the application
 * OPTION ```--config```. The path of the configuration file (JSON file). Defaults to ```./config/config.json```. A default config file is given by ```./config/config.json```
@@ -16,16 +16,16 @@ Command: ```install-raw.sh --config </config/file/path.json> --app-dir </absolut
 ### Example
 
 ```
-. install-raw.sh --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
+. install-raw-app.sh --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
 ```
 
 * OPTION ```--lab-name``` is the name of lab used as entrypoint. Defaults to ```main```
 
 ## Docker installation
 
-To build the docker image, use the file ```install-docker.sh```. The docker compose template files is in ```./docker```.
+To build the docker image, use the file ```install-docker-app.sh```. The docker compose template files is in ```./docker```.
 
-Command: ```install-docker.sh --config </config/file/path.json> --app-dir </absolute/path> [--lab-name <name>] [--lab-token <token>] [--jlab-token <jlab-token>] [--prod | --dev]```.
+Command: ```install-docker-app.sh --config </config/file/path.json> --app-dir </absolute/path> [--lab-name <name>] [--lab-token <token>] [--jlab-token <jlab-token>] [--prod | --dev]```.
 The options are the same as in the raw installation. Supplementary options are:
 * OPTION ```--lab-token```. The token of lab
 * OPTION ```--jlab-token```. The token of the juptyter lab
@@ -49,18 +49,18 @@ WARNING: For security reasons, nether starts the server in developement mode whi
 
 * Build and run in dev mode
 ```
-. install-docker.sh --app-dir </user/work/dir> --config ./config/config.json --lab-name foo --lab-token 12345abcd --jlab-token 12345abcd
+. install-docker-app.sh --app-dir </user/work/dir> --config ./config/config.json --lab-name foo --lab-token 12345abcd --jlab-token 12345abcd
 ```
 
 * Build and run in production mode
 
 ```
-. install-docker.sh --dev --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
+. install-docker-app.sh --dev --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
 ```
 
 # Push/pull bricks and labs
 
 Not yet implemented
 
-* ```pull.sh --pull <brick-name>``` to pull a brick (or a lab). The docker image must be rebuild to update changes (run ```install-docker``` to rebuild).
+* ```pull.sh --pull <brick-name>``` to pull a brick (or a lab). The docker image must be rebuild to update changes (run ```install-docker-app``` to rebuild).
 * ```push.sh --push <brick-name> <tag>``` to push a brick (or a lab) using a tag name.
