@@ -14,8 +14,8 @@ services:
       - LAB_URI=(LAB_URI)
       - START_MODE=(START_MODE)
       - VIRTUAL_PORT=3000
-      - VIRTUAL_HOST=(VIRTUAL_HOST)
-      - LETSENCRYPT_HOST=(VIRTUAL_HOST)
+      - VIRTUAL_HOST=lab.(VIRTUAL_HOST)
+      - LETSENCRYPT_HOST=*.(VIRTUAL_HOST)
       - LETSENCRYPT_EMAIL=admin@gencovery.com
     volumes:
       - (APP_DIR):/app/gws/
@@ -32,7 +32,7 @@ services:
     environment:
       - VIRTUAL_PORT=8888
       - VIRTUAL_HOST=jlab.(VIRTUAL_HOST)
-      - LETSENCRYPT_HOST=jlab.(VIRTUAL_HOST)
+      - LETSENCRYPT_HOST=*.(VIRTUAL_HOST)
       - LETSENCRYPT_EMAIL=admin@gencovery.com
       - JLAB_TOKEN=(JLAB_TOKEN)
     volumes:

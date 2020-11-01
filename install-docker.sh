@@ -6,7 +6,7 @@ lab_uri=""
 lab_token=""
 jlab_token=""
 start_mode="--prod"
-virtual_host="test.lab.gencovery.com"
+virtual_host=""
 config="./config/config.json"
 
 while :; do
