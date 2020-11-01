@@ -20,6 +20,7 @@ RUN apt-get -y install git
 #RUN python3 -m pip install --upgrade pip
 #RUN python3 -m pip install --upgrade setuptools
 
+RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install jupyterlab
 RUN python3 -m pip install ipywidgets
 RUN jupyter nbextension enable --py widgetsnbextension
