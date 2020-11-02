@@ -5,10 +5,10 @@
         "description": "My digital lab",
         "app_dir": "/home/ubuntu/app",
         "start_mode": "--prod",
-        "virtual_host": "test.gencovery.io",
+        "virtual_host": "roventlov.gencovery.io",
         "uri": "1234567890abcdefghijklmnopqrstuvwxyz",
-        "token": "QVq[b[xziX!DU;Fp;ryYL6f]bsK!4df6$DXS{CizbB/?$Kf.?MS4LjyHpedqH/+Yrx9QfJkzYjpk$dU/Gf!%.=i{jdX:ZSa-",
-        "jlab_token": "QVq[b[xziX!DU;Fp;ryYL6f]bsK!4df6$DXS{CizbB/?$Kf.?MS4LjyHpedqH/+Yrx9QfJkzYjpk$dU/Gf!%.=i{jdX:ZSa-"
+        "token": "LSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq2P",
+        "jlab_token": "LSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq2P"
     },
     "bricks": [
         "biox",
