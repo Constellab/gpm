@@ -7,8 +7,8 @@
         "start_mode": "--prod",
         "virtual_host": "test.gencovery.io",
         "uri": "1234567890abcdefghijklmnopqrstuvwxyz",
-        "token": "1234567890abcdefghijklmnopqrstuvwxyz",
-        "jlab_token": "1234567890abcdefghijklmnopqrstuvwxyz"
+        "token": "ADyTUeYBfroEk8naoKgZGHJ5tzoV4NZnUtzY9fBkkvDVDsRss9TJmP5TEqSFsMrPtG2eXRhgsnyssv4GtyNmpTHBTGNLL6dnrhaf",
+        "jlab_token": "ADyTUeYBfroEk8naoKgZGHJ5tzoV4NZnUtzY9fBkkvDVDsRss9TJmP5TEqSFsMrPtG2eXRhgsnyssv4GtyNmpTHBTGNLL6dnrhaf"
     },
     "bricks": [
         "biox",
