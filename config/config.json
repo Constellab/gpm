@@ -5,7 +5,7 @@
         "description": "My digital lab",
         "app_dir": "/home/ubuntu/app",
         "start_mode": "--prod",
-        "virtual_host": "roventlov.gencovery.io",
+        "virtual_host": "test.gencovery.io",
         "uri": "1234567890abcdefghijklmnopqrstuvwxyz",
         "token": "LSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq2P",
         "jlab_token": "LSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq2P"
