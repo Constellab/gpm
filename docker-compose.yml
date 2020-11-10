@@ -35,6 +35,7 @@ services:
       - LETSENCRYPT_HOST=jlab.(VIRTUAL_HOST)
       - LETSENCRYPT_EMAIL=admin@gencovery.com
       - JLAB_TOKEN=(JLAB_TOKEN)
+      - JLAB_HOME_DIR=(JLAB_HOME_DIR)
     volumes:
       - (APP_DIR):/app/gws/
     networks:

@@ -178,13 +178,15 @@ class GPM():
         settings_file = os.path.join(dest_dir, "settings.json")
         with open(settings_file, 'r') as f:
             settings = json.load(f)
-            settings["type"] = "lab"
-            settings["name"] = self.lab_name
-            settings["uri"] = self.lab_uri
-            settings["host"] = self.lab_host
-            settings["virtual_host"] = self.lab_virtual_host
-            settings["app"]["title"] = self.lab_title
-            settings["app"]["description"] = self.lab_description
+            settings["type"]            = "lab"
+            settings["name"]            = self.config["lab"].get("name", "main")
+            settings["uri"]             = self.config["lab"].get("uri", "")
+            settings["host"]            = self.config["lab"].get("host", "0.0.0.0")
+            settings["virtual_host"]    = self.config["lab"].get("virtual_host", "lab.test.gencovery.io")
+            settings["user_uri"]        = self.config["lab"].get("user_uri", "")
+            settings["central_api_key"] = self.config["lab"].get("central_api_key", "")
+            settings["app"]["title"]    = self.config["lab"].get("title", "")
+            settings["app"]["description"] = self.config["lab"].get("description", "")
             
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=4)
@@ -232,36 +234,8 @@ class GPM():
     # -- L --
 
     @property
-    def lab_uri(self):
-        return self.config["lab"].get("uri", "")
-
-    @property
     def lab_name(self):
         return self.config["lab"].get("name", "main")
-
-    @property
-    def lab_title(self):
-        return self.config["lab"].get("title", "")
-
-    @property
-    def lab_description(self):
-        return self.config["lab"].get("description", "")
-
-    @property
-    def lab_start_mode(self):
-        return self.config["lab"].get("start_mode", "prod")
-
-    @property
-    def lab_host(self):
-         return self.config["lab"].get("host", "0.0.0.0")
-
-    @property
-    def lab_virtual_host(self):
-         return self.config["lab"].get("virtual_host", "astro.lab.gencovery.com")
-
-    @property
-    def lab_token(self):
-        return self.config["lab"].get("token", "")
 
     # -- R --
 

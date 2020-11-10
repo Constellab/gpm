@@ -5,6 +5,7 @@ lab_name="main"
 lab_uri=""
 lab_token=""
 jlab_token=""
+jlab_home_dir=""
 start_mode="--prod"
 virtual_host=""
 config="./config/config.json"
@@ -63,6 +64,7 @@ if [ "$machine" == "Linux" ]; then
     lab_uri=`jq '.lab.uri' ${config} | sed -e 's/^"//' -e 's/"$//'`
     lab_token=`jq '.lab.token' ${config} | sed -e 's/^"//' -e 's/"$//'`
     jlab_token=`jq '.lab.jlab_token' ${config} | sed -e 's/^"//' -e 's/"$//'`
+    jlab_home_dir=`jq '.lab.jlab_home_dir' ${config} | sed -e 's/^"//' -e 's/"$//'`
     start_mode=`jq '.lab.start_mode' ${config} | sed -e 's/^"//' -e 's/"$//'`
     virtual_host=`jq '.lab.virtual_host' ${config} | sed -e 's/^"//' -e 's/"$//'`
     app_dir=`jq '.lab.app_dir' ${config} | sed -e 's/^"//' -e 's/"$//'`
@@ -80,6 +82,7 @@ if [ "$config" != "" ]; then
             -e "s/(LAB_URI)/${lab_uri}/g" \
             -e "s/(START_MODE)/${start_mode}/g" \
             -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
+            -e "s/(JLAB_HOME_DIR)/${jlab_home_dir}/g" \
             -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
             ./docker-compose.yml > ./.docker-compose.yml
         
