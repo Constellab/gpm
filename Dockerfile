@@ -10,6 +10,7 @@ WORKDIR ${WORK_DIR}
 # install python
 RUN apt-get -y update
 RUN apt-get -y install python3
+RUN apt-get -y install python3-distutils
 RUN apt-get -y install git
 RUN apt-get -y install curl
 
