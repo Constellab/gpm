@@ -82,11 +82,11 @@ if [ "$config" != "" ]; then
             -e "s/(LAB_URI)/${lab_uri}/g" \
             -e "s/(START_MODE)/${start_mode}/g" \
             -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
-            -e "s/(JLAB_HOME_DIR)/${jlab_home_dir}/g" \
+            -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
             -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
             ./docker-compose.yml > ./.docker-compose.yml
         
-        nginx_confd_dir=${app_confd}/.nginx/conf.d
+        nginx_confd_dir=${app_dir}/.nginx/conf.d
         mkdir -p $nginx_confd_dir
         cp ./client_max_body_size.conf ${nginx_confd_dir}/client_max_body_size.conf
 
