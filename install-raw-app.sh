@@ -27,7 +27,7 @@ while :; do
     shift
 done
 
-gws_wks="${app_dir}/gws"
+gws_wks="${app_dir}/.gws"
 user_wks="${app_dir}/user"
 mkdir -p $gws_wks
 mkdir -p $user_wks

@@ -86,8 +86,9 @@ if [ "$config" != "" ]; then
             -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
             ./docker-compose.yml > ./.docker-compose.yml
         
-        mkdir -p ${app_dir}/nginx/conf.d/
-        cp ./client_max_body_size.conf ${app_dir}/nginx/conf.d/client_max_body_size.conf
+        nginx_confd_dir=${app_confd}/.nginx/conf.d
+        mkdir -p $nginx_confd_dir
+        cp ./client_max_body_size.conf ${nginx_confd_dir}/client_max_body_size.conf
 
         docker-compose -f .docker-compose.yml up --build
     else
