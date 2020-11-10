@@ -23,7 +23,7 @@ RUN python3 -m pip install --upgrade setuptools
 # install jupyter lab
 RUN python3 -m pip install jupyterlab
 RUN python3 -m pip install ipywidgets
-RUN jupyter nbextension enable --py widgetsnbextension
+#RUN jupyter nbextension enable --py widgetsnbextension
 
 EXPOSE 8888
 
