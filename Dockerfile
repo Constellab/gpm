@@ -2,7 +2,7 @@ FROM ubuntu
 LABEL maintainer="Admin <admin@gencovery.com>"
 
 ENV WORK_DIR /app/gpm
-ENV GWS_EXTERN_DIR /app/gws/gws/externs
+ENV GWS_EXTERN_DIR /app/gws/.gws/externs
 
 ADD ./ ${WORK_DIR}
 WORKDIR ${WORK_DIR}
