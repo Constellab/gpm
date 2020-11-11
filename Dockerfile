@@ -28,7 +28,7 @@ RUN apt -y update && apt -y full-upgrade
 
 # install C++ dev tools
 RUN apt-get -y install g++ unzip zip
-RUN apt-get -y install build-essential cmake pkg-config
+RUN DEBIAN_FRONTEND="noninteractive" apt-get -y install build-essential cmake pkg-config
 RUN apt-get -y install libx11-dev libatlas-base-dev
 RUN apt-get -y install libgtk-3-dev libboost-python-dev
 RUN apt-get -y install libopenblas-dev liblapack-dev
