@@ -20,7 +20,7 @@ RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install --upgrade setuptools
 
 # install jupyter lab
-RUN python3 -m pip install jupyterlab
+RUN python3 -m pip install jupyterlab==2.2.0
 RUN python3 -m pip install ipywidgets
 
 # install bazel
