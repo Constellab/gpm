@@ -33,6 +33,9 @@ RUN apt-get -y install libx11-dev libatlas-base-dev
 RUN apt-get -y install libgtk-3-dev libboost-python-dev
 RUN apt-get -y install libopenblas-dev liblapack-dev
 
+# install R
+RUN apt-get -y install r-base
+
 EXPOSE 3000 
 
 COPY ./entrypoint.sh /entrypoint.sh
