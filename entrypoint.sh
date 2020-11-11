@@ -20,6 +20,19 @@ if [ "$1" == "--runserver" ]; then
     if [ -n "$START_MODE" -a "$START_MODE" = "--dev" ]; then
         start_mode="--demo"
     fi
+    
+    # build and install dlib
+    build_dir="/app/gws/.gws/externs/dlib-cpp/build"
+    cd $build_dir
+    if [ ! -d "$build_dir" ]; then
+        mkdir -p $build_dir
+        cmake -DUSE_AVX_INSTRUCTIONS=ON -DBUILD_SHARED_LIBS=1 ..
+        cmake --build . --config Release
+        make
+    fi
+    make install
+    ldconfig
+    cd /app
 
     # install dependencies
     find /app/gws/.gws/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
