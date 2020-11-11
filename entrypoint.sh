@@ -22,7 +22,7 @@ if [ "$1" == "--runserver" ]; then
     fi
     
     # build and install dlib
-    build_dir="/app/gws/.gws/externs/dlib-cpp/build"
+    build_dir="/app/gws/.gws/externs/dlib-cpp/build-gws"
     if [ ! -d "$build_dir" ]; then
         mkdir -p $build_dir
         cd $build_dir
