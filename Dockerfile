@@ -20,7 +20,7 @@ RUN python3 get-pip.py
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install --upgrade setuptools
 
-# install Bazel
+# install bazel
 RUN sudo apt install curl gnupg
 RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
 RUN sudo mv bazel.gpg /etc/apt/trusted.gpg.d/
@@ -47,6 +47,7 @@ RUN make install
 RUN ldconfig
 
 WORKDIR ${WORK_DIR}
+
 EXPOSE 3000 
 
 COPY ./entrypoint.sh /entrypoint.sh
