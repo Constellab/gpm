@@ -34,9 +34,8 @@ RUN apt-get -y install libgtk-3-dev libboost-python-dev
 RUN apt-get -y install libopenblas-dev liblapack-dev
 
 # build and install dlib
-WORKDIR ${GWS_EXTERN_DIR}/dlib-cpp
-RUN mkdir build
-RUN cd build
+RUN mkdir -p ${GWS_EXTERN_DIR}/dlib-cpp/build
+WORKDIR ${GWS_EXTERN_DIR}/dlib-cpp/build
 RUN cmake -DUSE_AVX_INSTRUCTIONS=ON -DBUILD_SHARED_LIBS=1 ..
 RUN cmake --build . --config Release
 RUN make
