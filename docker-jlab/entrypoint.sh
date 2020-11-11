@@ -36,6 +36,7 @@ if [ "$1" == "--runserver" ]; then
     find /app/gws/user/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
 
     # run server
+    export SHELL=/bin/bash
     exec jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir=${home_dir} --allow-root --NotebookApp.token=${token} --NotebookApp.password=
 else
     exec "$@"
