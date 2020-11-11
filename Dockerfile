@@ -20,16 +20,33 @@ RUN python3 get-pip.py
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install --upgrade setuptools
 
-# bazel
-#RUN chmod +x ./sh/install-bazel.sh
-#RUN bash ./sh/install-bazel.sh
+# install Bazel
+RUN sudo apt install curl gnupg
+RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
+RUN sudo mv bazel.gpg /etc/apt/trusted.gpg.d/
+RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+RUN apt-get -y install bazel
+RUN apt-get -y update
+RUN apt-get -y full-upgrade
 
-# dlib
-#COPY ./sh/install-dlib.sh ${GWS_EXTERN_DIR}/dlib-cpp
-#WORK_DIR ${GWS_EXTERN_DIR}/dlib-cpp
-#RUN chmod +x ./sh/install-dlib.sh
-#RUN bash ./sh/install-dlib.sh
+# install C++ dev tools
+RUN apt-get -y install g++ unzip zip
+RUN apt-get -y install build-essential cmake pkg-config
+RUN apt-get -y install libx11-dev libatlas-base-dev
+RUN apt-get -y install libgtk-3-dev libboost-python-dev
+RUN apt-get -y install libopenblas-dev liblapack-dev
 
+# build and install dlib
+WORKDIR ${GWS_EXTERN_DIR}/dlib-cpp
+RUN mkdir build
+RUN cd build
+RUN cmake -DUSE_AVX_INSTRUCTIONS=ON -DBUILD_SHARED_LIBS=1 ..
+RUN cmake --build . --config Release
+RUN make
+RUN make install
+RUN ldconfig
+
+WORKDIR ${WORK_DIR}
 EXPOSE 3000 
 
 COPY ./entrypoint.sh /entrypoint.sh
