@@ -10,10 +10,8 @@ WORKDIR ${WORK_DIR}
 
 # install python
 RUN apt-get -y update
-RUN apt-get -y install python3
-RUN apt-get -y install python3-distutils
-RUN apt-get -y install git
-RUN apt-get -y install curl
+RUN apt-get -y install python3 python3-distutils
+RUN apt-get -y install git curl
 
 # install pip
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
@@ -30,8 +28,8 @@ RUN apt-get install gnupg
 RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
 RUN mv bazel.gpg /etc/apt/trusted.gpg.d/
 RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list
-RUN apt update && sudo apt install bazel
-RUN sudo apt update && sudo apt full-upgrade
+RUN apt update && apt install bazel
+RUN apt update && apt full-upgrade
 
 # install C++ dev tools
 RUN apt-get -y install g++ unzip zip
