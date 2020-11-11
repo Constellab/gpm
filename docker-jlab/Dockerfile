@@ -26,7 +26,7 @@ RUN python3 -m pip install jupyterlab
 RUN python3 -m pip install ipywidgets
 
 # install bazel
-RUN apt install curl gnupg
+RUN apt-get install gnupg
 RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
 RUN mv bazel.gpg /etc/apt/trusted.gpg.d/
 RUN echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
