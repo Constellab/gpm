@@ -181,9 +181,14 @@ class GPM():
             settings["type"]            = "lab"
             settings["name"]            = self.config["lab"].get("name", "main")
             settings["uri"]             = self.config["lab"].get("uri", "")
+            settings["token"]           = self.config["lab"].get("token", "")
             settings["host"]            = self.config["lab"].get("host", "0.0.0.0")
             settings["virtual_host"]    = self.config["lab"].get("virtual_host", "lab.test.gencovery.io")
             settings["user_uri"]        = self.config["lab"].get("user_uri", "")
+
+            settings["jlab_token"]      = self.config["lab"].get("jlab_token", "")
+            settings["jlab_home_dir"]   = self.config["lab"].get("jlab_home_dir", "")
+
             settings["central_api_key"] = self.config["lab"].get("central_api_key", "")
             settings["app"]["title"]    = self.config["lab"].get("title", "")
             settings["app"]["description"] = self.config["lab"].get("description", "")

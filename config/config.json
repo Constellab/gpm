@@ -6,16 +6,16 @@
         "app_dir": "/home/ubuntu/app",
         "start_mode": "--prod",
         "virtual_host": "test.gencovery.io",
-        "uri": "1234567890abcdefghijklmnopqrstuvwxyz",
+        "uri": "91620768-2cdd-11eb-adc1-0242ac120002",
         "token": "LSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq2P",
         "jlab_token": "LSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq2P",
         "jlab_home_dir": "/app/gws",
-        "user_uri": "1234567890abcdefghijklmnopqrstuvwxyz",
+        "user_uri": "88f3cddc-2cdd-11eb-adc1-0242ac120002",
         "central_api_key": "EplKZ3sE0uepRQLzHiHyh4BA5ycu0QVe6dnkFFz8dj8%3D"
     },
     "bricks": [
         "biox",
         "collab"
     ],
-    "biota_db_url": "https://share.gencovery.com/s/Wiid5cpze2pW8BH/download"
+    "biota_db_url": "https://share.gencovery.com/s/gA5N78diSrHWNaJ/download"
 }
