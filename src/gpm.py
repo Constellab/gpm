@@ -22,9 +22,9 @@ from zipfile import ZipFile
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
 
 class GPM():
-    git_url = "https://bitbucket.org/gencovery"
+    git_url = "https://gitea.gencovery.com/"
     config = []
-    structure = ["./bricks", "./data", "./labs", "./logs", "./externs", "./sandbox", "./tmp"]
+    structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./sandbox", "./tmp"]
     _lab_name = "main"
     __is_pulled = []
 
@@ -47,8 +47,11 @@ class GPM():
 
     # -- C -- 
 
-    def create_wks_dirs(self, workspace):
+    def create_wks_dirs(self, workspace, skip_main = False):
         for k in self.structure:
+            if k == "main" and skip_main:
+                continue
+
             d = os.path.join(workspace, k)
             if not os.path.exists(d):
                 os.makedirs(d)
@@ -125,9 +128,9 @@ class GPM():
         if os.path.exists(file_path):
             return file_path, "brick", "user"
 
-        file_path = os.path.join(self.get_user_wks(), "labs", repo_name)
-        if os.path.exists(file_path):
-            return file_path, "lab", "user"
+        # file_path = os.path.join(self.get_user_wks(), "labs", repo_name)
+        # if os.path.exists(file_path):
+        #     return file_path, "lab", "user"
 
         file_path = os.path.join(self.get_user_wks(), "externs", repo_name)
         if os.path.exists(file_path):
@@ -140,7 +143,7 @@ class GPM():
     def install_gws(self):
         self.__is_pulled = []
         if self.get_gws_wks().startswith("/"):
-            self.create_wks_dirs(self.get_gws_wks())
+            self.create_wks_dirs(self.get_gws_wks(), skip_main=True)
             self.pull(self.get_gws_wks(), repo_name="all", force=False)
 
             # pull biota data
@@ -151,13 +154,13 @@ class GPM():
     def install_user(self):
         self.__is_pulled = []
         if self.get_user_wks().startswith("/"):
-            self.create_wks_dirs(self.get_user_wks())
+            self.create_wks_dirs(self.get_user_wks(), skip_main=False)
             self.pull(self.get_user_wks(), repo_name="skeleton", force=False)
-            self._install_user_lab()
+            self._install_user_main()
 
-    def _install_user_lab(self):
+    def _install_user_main(self):
         skeleton_dir = os.path.join(self.get_user_wks(), "bricks", "skeleton")
-        dest_dir = os.path.join(self.get_user_wks(), "labs", self.lab_name)
+        dest_dir = os.path.join(self.get_user_wks(), "main", self.lab_name)
 
         if not os.path.exists(dest_dir):
             shutil.move(
@@ -178,7 +181,7 @@ class GPM():
         settings_file = os.path.join(dest_dir, "settings.json")
         with open(settings_file, 'r') as f:
             settings = json.load(f)
-            settings["type"]            = "lab"
+            #settings["type"]            = "lab"
             settings["name"]            = self.config["lab"].get("name", "main")
             settings["uri"]             = self.config["lab"].get("uri", "")
             settings["token"]           = self.config["lab"].get("token", "")
@@ -226,10 +229,11 @@ class GPM():
             with open(settings_file) as f:
                 try:
                     settings = json.load(f)
-                    is_lab = settings.get("type", None) == "lab"
-                    if is_lab:
-                        return "lab"
-                    else:
+                    #is_lab = settings.get("type", None) == "lab"
+                    #if is_lab:
+                    #    return "lab"
+                    #else:
+                    if not settings.get("name", None) is None:
                         return  "brick"
                 except:
                     return "extern"
@@ -263,6 +267,8 @@ class GPM():
     def pull(self, workspace_dir, repo_name="all", origin=None, username="", userpwd="", force=False):
         if origin == None:
             origin = self.git_url
+
+        origin = origin.strip("/")
 
         git_user = ""
         git_pwd = ""
@@ -321,12 +327,20 @@ class GPM():
                 with open(settings_file) as f:
                     try:
                         settings = json.load(f)
-                        deps = settings.get("dependencies",[]) + settings.get("externs",[])
+
+                        # pull bricks
+                        deps = settings.get("dependencies",[])
                         for dep in deps:
-                            #if not self.repo_exists(dep):
                             is_already_pulled = (dep in self.__is_pulled)
                             if not is_already_pulled:
-                                self.pull(workspace_dir, repo_name=dep, origin=origin, username=git_user, userpwd=git_pwd, force=force)
+                                self.pull(workspace_dir, repo_name=dep, origin=origin + "/bricks", username=git_user, userpwd=git_pwd, force=force)
+
+                        # pull externs
+                        deps = settings.get("externs",[])
+                        for dep in deps:
+                            is_already_pulled = (dep in self.__is_pulled)
+                            if not is_already_pulled:
+                                self.pull(workspace_dir, repo_name=dep, origin=origin + "/externs", username=git_user, userpwd=git_pwd, force=force)
 
                     except:
                         pass
@@ -362,7 +376,7 @@ class GPM():
             if repo_type == "brick":
                 repo_dir = os.path.join(workspace_dir, "bricks", repo_name)
             elif repo_type == "lab":
-                repo_dir = os.path.join(workspace_dir, "labs", repo_name)
+                repo_dir = os.path.join(workspace_dir, "main", repo_name)
             else:
                 repo_dir = os.path.join(workspace_dir, "externs", repo_name)
 
