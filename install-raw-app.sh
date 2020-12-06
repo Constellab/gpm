@@ -40,21 +40,19 @@ python3 -m pip install --upgrade pip
 python3 -m pip install virtualenv
 python3 -m virtualenv ${venv_dir} --python=python3
 . ${venv_dir}/bin/activate
+python3 -m pip install --upgrade pip
 
 if [ "$config" != "" ]; then
     cp $config ./.config.json
     python3 -m pip install -r "requirements.txt"
-    python3 ./src/gpm.py --install-gws $gws_wks
-    python3 ./src/gpm.py --install-user $user_wks --lab-name $lab_name
+    python3 ./src/gpm.py --gws-workspace $gws_wks
+    python3 ./src/gpm.py --user-workspace $user_wks --lab-name $lab_name
 
     if [ "$is_docker" = "no" ]; then
         find ${gws_wks}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
         find ${gws_wks}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-        find ${gws_wks}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-
         find ${user_wks}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
         find ${user_wks}/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-        find ${user_wks}/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
     fi
 else
     echo "No config file found."

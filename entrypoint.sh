@@ -39,13 +39,11 @@ if [ "$1" == "--runserver" ]; then
     # install dependencies
     find /app/gws/.gws/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
     find /app/gws/.gws/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-    find /app/gws/.gws/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
     find /app/gws/user/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
     find /app/gws/user/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-    find /app/gws/user/labs -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
 
     # run server
-    exec python3 "/app/gws/user/labs/${lab_name}/manage.py" --runserver $lab_uri $lab_token $start_mode
+    exec python3 "/app/gws/user/main/${lab_name}/manage.py" --runserver $lab_uri $lab_token $start_mode
 else
     exec "$@"
 fi

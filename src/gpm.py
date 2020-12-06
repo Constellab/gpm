@@ -22,20 +22,20 @@ from zipfile import ZipFile
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
 
 class GPM():
-    git_url = "https://gitea.gencovery.com/"
+    git_url = "https://gitea.gencovery.com/gws/"
     config = []
     structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./sandbox", "./tmp"]
     _lab_name = "main"
     __is_pulled = []
 
-    def __init__(self, gws_wks="", user_wks="", no_single_branch=None):
+    def __init__(self, gws_workspace="", user_workspace="", no_single_branch=None):
         self._read_config()
 
-        if gws_wks != "":
-            self.config["gws_wks"] = gws_wks
+        if gws_workspace != "":
+            self.config["gws_workspace"] = gws_workspace
         
-        if user_wks != "":
-            self.config["user_wks"] = user_wks
+        if user_workspace != "":
+            self.config["user_workspace"] = user_workspace
 
         if not no_single_branch is None:
             if not 'no_single_branch' in self.config:
@@ -103,36 +103,36 @@ class GPM():
 
     # -- G --
 
-    def get_gws_wks(self):
-        if "gws_wks" in self.config:
-            return self.config["gws_wks"]
+    def get_gws_workspace(self):
+        if "gws_workspace" in self.config:
+            return self.config["gws_workspace"]
         else:
             return ""
 
-    def get_user_wks(self):
-        if "user_wks" in self.config:
-            return self.config["user_wks"]
+    def get_user_workspace(self):
+        if "user_workspace" in self.config:
+            return self.config["user_workspace"]
         else:
             return ""
 
     def get_repo_dir(self, repo_name):
-        file_path = os.path.join(self.get_gws_wks(), "bricks", repo_name)
+        file_path = os.path.join(self.get_gws_workspace(), "bricks", repo_name)
         if os.path.exists(file_path):
             return file_path, "brick", "gws"
 
-        file_path = os.path.join(self.get_gws_wks(), "externs", repo_name)
+        file_path = os.path.join(self.get_gws_workspace(), "externs", repo_name)
         if os.path.exists(file_path):
             return file_path, "externs", "gws"
 
-        file_path = os.path.join(self.get_user_wks(), "bricks", repo_name)
+        file_path = os.path.join(self.get_user_workspace(), "bricks", repo_name)
         if os.path.exists(file_path):
             return file_path, "brick", "user"
 
-        # file_path = os.path.join(self.get_user_wks(), "labs", repo_name)
+        # file_path = os.path.join(self.get_user_workspace(), "labs", repo_name)
         # if os.path.exists(file_path):
         #     return file_path, "lab", "user"
 
-        file_path = os.path.join(self.get_user_wks(), "externs", repo_name)
+        file_path = os.path.join(self.get_user_workspace(), "externs", repo_name)
         if os.path.exists(file_path):
             return file_path, "externs", "user"
 
@@ -142,25 +142,27 @@ class GPM():
 
     def install_gws(self):
         self.__is_pulled = []
-        if self.get_gws_wks().startswith("/"):
-            self.create_wks_dirs(self.get_gws_wks(), skip_main=True)
-            self.pull(self.get_gws_wks(), repo_name="all", force=False)
+        if self.get_gws_workspace().startswith("/"):
+            self.create_wks_dirs(self.get_gws_workspace(), skip_main=True)
+            repo_names=self.gws_bricks
+            self.pull(self.get_gws_workspace(), repo_names=repo_names, force=False)
 
             # pull biota data
             url = self.config["biota_db_url"]
-            dest_dir = os.path.join(self.get_gws_wks(), "./data/biota/db/")
+            dest_dir = os.path.join(self.get_gws_workspace(), "./data/biota/db/")
             self.download(url, dest_dir, "db.sqlite3.zip")
 
     def install_user(self):
         self.__is_pulled = []
-        if self.get_user_wks().startswith("/"):
-            self.create_wks_dirs(self.get_user_wks(), skip_main=False)
-            self.pull(self.get_user_wks(), repo_name="skeleton", force=False)
+        if self.get_user_workspace().startswith("/"):
+            self.create_wks_dirs(self.get_user_workspace(), skip_main=False)
+            repo_names = ["skeleton"]+self.user_bricks
+            self.pull(self.get_user_workspace(), repo_names=repo_names, force=False)
             self._install_user_main()
 
     def _install_user_main(self):
-        skeleton_dir = os.path.join(self.get_user_wks(), "bricks", "skeleton")
-        dest_dir = os.path.join(self.get_user_wks(), "main", self.lab_name)
+        skeleton_dir = os.path.join(self.get_user_workspace(), "bricks", "skeleton")
+        dest_dir = os.path.join(self.get_user_workspace(), "main", self.lab_name)
 
         if not os.path.exists(dest_dir):
             shutil.move(
@@ -261,10 +263,14 @@ class GPM():
     # -- P -- 
 
     @property
-    def packages(self):
-        return self.config["bricks"]
+    def gws_bricks(self):
+        return self.config["gws-bricks"]
+    
+    @property
+    def user_bricks(self):
+        return self.config["user-bricks"]
 
-    def pull(self, workspace_dir, repo_name="all", origin=None, username="", userpwd="", force=False):
+    def pull(self, workspace_dir, repo_names=[], origin=None, username="", userpwd="", force=False):
         if origin == None:
             origin = self.git_url
 
@@ -300,10 +306,7 @@ class GPM():
                     json.dump(private, f, indent=4)
             else:
                 import _crypt
-                _git_pwd = _crypt.decrypt_message(git_pwd)
-                git_pwd = ""
-                for i in range(0, len(_git_pwd), 2):
-                    git_pwd = git_pwd + _git_pwd[i]
+                git_pwd = _crypt.decrypt_message(git_pwd)
 
         os.environ['GIT_ASKPASS'] = os.path.join(__cdir__,'askpass.sh')
         os.environ['GIT_USERNAME'] = git_user
@@ -311,12 +314,7 @@ class GPM():
 
         git_pwd = urllib.parse.quote(git_pwd)
         
-        if repo_name == "all":
-            repos = self.packages
-        else:
-            repos = [ repo_name ]
-        
-        for repo_name in repos:
+        for repo_name in repo_names:
             self._pull_repo(workspace_dir, repo_name, git_user, git_pwd, origin, force)
             self.__is_pulled.append(repo_name)
 
@@ -329,18 +327,18 @@ class GPM():
                         settings = json.load(f)
 
                         # pull bricks
-                        deps = settings.get("dependencies",[])
+                        deps = settings.get("dependencies",[]) + settings.get("externs",[])
                         for dep in deps:
                             is_already_pulled = (dep in self.__is_pulled)
                             if not is_already_pulled:
-                                self.pull(workspace_dir, repo_name=dep, origin=origin + "/bricks", username=git_user, userpwd=git_pwd, force=force)
+                                self.pull(workspace_dir, repo_names=[ dep ], origin=origin, username=git_user, userpwd=git_pwd, force=force)
 
-                        # pull externs
-                        deps = settings.get("externs",[])
-                        for dep in deps:
-                            is_already_pulled = (dep in self.__is_pulled)
-                            if not is_already_pulled:
-                                self.pull(workspace_dir, repo_name=dep, origin=origin + "/externs", username=git_user, userpwd=git_pwd, force=force)
+                        # # pull externs
+                        # deps = settings.get("externs",[])
+                        # for dep in deps:
+                        #     is_already_pulled = (dep in self.__is_pulled)
+                        #     if not is_already_pulled:
+                        #         self.pull(workspace_dir, repo_names=dep, origin=origin + "/externs", username=git_user, userpwd=git_pwd, force=force)
 
                     except:
                         pass
@@ -432,19 +430,19 @@ class GPM():
     allow_extra_args=True
 ))
 @click.pass_context
-@click.option('--install-gws', help='Install gws', required=False, default="")
-@click.option('--install-user', help='Install user', required=False, default="")
+@click.option('--gws-workspace', help='GWS workspace dir (absolute path)', required=False, default="")
+@click.option('--user-workspace', help='User workspace dir (absolute path)', required=False, default="")
 @click.option('--pull', help='Pull a brick or a lab')
 @click.option('--push', help="Push a brick or a lab")
 @click.option('--tag', help="Tag name (for push command)")
 @click.option('--no-single-branch', is_flag=True, help="Get all git branches")
-def main(ctx, install_gws, install_user, pull, push, tag, no_single_branch):
-    g = GPM(gws_wks=install_gws, user_wks=install_user, no_single_branch=no_single_branch)
+def main(ctx, gws_workspace, user_workspace, pull, push, tag, no_single_branch):
+    g = GPM(gws_workspace=gws_workspace, user_workspace=user_workspace, no_single_branch=no_single_branch)
 
-    if install_gws != "":
+    if gws_workspace != "":
         g.install_gws()
     
-    if install_user != "":
+    if user_workspace != "":
         g.install_user()
 
     if pull:
