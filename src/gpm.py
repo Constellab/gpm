@@ -183,20 +183,18 @@ class GPM():
         settings_file = os.path.join(dest_dir, "settings.json")
         with open(settings_file, 'r') as f:
             settings = json.load(f)
-            #settings["type"]            = "lab"
-            settings["name"]            = self.config["lab"].get("name", "main")
-            settings["uri"]             = self.config["lab"].get("uri", "")
-            settings["token"]           = self.config["lab"].get("token", "")
-            settings["host"]            = self.config["lab"].get("host", "0.0.0.0")
-            settings["virtual_host"]    = self.config["lab"].get("virtual_host", "lab.test.gencovery.io")
-            settings["user_uri"]        = self.config["lab"].get("user_uri", "")
-
-            settings["jlab_token"]      = self.config["lab"].get("jlab_token", "")
-            settings["jlab_home_dir"]   = self.config["lab"].get("jlab_home_dir", "")
-
-            settings["central_api_key"] = self.config["lab"].get("central_api_key", "")
-            settings["app"]["title"]    = self.config["lab"].get("title", "")
-            settings["app"]["description"] = self.config["lab"].get("description", "")
+            settings["name"]                = self.config["lab"].get("name", "main")
+            settings["uri"]                 = self.config["lab"].get("uri", "")
+            settings["token"]               = self.config["lab"].get("token", "")
+            settings["host"]                = self.config["lab"].get("host", "0.0.0.0")
+            settings["virtual_host"]        = self.config["lab"].get("virtual_host", "lab.test.gencovery.io")
+            settings["user_uri"]            = self.config["lab"].get("user_uri", "")
+            settings["jlab_token"]          = self.config["lab"].get("jlab_token", "")
+            settings["jlab_home_dir"]       = self.config["lab"].get("jlab_home_dir", "")
+            settings["central_api_key"]     = self.config["lab"].get("central_api_key", "")
+            settings["app"]["title"]        = self.config["lab"].get("title", "")
+            settings["app"]["description"]  = self.config["lab"].get("description", "")
+            settings["dependencies"]        = settings.get("dependencies",[]) + self.config.get("user_bricks",[])
             
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=4)
@@ -264,11 +262,11 @@ class GPM():
 
     @property
     def gws_bricks(self):
-        return self.config["gws-bricks"]
+        return self.config["gws_bricks"]
     
     @property
     def user_bricks(self):
-        return self.config["user-bricks"]
+        return self.config["user_bricks"]
 
     def pull(self, workspace_dir, repo_names=[], origin=None, username="", userpwd="", force=False):
         if origin == None:

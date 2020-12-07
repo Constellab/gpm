@@ -13,9 +13,9 @@
         "user_uri": "88f3cddc-2cdd-11eb-adc1-0242ac120002",
         "central_api_key": "EplKZ3sE0uepRQLzHiHyh4BA5ycu0QVe6dnkFFz8dj8%3D"
     },
-    "gws-bricks": [
+    "gws_bricks": [
         "biox"
     ],
-    "user-bricks": [],
+    "user_bricks": [],
     "biota_db_url": "https://share.gencovery.com/s/Zw3pHAwz9ecLedJ/download"
 }
