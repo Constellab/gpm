@@ -347,7 +347,6 @@ class GPM():
 
         tab = url.split("://")
         url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
-        #url = f"{tab[0]}://{user}@{tab[1]}"
 
         repo_dir, repo_type, wk = self.get_repo_dir(repo_name)
         alredy_exists = not repo_dir is None
@@ -356,7 +355,10 @@ class GPM():
             print(f"Git update {repo_type} {repo_name} (in {wk}) from {tab[0]}://{tab[1]}")
             git_repo = git.Repo(repo_dir)
             o = git_repo.remotes.origin
+            saved_url = o.url
+            o.set_url(url)
             o.pull()
+            o.set_url(saved_url)
         else:
             print(f"Git clone {repo_name} from {tab[0]}://{tab[1]}")
             tmp_repo_dir = os.path.join(workspace_dir, "tmp", repo_name)
