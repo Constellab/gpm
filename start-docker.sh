@@ -10,7 +10,7 @@ config="./config/config.json"
 
 if [ "$docker_name" = "all" ]; then
     docker_name="nginx | jlab |s gws"
-fir
+fi
 
 if [ "$3" = "--config" ]; then
     config=$4
@@ -117,7 +117,10 @@ elif [[ "$docker_name" == *"jlab"* ]] || [[ "$docker_name" == *"gws"* ]]; then
     else
         echo "No config file found."
     fi
+
 else
+
     echo "Invalid docker"
+
 fi
 
