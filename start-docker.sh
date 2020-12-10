@@ -61,7 +61,7 @@ if [[ "$docker_name" == *"nginx"* ]]; then
     mkdir -p $nginx_confd_dir
     cp ./client_max_body_size.conf ${nginx_confd_dir}/client_max_body_size.conf
     
-    docker-compose -f .docker-compose-$name.yml up --$option
+    docker-compose -f .docker-compose-$name.yml up option
 
 fi
 
@@ -88,7 +88,7 @@ if [[ "$docker_name" == *"jlab"* ]] || [[ "$docker_name" == *"gws"* ]]; then
                     -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
                     ./docker-compose-$name.yml > ./.docker-compose-$name.yml
 
-                docker-compose -f .docker-compose-$name.yml up --$option
+                docker-compose -f .docker-compose-$name.yml up $option
             fi
 
             # build GWS docker
