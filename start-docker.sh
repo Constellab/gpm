@@ -70,7 +70,7 @@ if [[ "$docker_name" == *"nginx"* ]]; then
     mkdir -p $nginx_confd_dir
     cp ./client_max_body_size.conf ${nginx_confd_dir}/client_max_body_size.conf
     
-    docker-compose -f .docker-compose-$name.yml up option
+    docker-compose -f .docker-compose-$name.yml up $option
 
 fi
 
