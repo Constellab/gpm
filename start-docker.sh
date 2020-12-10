@@ -55,7 +55,16 @@ if [[ "$docker_name" == *"nginx"* ]]; then
 
     name="nginx"
     echo "Building NGINX ..."
-    cp ./docker-compose-$name.yml ./.docker-compose-$name.yml
+
+    sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
+        -e "s/(LAB_NAME)/${lab_name}/g" \
+        -e "s/(LAB_TOKEN)/${lab_token}/g" \
+        -e "s/(LAB_URI)/${lab_uri}/g" \
+        -e "s/(START_MODE)/${start_mode}/g" \
+        -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
+        -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
+        -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
+        ./docker-compose-$name.yml > ./.docker-compose-$name.yml
 
     nginx_confd_dir=${app_dir}/.nginx/conf.d
     mkdir -p $nginx_confd_dir
