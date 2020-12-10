@@ -9,7 +9,7 @@ option=$2
 config="./config/config.json"
 
 if [ "$docker_name" = "all" ]; then
-    docker_name="nginx | jlab |s gws"
+    docker_name="nginx,jlab,gws"
 fi
 
 if [ "$3" = "--config" ]; then
@@ -53,19 +53,21 @@ fi
 
 if [[ "$docker_name" == *"nginx"* ]]; then 
 
-    set name=nginx
-    if [ ! -z "$(docker ps -q -f name=$name)" ]; then
-        echo "Building NGINX ..."
-        cp ./docker-compose-$name.yml ./.docker-compose-$name.yml
+    name="nginx"
+    echo "Building NGINX ..."
+    cp ./docker-compose-$name.yml ./.docker-compose-$name.yml
 
-        nginx_confd_dir=${app_dir}/.nginx/conf.d
-        mkdir -p $nginx_confd_dir
-        cp ./client_max_body_size.conf ${nginx_confd_dir}/client_max_body_size.conf
-        
-        docker-compose -f .docker-compose-$name.yml up --$option
-    fi
+    nginx_confd_dir=${app_dir}/.nginx/conf.d
+    mkdir -p $nginx_confd_dir
+    cp ./client_max_body_size.conf ${nginx_confd_dir}/client_max_body_size.conf
+    
+    docker-compose -f .docker-compose-$name.yml up --$option
 
-elif [[ "$docker_name" == *"jlab"* ]] || [[ "$docker_name" == *"gws"* ]]; then 
+fi
+
+# build JLAB and GWS dockers
+
+if [[ "$docker_name" == *"jlab"* ]] || [[ "$docker_name" == *"gws"* ]]; then 
    
     if [ "$config" != "" ]; then
         . ./install-raw-app.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
@@ -74,40 +76,36 @@ elif [[ "$docker_name" == *"jlab"* ]] || [[ "$docker_name" == *"gws"* ]]; then
             
             # build JLAB docker
             if [[ "$docker_name" == *"jlab"* ]]; then 
-                set name=jlab
-                if [ ! -z "$(docker ps -q -f name=$name)" ]; then
-                    echo "Building JLAB ..."
-                    sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
-                        -e "s/(LAB_NAME)/${lab_name}/g" \
-                        -e "s/(LAB_TOKEN)/${lab_token}/g" \
-                        -e "s/(LAB_URI)/${lab_uri}/g" \
-                        -e "s/(START_MODE)/${start_mode}/g" \
-                        -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
-                        -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
-                        -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
-                        ./docker-compose-$name.yml > ./.docker-compose-$name.yml
+                name="jlab"
+                echo "Building JLAB ..."
+                sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
+                    -e "s/(LAB_NAME)/${lab_name}/g" \
+                    -e "s/(LAB_TOKEN)/${lab_token}/g" \
+                    -e "s/(LAB_URI)/${lab_uri}/g" \
+                    -e "s/(START_MODE)/${start_mode}/g" \
+                    -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
+                    -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
+                    -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
+                    ./docker-compose-$name.yml > ./.docker-compose-$name.yml
 
-                    docker-compose -f .docker-compose-$name.yml up --$option
-                fi
+                docker-compose -f .docker-compose-$name.yml up --$option
             fi
 
             # build GWS docker
             if [[ "$docker_name" == *"gws"* ]]; then 
-                set name=gws
-                if [ ! -z "$(docker ps -q -f name=$name)" ]; then
-                    echo "Building GWS ..."
-                    sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
-                        -e "s/(LAB_NAME)/${lab_name}/g" \
-                        -e "s/(LAB_TOKEN)/${lab_token}/g" \
-                        -e "s/(LAB_URI)/${lab_uri}/g" \
-                        -e "s/(START_MODE)/${start_mode}/g" \
-                        -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
-                        -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
-                        -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
-                        ./docker-compose-$name.yml > ./.docker-compose-$name.yml
+                name="gws"
+                echo "Building GWS ..."
+                sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
+                    -e "s/(LAB_NAME)/${lab_name}/g" \
+                    -e "s/(LAB_TOKEN)/${lab_token}/g" \
+                    -e "s/(LAB_URI)/${lab_uri}/g" \
+                    -e "s/(START_MODE)/${start_mode}/g" \
+                    -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
+                    -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
+                    -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
+                    ./docker-compose-$name.yml > ./.docker-compose-$name.yml
 
-                    docker-compose -f .docker-compose-$name.yml up $option
-                fi
+                docker-compose -f .docker-compose-$name.yml up $option
             fi
             
         else
