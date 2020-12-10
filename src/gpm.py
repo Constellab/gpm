@@ -176,12 +176,6 @@ class GPM():
                 os.path.join(dest_dir, self.lab_name)
             )
 
-            # rename web dir
-            shutil.move(
-                os.path.join(dest_dir, "web", "pages", "skeleton"), 
-                os.path.join(dest_dir, "web", "pages", self.lab_name)
-            )
-
             # remove .git folder
             shutil.rmtree(os.path.join(dest_dir, ".git"))
 
