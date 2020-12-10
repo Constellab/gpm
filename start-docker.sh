@@ -1,21 +1,5 @@
 #!/bin/bash
 
-if [ -z "$2" ]; then
-    exit 1;
-fi
-
-docker_name=$1
-option=$2
-config="./config/config.json"
-
-if [ "$docker_name" = "all" ]; then
-    docker_name="nginx,jlab,gws"
-fi
-
-if [ "$3" = "--config" ]; then
-    config=$4
-fi
-
 app_dir="/home/ubuntu/app"
 lab_name="main"
 lab_uri=""
@@ -24,6 +8,18 @@ jlab_token=""
 jlab_home_dir=""
 start_mode="--prod"
 virtual_host=""
+config="./config/config.json"
+option="-d"
+
+while :; do
+    case $1 in
+        --build) 
+            option="--build"
+        ;;
+        *) break
+    esac
+    shift
+done
 
 machine=""
 uname_out="$(uname -s)"
@@ -34,6 +30,8 @@ case "${uname_out}" in
     MINGW*)     machine=MinGw;;
     *)          machine="UNKNOWN:${uname_out}"
 esac
+
+echo $machine
 
 if [ "$machine" == "Linux" ]; then
     sudo apt-get -y update
@@ -49,77 +47,31 @@ if [ "$machine" == "Linux" ]; then
     app_dir=`jq '.lab.app_dir' ${config} | sed -e 's/^"//' -e 's/"$//'`
 fi
 
-# build NGINX docker
+if [ "$config" != "" ]; then
+    . ./install-raw-app.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
 
-if [[ "$docker_name" == *"nginx"* ]]; then 
+    if [ $? -eq 0 ]; then
+        # build docker
+        echo "Building docker ..."
+        sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
+            -e "s/(LAB_NAME)/${lab_name}/g" \
+            -e "s/(LAB_TOKEN)/${lab_token}/g" \
+            -e "s/(LAB_URI)/${lab_uri}/g" \
+            -e "s/(START_MODE)/${start_mode}/g" \
+            -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
+            -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
+            -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
+            ./docker-compose.yml > ./.docker-compose.yml
+        
+        nginx_confd_dir=${app_dir}/.nginx/conf.d
+        mkdir -p $nginx_confd_dir
+        cp ./client_max_body_size.conf ${nginx_confd_dir}/client_max_body_size.conf
 
-    name="nginx"
-    echo "Building NGINX ..."
-
-    sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
-        -e "s/(LAB_NAME)/${lab_name}/g" \
-        -e "s/(LAB_TOKEN)/${lab_token}/g" \
-        -e "s/(LAB_URI)/${lab_uri}/g" \
-        -e "s/(START_MODE)/${start_mode}/g" \
-        -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
-        -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
-        -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
-        ./docker-compose-$name.yml > ./.docker-compose-$name.yml
-
-    nginx_confd_dir=${app_dir}/.nginx/conf.d
-    mkdir -p $nginx_confd_dir
-    cp ./client_max_body_size.conf ${nginx_confd_dir}/client_max_body_size.conf
-    
-    docker-compose -f .docker-compose-$name.yml up $option
-
-fi
-
-# build JLAB and GWS dockers
-
-if [[ "$docker_name" == *"jlab"* ]] || [[ "$docker_name" == *"gws"* ]]; then 
-   
-    if [ "$config" != "" ]; then
-
-        # build GWS docker
-        if [[ "$docker_name" == *"gws"* ]]; then 
-            . ./install-raw-app.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
-
-            if [ $? -eq 0 ]; then       #if the the last command was well finished!
-                name="gws"
-                echo "Building JLAB ..."
-                sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
-                    -e "s/(LAB_NAME)/${lab_name}/g" \
-                    -e "s/(LAB_TOKEN)/${lab_token}/g" \
-                    -e "s/(LAB_URI)/${lab_uri}/g" \
-                    -e "s/(START_MODE)/${start_mode}/g" \
-                    -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
-                    -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
-                    -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
-                    ./docker-compose-$name.yml > ./.docker-compose-$name.yml
-
-                docker-compose -f .docker-compose-$name.yml up $option
-            fi
-        fi
-
-        # build JLAB docker
-        if [[ "$docker_name" == *"jlab"* ]]; then 
-            name="jlab"
-            echo "Building GWS ..."
-            sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
-                -e "s/(LAB_NAME)/${lab_name}/g" \
-                -e "s/(LAB_TOKEN)/${lab_token}/g" \
-                -e "s/(LAB_URI)/${lab_uri}/g" \
-                -e "s/(START_MODE)/${start_mode}/g" \
-                -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
-                -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
-                -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
-                ./docker-compose-$name.yml > ./.docker-compose-$name.yml
-
-            docker-compose -f .docker-compose-$name.yml up $option
-        fi
-
+        docker-compose -f .docker-compose.yml up $option
     else
-        echo "No config file found."
+        echo "An error occured."
     fi
-fi
 
+else
+    echo "No config file found."
+fi

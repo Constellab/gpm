@@ -23,12 +23,9 @@ Command: ```install-raw-app.sh --config </config/file/path.json> --app-dir </abs
 
 ## Docker installation
 
-To build the docker image, use the file ```install-docker-app.sh```. The docker compose template files is in ```./docker```.
+To build the docker image, use the file ```start-docker.sh```. The docker compose template files is in ```./docker```.
 
-Command: ```install-docker-app.sh --config </config/file/path.json> --app-dir </absolute/path> [--lab-name <name>] [--lab-token <token>] [--jlab-token <jlab-token>] [--prod | --dev]```.
-The options are the same as in the raw installation. Supplementary options are:
-* OPTION ```--lab-token```. The token of lab
-* OPTION ```--jlab-token```. The token of the juptyter lab
+Command: ```start-docker.sh [--build] [--config </config/file/path.json>]```.
 
 ### Environment variables
 
@@ -49,18 +46,18 @@ WARNING: For security reasons, nether starts the server in developement mode whi
 
 * Build and run in dev mode
 ```
-. install-docker-app.sh --app-dir </user/work/dir> --config ./config/config.json --lab-name foo --lab-token 12345abcd --jlab-token 12345abcd
+. start-docker.sh --build --config ./config/config.json
 ```
 
 * Build and run in production mode
 
 ```
-. install-docker-app.sh --dev --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
+. start-docker.sh --dev --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
 ```
 
 # Push/pull bricks and labs
 
 Not yet implemented
 
-* ```pull.sh --pull <brick-name>``` to pull a brick (or a lab). The docker image must be rebuild to update changes (run ```install-docker-app``` to rebuild).
+* ```pull.sh --pull <brick-name>``` to pull a brick (or a lab). The docker image must be rebuild to update changes (run ```start-docker``` to rebuild).
 * ```push.sh --push <brick-name> <tag>``` to push a brick (or a lab) using a tag name.
