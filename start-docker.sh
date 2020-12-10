@@ -1,8 +1,7 @@
 #!/bin/bash
 
-
-if [ ! -z "$2" ]; then
-    exit;
+if [ -z "$2" ]; then
+    exit 1;
 fi
 
 docker_name=$1
