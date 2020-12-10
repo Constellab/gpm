@@ -20,9 +20,9 @@ services:
     volumes:
       - (APP_DIR):/app/gws/
     networks:
-       - nginx-proxy_nginx-proxy
+       - gpm_nginx-proxy
     restart: always
 
 networks:
-  nginx-proxy_nginx-proxy:
+  gpm_nginx-proxy:
     external: true

@@ -124,10 +124,5 @@ if [[ "$docker_name" == *"jlab"* ]] || [[ "$docker_name" == *"gws"* ]]; then
     else
         echo "No config file found."
     fi
-
-else
-
-    echo "Invalid docker"
-
 fi
 
