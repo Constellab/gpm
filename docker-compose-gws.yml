@@ -1,0 +1,28 @@
+version: "3"
+
+services:
+
+  # GWS
+  gws:
+    image: gws:latest
+    build:
+      context: ./
+    command: ["--runserver", "(LAB_NAME)"]
+    environment:
+      - LAB_NAME=(LAB_NAME)
+      - LAB_TOKEN=(LAB_TOKEN)
+      - LAB_URI=(LAB_URI)
+      - START_MODE=(START_MODE)
+      - VIRTUAL_PORT=3000
+      - VIRTUAL_HOST=lab.(VIRTUAL_HOST)
+      - LETSENCRYPT_HOST=lab.(VIRTUAL_HOST)
+      - LETSENCRYPT_EMAIL=admin@gencovery.com
+    volumes:
+      - (APP_DIR):/app/gws/
+    networks:
+       - nginx-proxy_nginx-proxy
+    restart: always
+
+networks:
+  nginx-proxy_nginx-proxy:
+    external: true
