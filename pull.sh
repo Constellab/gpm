@@ -4,6 +4,18 @@ echo "Pull bricks ..."
 
 config="./config/config.json"
 
+machine=""
+uname_out="$(uname -s)"
+case "${uname_out}" in
+    Linux*)     machine=Linux;;
+    Darwin*)    machine=Mac;;
+    CYGWIN*)    machine=Cygwin;;
+    MINGW*)     machine=MinGw;;
+    *)          machine="UNKNOWN:${uname_out}"
+esac
+
+echo $machine
+
 if [ "$machine" == "Linux" ]; then
     sudo apt-get -y update
     sudo apt-get -y install jq
@@ -16,6 +28,6 @@ if [ "$machine" == "Linux" ]; then
     start_mode=`jq '.lab.start_mode' ${config} | sed -e 's/^"//' -e 's/"$//'`
     virtual_host=`jq '.lab.virtual_host' ${config} | sed -e 's/^"//' -e 's/"$//'`
     app_dir=`jq '.lab.app_dir' ${config} | sed -e 's/^"//' -e 's/"$//'`
-fi
 
-. ./install-raw-app.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
+    . ./install-raw-app.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
+fi
