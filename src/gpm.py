@@ -192,6 +192,7 @@ class GPM():
             settings["jlab_token"]          = self.config["lab"].get("jlab_token", "")
             settings["jlab_home_dir"]       = self.config["lab"].get("jlab_home_dir", "")
             settings["central_api_key"]     = self.config["lab"].get("central_api_key", "")
+            settings["central_api_url"]     = self.config["lab"].get("central_api_url", "")
             settings["app"]["title"]        = self.config["lab"].get("title", "")
             settings["app"]["description"]  = self.config["lab"].get("description", "")
             settings["dependencies"]        = settings.get("dependencies",[]) + self.config.get("user_bricks",[])
@@ -381,16 +382,26 @@ class GPM():
             shutil.move(tmp_repo_dir, repo_dir)
             git_repo = git.Repo(repo_dir)
 
+        import re
         try:
+            #set submodules pwd
             for sub in git_repo.submodules:
                 sub_url = sub.config_reader().get_value("url")
-                import re
-                tab = re.split("://.+@", sub_url)
+                tab = re.split("://", sub_url)
                 sub_url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
                 sub.config_writer().set_value("url", sub_url).release()
                 print(f"Getting submodule {tab[0]}://{tab[1]}")
 
+            #pull submodules
             git_repo.submodule_update(recursive=True)
+
+            #restore submodule urls
+            for sub in git_repo.submodules:
+                sub_url = sub.config_reader().get_value("url")
+                tab = re.split("://.+@", sub_url)
+                sub_url = f"{tab[0]}://{tab[1]}"
+                sub.config_writer().set_value("url", sub_url).release()
+
         except:
             pass
 
