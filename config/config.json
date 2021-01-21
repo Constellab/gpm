@@ -11,6 +11,8 @@
         "jlab_token": "LSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq2P",
         "jlab_home_dir": "/app/gws",
         "user_uri": "88f3cddc-2cdd-11eb-adc1-0242ac120002",
+        "user_email": "admin@gencovery.com",
+        "admin_email": "admin@gencovery.com",
         "central_api_url": "api.gencovery.com",
         "central_api_key": "EplKZ3sE0uepRQLzHiHyh4BA5ycu0QVe6dnkFFz8dj8%3D"
     },
