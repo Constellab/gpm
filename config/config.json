@@ -7,8 +7,8 @@
         "start_mode": "--prod",
         "virtual_host": "test.gencovery.io",
         "uri": "91620768-2cdd-11eb-adc1-0242ac120002",
-        "token": "LSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq2P",
-        "jlab_token": "LSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq2P",
+        "token": "JSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq24",
+        "jlab_token": "JSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq24",
         "jlab_home_dir": "/app/gws",
         "user_uri": "88f3cddc-2cdd-11eb-adc1-0242ac120002",
         "user_email": "admin@gencovery.com",
@@ -20,5 +20,5 @@
         "biox"
     ],
     "user_bricks": [],
-    "biota_db_url": "https://share.gencovery.com/s/XrLr8nCtzkP6GZM/download"
+    "biota_db_url": "https://share.gencovery.com/s/q6qz659en2dY6J5/download"
 }
