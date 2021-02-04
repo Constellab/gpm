@@ -39,6 +39,7 @@ services:
       - JLAB_HOME_DIR=(JLAB_HOME_DIR)
     volumes:
       - (APP_DIR):/app/gws/
+      - (BIODATA_VOLUME)
     networks:
        - nginx-proxy
     restart: always
