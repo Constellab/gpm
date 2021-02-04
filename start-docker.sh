@@ -50,6 +50,16 @@ fi
 if [ "$config" != "" ]; then
     . ./install-raw-app.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
 
+    #mount biodata disk
+    if grep -qs '/mnt/biodata ' /proc/mounts; then
+        #already mounted
+    else
+        if lsblk | grep -qs sdb; then
+            sudo mkdir /mnt/biodata
+            sudo mount /dev/sdb /mnt/biodata/
+        fi
+    if
+
     if [ $? -eq 0 ]; then
         # build docker
         echo "Building docker ..."
@@ -63,6 +73,14 @@ if [ "$config" != "" ]; then
             -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
             ./docker-compose.yml > ./.docker-compose.yml
         
+        if grep -qs '/mnt/biodata ' /proc/mounts; then
+            sed -e "s#- (BIODATA_VOLUME)#- /mnt/biodata/prod/:/mnt/biodata/prod/#g" \
+                ./.docker-compose.yml > ./.docker-compose.yml
+        else
+            sed -e "s#- (BIODATA_VOLUME)##g" \
+                ./.docker-compose.yml > ./.docker-compose.yml
+        fi
+
         nginx_confd_dir=${app_dir}/.nginx/conf.d
         mkdir -p $nginx_confd_dir
         cp ./client_max_body_size.conf ${nginx_confd_dir}/client_max_body_size.conf

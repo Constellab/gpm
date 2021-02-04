@@ -19,6 +19,7 @@ services:
       - LETSENCRYPT_EMAIL=admin@gencovery.com
     volumes:
       - (APP_DIR):/app/gws/
+      - (BIODATA_VOLUME)
     networks:
        - nginx-proxy
     restart: always
