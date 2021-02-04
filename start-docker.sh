@@ -59,7 +59,7 @@ if [ "$config" != "" ]; then
             sudo mkdir /mnt/biodata
             sudo mount /dev/sdb /mnt/biodata/
         fi
-    if
+    fi
 
     if [ $? -eq 0 ]; then
         # build docker
