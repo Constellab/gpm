@@ -53,6 +53,7 @@ if [ "$config" != "" ]; then
     #mount biodata disk
     if grep -qs '/mnt/biodata ' /proc/mounts; then
         #already mounted
+        echo "Biodata mounted"
     else
         if lsblk | grep -qs sdb; then
             sudo mkdir /mnt/biodata
