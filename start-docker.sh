@@ -78,12 +78,12 @@ if [ "$config" != "" ]; then
             sed -e "s#- (BIODATA_VOLUME)#- /mnt/biodata/prod/:/mnt/biodata/prod/#g" \
                 ./.docker-compose.yml > ./.docker-compose-tmp.yml
             
-            mv .docker-compose-tpm.yml .docker-compose.yml
+            mv ./.docker-compose-tmp.yml ./.docker-compose.yml
         else
             sed -e "s#- (BIODATA_VOLUME)##g" \
-                ./.docker-compose.yml > ./.docker-compose-2.yml
+                ./.docker-compose.yml > ./.docker-compose-tmp.yml
             
-            mv .docker-compose-tpm.yml .docker-compose.yml
+            mv ./.docker-compose-tmp.yml ./.docker-compose.yml
         fi
         
         nginx_confd_dir=${app_dir}/.nginx/conf.d
