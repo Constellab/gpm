@@ -17,10 +17,8 @@ services:
       - VIRTUAL_HOST=lab.(VIRTUAL_HOST)
       - LETSENCRYPT_HOST=lab.(VIRTUAL_HOST)
       - LETSENCRYPT_EMAIL=admin@gencovery.com
-      - BIODATA_VERSION=(BIODATA_VERSION)
     volumes:
       - (APP_DIR):/app/gws/
-      - (BIODATA_VOLUME)
     networks:
        - nginx-proxy
     restart: always
@@ -38,10 +36,8 @@ services:
       - LETSENCRYPT_EMAIL=admin@gencovery.com
       - JLAB_TOKEN=(JLAB_TOKEN)
       - JLAB_HOME_DIR=(JLAB_HOME_DIR)
-      - BIODATA_VERSION=(BIODATA_VERSION)
     volumes:
       - (APP_DIR):/app/gws/
-      - (BIODATA_VOLUME)
     networks:
        - nginx-proxy
     restart: always

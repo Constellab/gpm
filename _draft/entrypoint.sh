@@ -1,23 +1,33 @@
 #!/bin/bash
 set -e
-token=""
-home_dir=""
-biodata_vesion="latest"
 if [ "$1" == "--runserver" ]; then
-    if [ -n "$JLAB_TOKEN" ]; then
-        token=$JLAB_TOKEN
+    lab_name=$2
+    lab_uri=""
+    lab_token=""
+    biodata_vesion="latest"
+    
+    if [ -n "$LAB_NAME" ]; then
+        lab_name=$LAB_NAME
     fi
 
-    if [ -n "$JLAB_HOME_DIR" ]; then
-        home_dir=$JLAB_HOME_DIR
+    if [ -n "$LAB_TOKEN" -a "$LAB_TOKEN" != "" ]; then
+        lab_token="--lab-token $LAB_TOKEN"
     fi
 
+    if [ -n "$LAB_URI" ]; then
+        lab_uri="--lab-uri $LAB_URI"
+    fi
+
+    if [ -n "$START_MODE" -a "$START_MODE" = "--dev" ]; then
+        start_mode="--demo"
+    fi
+    
     if [ -n "$BIODATA_VERSION" ]; then
         biodata_vesion=$BIODATA_VERSION
     fi
 
     # build and install dlib
-    build_dir="/app/gws/.gws/externs/dlib-cpp/build-jlab"
+    build_dir="/app/gws/.gws/externs/dlib-cpp/build-gws"
     if [ ! -d "$build_dir" ]; then
         mkdir -p $build_dir
         cd $build_dir
@@ -27,7 +37,6 @@ if [ "$1" == "--runserver" ]; then
     else
         cd $build_dir
     fi
-    cd $build_dir
     make install
     ldconfig
     cd /app
@@ -37,10 +46,16 @@ if [ "$1" == "--runserver" ]; then
     find /app/gws/.gws/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
     find /app/gws/user/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
     find /app/gws/user/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-    
+
+    # create symbolic link to biodata
+    if [ ! -d "/app/gws/.gws/data/biota" ]; then
+        if [ -d "/mnt/biodata/prod/biota/${biodata_vesion}/" ]; then
+            ln -s /mnt/biodata/prod/biota/${biodata_vesion}/ /app/gws/.gws/data/biota
+        fi
+    fi
+
     # run server
-    export SHELL=/bin/bash
-    exec jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir=${home_dir} --allow-root --NotebookApp.token=${token} --NotebookApp.password=
+    exec python3 "/app/gws/user/main/${lab_name}/manage.py" --runserver $lab_uri $lab_token $start_mode
 else
     exec "$@"
 fi
