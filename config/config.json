@@ -1,8 +1,8 @@
 {
     "lab":{
         "name": "main",
-        "title": "My digital lab",
-        "description": "My digital lab",
+        "title": "Gencovery Lab",
+        "description": "Gencovery Digital Lab as a Service",
         "app_dir": "/home/ubuntu/app",
         "start_mode": "--prod",
         "virtual_host": "test.gencovery.io",
@@ -14,7 +14,7 @@
         "user_email": "admin@gencovery.com",
         "admin_email": "admin@gencovery.com",
         "central_api_url": "api.gencovery.com",
-        "central_api_key": "EplKZ3sE0uepRQLzHiHyh4BA5ycu0QVe6dnkFFz8dj8%3D",
+        "central_api_key": "EplKZ3sE0uepRQLzHiHyh4BA5ycu0QVe6dnkFFz8dj8%3D"
     },
     "gws_bricks": [
         "biox"
