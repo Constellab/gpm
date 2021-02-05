@@ -28,7 +28,7 @@ class GPM():
     _lab_name = "main"
     __is_pulled = []
 
-    def __init__(self, gws_workspace="", user_workspace="", no_single_branch=None):
+    def __init__(self, gws_workspace="", user_workspace="", no_single_branch=None, no_biodata_download=False):
         self._read_config()
 
         if gws_workspace != "":
@@ -42,6 +42,8 @@ class GPM():
                 self.config["no_single_branch"] = True
         else:
             self.config["no_single_branch"] = no_single_branch
+
+        self.config["no_biodata_download"] = no_biodata_download
 
         self._write_config()
 
@@ -148,9 +150,10 @@ class GPM():
             self.pull(self.get_gws_workspace(), repo_names=repo_names, force=False)
 
             # pull biota data
-            url = self.config["biota_db_url"]
-            dest_dir = os.path.join(self.get_gws_workspace(), "./data/biota/db/")
-            self.download(url, dest_dir, "db.sqlite3.zip")
+            if not self.config["no_biodata_download"]:
+                url = self.config["biota_db_url"]
+                dest_dir = os.path.join(self.get_gws_workspace(), "./data/biota/db/")
+                self.download(url, dest_dir, "db.sqlite3.zip")
 
     def install_user(self):
         self.__is_pulled = []
@@ -453,8 +456,9 @@ class GPM():
 @click.option('--push', help="Push a brick or a lab")
 @click.option('--tag', help="Tag name (for push command)")
 @click.option('--no-single-branch', is_flag=True, help="Get all git branches")
-def main(ctx, gws_workspace, user_workspace, pull, push, tag, no_single_branch):
-    g = GPM(gws_workspace=gws_workspace, user_workspace=user_workspace, no_single_branch=no_single_branch)
+@click.option('--no-biodata-download', is_flag=True, help="Do not download biodata")
+def main(ctx, gws_workspace, user_workspace, pull, push, tag, no_single_branch, no_biodata_download):
+    g = GPM(gws_workspace=gws_workspace, user_workspace=user_workspace, no_single_branch=no_single_branch, no_biodata_download=no_biodata_download)
 
     if gws_workspace != "":
         g.install_gws()

@@ -45,8 +45,17 @@ python3 -m pip install --upgrade pip
 if [ "$config" != "" ]; then
     cp $config ./.config.json
     python3 -m pip install -r "requirements.txt"
-    python3 ./src/gpm.py --gws-workspace $gws_wks
-    python3 ./src/gpm.py --user-workspace $user_wks --lab-name $lab_name
+
+    if grep -qs '/mnt/biodata ' /proc/mounts; then
+        #already mounted
+        python3 ./src/gpm.py --gws-workspace $gws_wks --no-biodata-download
+        python3 ./src/gpm.py --user-workspace $user_wks --lab-name $lab_name --no-biodata-download
+    else
+        python3 ./src/gpm.py --gws-workspace $gws_wks
+        python3 ./src/gpm.py --user-workspace $user_wks --lab-name $lab_name
+    fi
+
+    
 
     if [ "$is_docker" = "no" ]; then
         find ${gws_wks}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;

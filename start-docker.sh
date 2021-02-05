@@ -45,10 +45,10 @@ if [ "$machine" == "Linux" ]; then
     start_mode=`jq '.lab.start_mode' ${config} | sed -e 's/^"//' -e 's/"$//'`
     virtual_host=`jq '.lab.virtual_host' ${config} | sed -e 's/^"//' -e 's/"$//'`
     app_dir=`jq '.lab.app_dir' ${config} | sed -e 's/^"//' -e 's/"$//'`
+    biodata_version=`jq '.biodata_version' ${config} | sed -e 's/^"//' -e 's/"$//'`
 fi
 
 if [ "$config" != "" ]; then
-    . ./install-raw-app.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
 
     #mount biodata disk
     if grep -qs '/mnt/biodata ' /proc/mounts; then
@@ -61,6 +61,8 @@ if [ "$config" != "" ]; then
         fi
     fi
 
+    . ./install-raw-app.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
+
     if [ $? -eq 0 ]; then
         # build docker
         echo "Building docker ..."
@@ -72,10 +74,11 @@ if [ "$config" != "" ]; then
             -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
             -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
             -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
+            -e "s/(BIODATA_VERSION)/${biodata_version}/g" \
             ./docker-compose.yml > ./.docker-compose.yml
         
         if grep -qs '/mnt/biodata ' /proc/mounts; then
-            sed -e "s#- (BIODATA_VOLUME)#- /mnt/biodata/prod/:/mnt/biodata/prod/#g" \
+            sed -e "s#- (BIODATA_VOLUME)#- /mnt/biodata/prod/:/mnt/biodata/prod/:ro#g" \
                 ./.docker-compose.yml > ./.docker-compose-tmp.yml
             
             mv ./.docker-compose-tmp.yml ./.docker-compose.yml

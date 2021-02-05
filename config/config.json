@@ -14,11 +14,12 @@
         "user_email": "admin@gencovery.com",
         "admin_email": "admin@gencovery.com",
         "central_api_url": "api.gencovery.com",
-        "central_api_key": "EplKZ3sE0uepRQLzHiHyh4BA5ycu0QVe6dnkFFz8dj8%3D"
+        "central_api_key": "EplKZ3sE0uepRQLzHiHyh4BA5ycu0QVe6dnkFFz8dj8%3D",
     },
     "gws_bricks": [
         "biox"
     ],
     "user_bricks": [],
+    "biodata_version": "latest",
     "biota_db_url": "https://share.gencovery.com/s/q6qz659en2dY6J5/download"
 }

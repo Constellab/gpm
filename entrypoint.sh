@@ -4,6 +4,7 @@ if [ "$1" == "--runserver" ]; then
     lab_name=$2
     lab_uri=""
     lab_token=""
+    biodata_vesion="latest"
     
     if [ -n "$LAB_NAME" ]; then
         lab_name=$LAB_NAME
@@ -21,6 +22,10 @@ if [ "$1" == "--runserver" ]; then
         start_mode="--demo"
     fi
     
+    if [ -n "$BIODATA_VERSION" ]; then
+        biodata_vesion=$BIODATA_VERSION
+    fi
+
     # build and install dlib
     build_dir="/app/gws/.gws/externs/dlib-cpp/build-gws"
     if [ ! -d "$build_dir" ]; then
@@ -41,6 +46,13 @@ if [ "$1" == "--runserver" ]; then
     find /app/gws/.gws/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
     find /app/gws/user/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
     find /app/gws/user/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
+
+    # create symbolic link to biodata
+    if [ ! -d "/app/gws/.gws/data/biota" ]; then
+        if [ -d "/mnt/biodata/prod/biota/${biodata_vesion}/" ]; then
+            ln -s /mnt/biodata/prod/biota/${biodata_vesion}/ /app/gws/.gws/data/biota
+        fi
+    fi
 
     # run server
     exec python3 "/app/gws/user/main/${lab_name}/manage.py" --runserver $lab_uri $lab_token $start_mode
