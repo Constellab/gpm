@@ -1,21 +1,8 @@
 #!/bin/bash
 set -e
-token=""
-home_dir=""
-biodata_vesion="latest"
+
 if [ "$1" == "--runserver" ]; then
-    if [ -n "$JLAB_TOKEN" ]; then
-        token=$JLAB_TOKEN
-    fi
-
-    if [ -n "$JLAB_HOME_DIR" ]; then
-        home_dir=$JLAB_HOME_DIR
-    fi
-
-    if [ -n "$BIODATA_VERSION" ]; then
-        biodata_vesion=$BIODATA_VERSION
-    fi
-
+    
     # build and install dlib
     build_dir="/app/gws/.gws/externs/dlib-cpp/build-jlab"
     if [ ! -d "$build_dir" ]; then
@@ -32,6 +19,12 @@ if [ "$1" == "--runserver" ]; then
     ldconfig
     cd /app
 
+    # create symbolic links to local_store
+    if [ $LOCAL_STORE != "none" -a -d $LOCAL_STORE ]; then
+        ln -s ${LOCAL_STORE}/${LAB_URI}/.gws/data /app/gws/.gws/data/
+        ln -s ${LOCAL_STORE}/${LAB_URI}/user/data /app/gws/user/data/
+    fi
+
     # install dependencies
     find /app/gws/.gws/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
     find /app/gws/.gws/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
@@ -40,7 +33,7 @@ if [ "$1" == "--runserver" ]; then
     
     # run server
     export SHELL=/bin/bash
-    exec jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir=${home_dir} --allow-root --NotebookApp.token=${token} --NotebookApp.password=
+    exec jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir=${JLAB_HOME_DIR} --allow-root --NotebookApp.token=${JLAB_TOKEN} --NotebookApp.password=
 else
     exec "$@"
 fi

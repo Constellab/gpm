@@ -4,6 +4,7 @@ app_dir=""
 lab_name="main"
 is_docker="no"
 config="./config/config.json"
+mount-disk=""
 
 while :; do
     case $1 in
@@ -21,6 +22,10 @@ while :; do
         ;;
         --docker) 
             is_docker="yes"               
+        ;;
+        --mount-disk) 
+            mount-disk=${2%/}
+            shift           
         ;;
         *) break
     esac
@@ -47,6 +52,15 @@ if [ "$config" != "" ]; then
     python3 -m pip install -r "requirements.txt"
     python3 ./src/gpm.py --gws-workspace $gws_wks
     python3 ./src/gpm.py --user-workspace $user_wks --lab-name $lab_name
+
+    if [ "mount-disk" != "" ]; then
+        #already mounted
+        python3 ./src/gpm.py --gws-workspace $gws_wks --no-biodata-download
+        python3 ./src/gpm.py --user-workspace $user_wks --lab-name $lab_name --no-biodata-download
+    else
+        python3 ./src/gpm.py --gws-workspace $gws_wks
+        python3 ./src/gpm.py --user-workspace $user_wks --lab-name $lab_name
+    fi
 
     if [ "$is_docker" = "no" ]; then
         find ${gws_wks}/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;

@@ -1,9 +1,11 @@
 #!/bin/bash
 set -e
+
 if [ "$1" == "--runserver" ]; then
     lab_name=$2
     lab_uri=""
     lab_token=""
+    local_storage=""
 
     if [ -n "$LAB_NAME" ]; then
         lab_name=$LAB_NAME
@@ -20,10 +22,6 @@ if [ "$1" == "--runserver" ]; then
     if [ -n "$START_MODE" -a "$START_MODE" = "--dev" ]; then
         start_mode="--demo"
     fi
-    
-    if [ -n "$BIODATA_VERSION" ]; then
-        biodata_vesion=$BIODATA_VERSION
-    fi
 
     # build and install dlib
     build_dir="/app/gws/.gws/externs/dlib-cpp/build-gws"
@@ -39,6 +37,29 @@ if [ "$1" == "--runserver" ]; then
     make install
     ldconfig
     cd /app
+
+    # compile bricks
+    for brick in `find /app/gws/.gws/bricks -mindepth 1 -maxdepth 1 -type d`
+    do
+        if [ -f "$brick/compile.py" ]; then
+            python3 "$brick/compile.py"
+        fi
+    done
+
+    for brick in `find /app/gws/user/bricks -mindepth 1 -maxdepth 1 -type d`
+    do
+        if [ -f "$brick/compile.py" ]; then
+            python3 "$brick/compile.py"
+        fi
+    done
+
+    # create symbolic links to local_store
+    if [ $LOCAL_STORE != "none" -a -d $LOCAL_STORE ]; then
+        mkdir -p ${LOCAL_STORE}/${LAB_URI}/.gws/data
+        mkdir -p ${LOCAL_STORE}/${LAB_URI}/user/data
+        ln -s ${LOCAL_STORE}/${LAB_URI}/.gws/data /app/gws/.gws/data/
+        ln -s ${LOCAL_STORE}/${LAB_URI}/user/data /app/gws/user/data/
+    fi
 
     # install dependencies
     find /app/gws/.gws/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
