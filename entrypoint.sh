@@ -38,25 +38,28 @@ if [ "$1" == "--runserver" ]; then
     ldconfig
     cd /app
 
-    # compile bricks
+    # build c++ bricks
     for brick in `find /app/gws/.gws/bricks -mindepth 1 -maxdepth 1 -type d`
     do
-        if [ -f "$brick/compile.py" ]; then
-            python3 "$brick/compile.py"
+        if [ -f "$brick/bin/build.py" ]; then
+            python3 "$brick/bin/build.py"
         fi
     done
 
     for brick in `find /app/gws/user/bricks -mindepth 1 -maxdepth 1 -type d`
     do
-        if [ -f "$brick/compile.py" ]; then
-            python3 "$brick/compile.py"
+        if [ -f "$brick/bin/build.py" ]; then
+            python3 "$brick/bin/build.py"
         fi
     done
 
     # create symbolic links to local_store
     if [ $LOCAL_STORE != "none" -a -d $LOCAL_STORE ]; then
-        mkdir -p ${LOCAL_STORE}/${LAB_URI}/.gws/data
-        mkdir -p ${LOCAL_STORE}/${LAB_URI}/user/data
+        if [ ! -d "${LOCAL_STORE}/${LAB_URI}/.gws/" ]; then
+            mkdir -p ${LOCAL_STORE}/${LAB_URI}/.gws/
+            mkdir -p ${LOCAL_STORE}/${LAB_URI}/user/
+        fi
+
         ln -s ${LOCAL_STORE}/${LAB_URI}/.gws/data /app/gws/.gws/data/
         ln -s ${LOCAL_STORE}/${LAB_URI}/user/data /app/gws/user/data/
     fi

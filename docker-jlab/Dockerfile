@@ -11,7 +11,7 @@ WORKDIR ${WORK_DIR}
 # install python
 RUN apt-get -y update
 RUN apt-get -y install python3 python3-distutils
-RUN apt-get -y install git curl
+RUN apt-get -y install git curl nano
 
 # install pip
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
