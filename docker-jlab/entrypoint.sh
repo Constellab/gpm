@@ -19,6 +19,24 @@ if [ "$1" == "--runserver" ]; then
     ldconfig
     cd /app
 
+    # install ubuntu packages
+    for path in `find /app/gws/.gws/ -mindepth 1 -maxdepth 3 -name 'packages.txt'`; do
+        cat $path | xargs apt-get install -y
+    done
+
+    for path in `find /app/gws/user/ -mindepth 1 -maxdepth 3 -name 'packages.txt'`; do
+        cat $path | xargs apt-get install -y
+    done
+
+    # install python dependencies
+    for path in `find /app/gws/.gws/ -mindepth 1 -maxdepth 3 -name 'requirements.txt'`; do
+        python3 -m pip install -r $path
+    done
+
+    for path in `find /app/gws/user/ -mindepth 1 -maxdepth 3 -name 'requirements.txt'`; do
+        python3 -m pip install -r $path
+    done
+
     # create symbolic links to local_store
     if [ $LOCAL_STORE != "none" -a -d $LOCAL_STORE ]; then
         if [ ! -d "${LOCAL_STORE}/${LAB_URI}/.gws/" ]; then
@@ -29,12 +47,6 @@ if [ "$1" == "--runserver" ]; then
         ln -s ${LOCAL_STORE}/${LAB_URI}/.gws/data /app/gws/.gws/data/
         ln -s ${LOCAL_STORE}/${LAB_URI}/user/data /app/gws/user/data/
     fi
-
-    # install dependencies
-    find /app/gws/.gws/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-    find /app/gws/.gws/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-    find /app/gws/user/bricks -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
-    find /app/gws/user/sandbox -name 'requirements.txt' -exec python3 -m pip install -r '{}' \;
     
     # run server
     export SHELL=/bin/bash
