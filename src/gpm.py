@@ -16,6 +16,7 @@ import shutil
 import pip
 import urllib
 import re
+import glob
 
 from zipfile import ZipFile
 
@@ -24,7 +25,7 @@ __cdir__ = os.path.dirname(os.path.abspath(__file__))
 class GPM():
     git_url = "https://gitea.gencovery.com/gws/"
     config = []
-    structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./sandbox", "./tmp"]
+    structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./sandbox", "./tmp", "./notebooks"]
     _lab_name = "main"
     __is_pulled = []
 
@@ -152,6 +153,12 @@ class GPM():
             dest_dir = os.path.join(self.get_gws_workspace(), "./data/biota/db/")
             self.download(url, dest_dir, "db.sqlite3.zip")
 
+            #copy notebook files
+            src_files = glob.glob(os.path.join(__cdir__, "../ipynb/**"))
+            dest_dir = os.path.join(self.get_gws_workspace(), "./notebooks")
+            for src in src_files:
+                shutil.copyfile(src, dest_dir)
+
     def install_user(self):
         self.__is_pulled = []
         if self.get_user_workspace().startswith("/"):
@@ -159,6 +166,12 @@ class GPM():
             repo_names = ["skeleton"]+self.user_bricks
             self.pull(self.get_user_workspace(), repo_names=repo_names, force=False)
             self._install_user_main()
+
+            #copy notebook files
+            src_files = glob.glob(os.path.join(__cdir__, "../ipynb/**"))
+            dest_dir = os.path.join(self.get_user_workspace(), "./notebooks")
+            for src in src_files:
+                shutil.copyfile(src, dest_dir)
 
     def _install_user_main(self):
         skeleton_dir = os.path.join(self.get_user_workspace(), "bricks", "skeleton")
