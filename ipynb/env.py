@@ -35,7 +35,7 @@ def activate( brick = "main" ):
     # activate local db
     from gws.settings import Settings
     settings = Settings.retrieve()
-    settings.data["db_name"] = os.path.join(__cdir__, "test_db.sqlite3")
+    settings.data["db_name"] = "test_db.sqlite3"
     settings.data["is_test"] = True        
     settings.data["prod_biota_db"] = True
     settings.save()
