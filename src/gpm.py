@@ -157,7 +157,8 @@ class GPM():
             src_files = glob.glob(os.path.join(__cdir__, "../ipynb/**"))
             dest_dir = os.path.join(self.get_gws_workspace(), "./notebooks")
             for src in src_files:
-                shutil.copyfile(src, dest_dir)
+                dst = os.path.join(dest_dir, src.split("/")[-1])
+                shutil.copy2(src, dst)
 
     def install_user(self):
         self.__is_pulled = []
@@ -171,7 +172,8 @@ class GPM():
             src_files = glob.glob(os.path.join(__cdir__, "../ipynb/**"))
             dest_dir = os.path.join(self.get_user_workspace(), "./notebooks")
             for src in src_files:
-                shutil.copyfile(src, dest_dir)
+                dst = os.path.join(dest_dir, src.split("/")[-1])
+                shutil.copy2(src, dst)
 
     def _install_user_main(self):
         skeleton_dir = os.path.join(self.get_user_workspace(), "bricks", "skeleton")
@@ -212,8 +214,6 @@ class GPM():
             settings["user_email"]          = self.config["lab"].get("user_email", "")
             settings["admin_email"]         = self.config["lab"].get("admin_email", "")
 
-            settings["app"]["title"]        = self.config["lab"].get("title", "")
-            settings["app"]["description"]  = self.config["lab"].get("description", "")
             settings["dependencies"]        = settings.get("dependencies",[]) + self.config.get("user_bricks",[])
             
         with open(settings_file, 'w') as f:
