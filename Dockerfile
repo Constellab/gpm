@@ -33,6 +33,9 @@ RUN apt-get -y install libx11-dev libatlas-base-dev
 RUN apt-get -y install libgtk-3-dev libboost-python-dev
 RUN apt-get -y install libopenblas-dev liblapack-dev
 
+# install cuda driver
+RUN bash ./gpu-cuda/ubuntu-20.04.sh
+
 # install R
 RUN apt-get -y install r-base
 
