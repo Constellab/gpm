@@ -7,6 +7,7 @@ services:
     image: gws:latest
     build:
       context: ./
+      dockerfile: Dockerfile-gws
     command: ["--runserver", "(LAB_NAME)"]
     environment:
       - LAB_NAME=(LAB_NAME)
@@ -29,7 +30,8 @@ services:
   jlab:
     image: jlab:latest
     build:
-      context: ./docker-jlab
+      context: ./
+      dockerfile: Dockerfile-jlab
     command: ["--runserver"]
     environment:
       - VIRTUAL_PORT=8888
