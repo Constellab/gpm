@@ -406,10 +406,10 @@ class GPM():
             #set submodules pwd
             for sub in git_repo.submodules:
                 sub_url = sub.config_reader().get_value("url")
-                tab = re.split("://", sub_url)
-                sub_url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
+                tab = re.split("://(.+@)?", sub_url)                
+                sub_url = f"{tab[0]}://{user}:{pwd}@{tab[2]}" #tab[1] containt hypothetical "login"
                 sub.config_writer().set_value("url", sub_url).release()
-                print(f"Getting submodule {tab[0]}://{tab[1]}")
+                print(f"Getting submodule {tab[0]}://{tab[2]}")
 
             #pull submodules
             git_repo.submodule_update(recursive=True)
@@ -417,8 +417,8 @@ class GPM():
             #restore submodule urls
             for sub in git_repo.submodules:
                 sub_url = sub.config_reader().get_value("url")
-                tab = re.split("://.+@", sub_url)
-                sub_url = f"{tab[0]}://{tab[1]}"
+                tab = re.split("://(.+@)?", sub_url)
+                sub_url = f"{tab[0]}://{tab[2]}"   #tab[1] containt hypothetical "login"
                 sub.config_writer().set_value("url", sub_url).release()
 
         except:
