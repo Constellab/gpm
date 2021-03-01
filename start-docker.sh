@@ -10,6 +10,7 @@ start_mode="--prod"
 virtual_host=""
 config="./config/config.json"
 option="-d"
+local_store=""
 
 while :; do
     case $1 in
@@ -66,7 +67,7 @@ if [ "$config" != "" ]; then
             ./docker-compose.yml > ./.docker-compose.yml
 
         # mount the store as a docker volume
-        if [ "$local_store" != "none" -a -d $local_store ]; then
+        if [ "$local_store" != "" -a -d $local_store ]; then
             mkdir -p ${local_store}/${lab_uri}/.gws/data
             mkdir -p ${lab_uri}/${lab_uri}/user/data
 

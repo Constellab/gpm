@@ -53,7 +53,7 @@ if [ "$config" != "" ]; then
     python3 ./src/gpm.py --gws-workspace $gws_wks
     python3 ./src/gpm.py --user-workspace $user_wks --lab-name $lab_name
 
-    if [ "mount-disk" != "" ]; then
+    if [ "$mount-disk" != "" ]; then
         #already mounted
         python3 ./src/gpm.py --gws-workspace $gws_wks --no-biodata-download
         python3 ./src/gpm.py --user-workspace $user_wks --lab-name $lab_name --no-biodata-download
