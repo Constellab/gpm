@@ -1,5 +1,9 @@
 #!/bin/bash
 
+$base_image="ubuntu:20.04"
+distribution=$(. /etc/os-release;echo $ID:$VERSION_ID)
+max_distribution_for_gpu="ubuntus:20.04"
+
 app_dir="/home/ubuntu/app"
 lab_name="main"
 lab_uri=""
@@ -49,6 +53,20 @@ if [ "$machine" == "Linux" ]; then
     local_store=`jq '.local_store' ${config} | sed -e 's/^"//' -e 's/"$//'`
 fi
 
+# detect GPU
+if [[ "$distribution" == "$max_distribution_for_gpu" ]] || [[ "$distribution" < "$max_distribution_for_gpu" ]]; then
+    if [ "`lspci | grep -i nvidia`" != "" ]; then
+        gpu="cuda"
+    else
+        gpu=""
+    fi
+fi
+
+if [ "$gpu" == "cuda" ]; then
+    . ./install-cuda.sh
+    $base_image="nvidia/cuda:11.2.1-base-ubuntu20.04"
+fi
+    
 if [ "$config" != "" ]; then
 
     . ./install-raw-app.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
@@ -56,7 +74,8 @@ if [ "$config" != "" ]; then
     if [ $? -eq 0 ]; then
         # build docker
         echo "Building docker ..."
-        sed -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
+        sed -e "s/(BASE_IMAGE)/${base_image}/g" \
+            -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
             -e "s/(LAB_NAME)/${lab_name}/g" \
             -e "s/(LAB_TOKEN)/${lab_token}/g" \
             -e "s/(LAB_URI)/${lab_uri}/g" \
@@ -64,6 +83,7 @@ if [ "$config" != "" ]; then
             -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
             -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
             -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
+            -e "s/(GPU)/${gpu}/g" \
             ./docker-compose.yml > ./.docker-compose.yml
 
         # mount the store as a docker volume

@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# install cuda driver
+# https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&target_distro=Ubuntu&target_version=2004&target_type=debnetwork
+
+apt-get update && apt-get install -y wget
+apt-get install -y gnupg2
+apt-get -y install software-properties-common
+wget https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/cuda-ubuntu2004.pin
+mv cuda-ubuntu2004.pin /etc/apt/preferences.d/cuda-repository-pin-600
+apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub
+add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
+apt-get update
+DEBIAN_FRONTEND="noninteractive"
+apt-get -y install cuda
+
+# install NVIDIA toolkit
+# https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&target_distro=Ubuntu&target_version=2004&target_type=debnetwork
+
+curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | apt-key add -
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
+curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | tee /etc/apt/sources.list.d/nvidia-docker.list
+
+apt-get update
+apt-get install -y nvidia-docker2

@@ -10,6 +10,7 @@ services:
       dockerfile: Dockerfile-gws
     command: ["--runserver", "(LAB_NAME)"]
     environment:
+      - BASE_IMAGE=(BASE_IMAGE)
       - LAB_NAME=(LAB_NAME)
       - LAB_TOKEN=(LAB_TOKEN)
       - LAB_URI=(LAB_URI)
@@ -19,6 +20,7 @@ services:
       - LETSENCRYPT_HOST=lab.(VIRTUAL_HOST)
       - LETSENCRYPT_EMAIL=admin@gencovery.com
       - LOCAL_STORE=(LOCAL_STORE)
+      - GPU=(GPU)
     volumes:
       - (APP_DIR):/app/gws/
       - (LOCAL_STORE_VOLUME)
@@ -34,6 +36,7 @@ services:
       dockerfile: Dockerfile-jlab
     command: ["--runserver"]
     environment:
+      - BASE_IMAGE=(BASE_IMAGE)
       - VIRTUAL_PORT=8888
       - VIRTUAL_HOST=jlab.(VIRTUAL_HOST)
       - LETSENCRYPT_HOST=jlab.(VIRTUAL_HOST)
@@ -42,6 +45,7 @@ services:
       - JLAB_HOME_DIR=(JLAB_HOME_DIR)
       - LAB_URI=(LAB_URI)
       - LOCAL_STORE=(LOCAL_STORE)
+      - GPU=(GPU)
     volumes:
       - (APP_DIR):/app/gws/
       - (LOCAL_STORE_VOLUME)

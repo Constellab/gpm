@@ -1,5 +1,5 @@
 
-FROM ubuntu
+FROM ${BASE_IMAGE}
 LABEL maintainer="Admin <admin@gencovery.com>"
 
 ENV WORK_DIR /app/gpm

@@ -3,6 +3,7 @@
 if [ "`lspci | grep -i nvidia`" != "" ]; then
     # install cuda driver
     # https://developer.nvidia.com/cuda-downloads?target_os=Linux&target_arch=x86_64&target_distro=Ubuntu&target_version=2004&target_type=debnetwork
+    
     apt-get update && apt-get install -y wget
     apt-get install -y gnupg2
     apt-get -y install software-properties-common
@@ -12,5 +13,5 @@ if [ "`lspci | grep -i nvidia`" != "" ]; then
     add-apt-repository "deb https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/ /"
     apt-get update
     DEBIAN_FRONTEND="noninteractive"
-    apt-get -y install cudas
+    apt-get -y install cuda
 fi
