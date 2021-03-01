@@ -1,6 +1,6 @@
 #!/bin/bash
 
-$base_image="ubuntu:20.04"
+base_image="ubuntu:20.04"
 distribution=$(. /etc/os-release;echo $ID:$VERSION_ID)
 max_distribution_for_gpu="ubuntus:20.04"
 
@@ -64,7 +64,7 @@ fi
 
 if [ "$gpu" == "cuda" ]; then
     . ./install-cuda.sh
-    $base_image="nvidia/cuda:11.2.1-base-ubuntu20.04"
+    base_image="nvidia/cuda:11.2.1-base-ubuntu20.04"
 fi
     
 if [ "$config" != "" ]; then
