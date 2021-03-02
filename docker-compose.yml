@@ -7,10 +7,9 @@ services:
     image: gws:latest
     build:
       context: ./
-      dockerfile: Dockerfile-gws
+      dockerfile: .Dockerfile-gws
     command: ["--runserver", "(LAB_NAME)"]
     environment:
-      - BASE_IMAGE=(BASE_IMAGE)
       - LAB_NAME=(LAB_NAME)
       - LAB_TOKEN=(LAB_TOKEN)
       - LAB_URI=(LAB_URI)
@@ -33,10 +32,9 @@ services:
     image: jlab:latest
     build:
       context: ./
-      dockerfile: Dockerfile-jlab
+      dockerfile: .Dockerfile-jlab
     command: ["--runserver"]
     environment:
-      - BASE_IMAGE=(BASE_IMAGE)
       - VIRTUAL_PORT=8888
       - VIRTUAL_HOST=jlab.(VIRTUAL_HOST)
       - LETSENCRYPT_HOST=jlab.(VIRTUAL_HOST)

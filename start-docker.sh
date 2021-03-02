@@ -74,6 +74,13 @@ if [ "$config" != "" ]; then
     if [ $? -eq 0 ]; then
         # build docker
         echo "Building docker ..."
+        
+        sed -e "s#(BASE_IMAGE)#${base_image}#g" \
+            ./Dockerfile-gws > ./.Dockerfile-gws
+        
+        sed -e "s#(BASE_IMAGE)#${base_image}#g" \
+            ./Dockerfile-jlab > ./.Dockerfile-jlab
+            
         sed -e "s#(BASE_IMAGE)#${base_image}#g" \
             -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
             -e "s/(LAB_NAME)/${lab_name}/g" \
