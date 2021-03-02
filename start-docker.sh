@@ -59,8 +59,6 @@ if [[ "$distribution" == "$max_distribution_for_gpu" ]] || [[ "$distribution" < 
     if [ "`lspci | grep -i nvidia`" != "" ]; then
         gpu="cuda"
         base_image="nvidia/cuda:11.2.1-base-ubuntu20.04"
-    else
-        # nothing
     fi
 fi
 
