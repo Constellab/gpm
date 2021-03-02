@@ -29,9 +29,8 @@ sudo usermod -aG docker $USER
 if [[ "$distribution" == "$max_distribution_for_gpu" ]] || [[ "$distribution" < "$max_distribution_for_gpu" ]]; then
     if [ "`lspci | grep -i nvidia`" != "" ]; then
         . ./pre-install-cuda.sh
-    else
-        # nothing
     fi
 fi
 
+systemctl restart docker
 sudo reboot

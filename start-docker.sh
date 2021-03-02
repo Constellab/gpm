@@ -1,6 +1,7 @@
 #!/bin/bash
 
 base_image="ubuntu:20.04"
+runtime=""
 distribution=$(. /etc/os-release;echo $ID:$VERSION_ID)
 max_distribution_for_gpu="ubuntus:20.04"
 gpu=""

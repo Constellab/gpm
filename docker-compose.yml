@@ -8,6 +8,7 @@ services:
     build:
       context: ./
       dockerfile: .Dockerfile-gws
+      (RUNTIME)
     command: ["--runserver", "(LAB_NAME)"]
     environment:
       - LAB_NAME=(LAB_NAME)

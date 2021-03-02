@@ -22,4 +22,9 @@ distribution=$(. /etc/os-release;echo $ID$VERSION_ID)
 curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | tee /etc/apt/sources.list.d/nvidia-docker.list
 apt-get update && apt-get install -y nvidia-docker2
 
-systemctl restart docker
+# set nvidia runtime
+# https://www.jbnet.fr/systeme/docker/docker-configurer-lutilisation-du-gpu-nvidia.html
+# https://docs.nvidia.com/dgx/nvidia-container-runtime-upgrade/index.html
+
+sudo jq '. + { "default-runtime": "nvidia" }' /etc/docker/daemon.json > daemon.json
+sudo mv daemon.json /etc/docker/daemon.json
