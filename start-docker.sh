@@ -3,6 +3,7 @@
 base_image="ubuntu:20.04"
 distribution=$(. /etc/os-release;echo $ID:$VERSION_ID)
 max_distribution_for_gpu="ubuntus:20.04"
+gpu=""
 
 app_dir="/home/ubuntu/app"
 lab_name="main"
@@ -57,20 +58,16 @@ fi
 if [[ "$distribution" == "$max_distribution_for_gpu" ]] || [[ "$distribution" < "$max_distribution_for_gpu" ]]; then
     if [ "`lspci | grep -i nvidia`" != "" ]; then
         gpu="cuda"
+        base_image="nvidia/cuda:11.2.1-base-ubuntu20.04"
     else
-        gpu=""
+        # nothing
     fi
 fi
 
-if [ "$gpu" == "cuda" ]; then
-    . ./install-cuda.sh
-    base_image="nvidia/cuda:11.2.1-base-ubuntu20.04"
-fi
-    
 if [ "$config" != "" ]; then
-
-    . ./install-raw-app.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
-
+    
+    . ./pull-bricks.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
+    
     if [ $? -eq 0 ]; then
         # build docker
         echo "Building docker ..."

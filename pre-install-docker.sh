@@ -24,4 +24,14 @@ sudo apt-get -y install docker-compose
 
 sudo usermod -aG docker $USER
 
+# Detect GPU and install
+
+if [[ "$distribution" == "$max_distribution_for_gpu" ]] || [[ "$distribution" < "$max_distribution_for_gpu" ]]; then
+    if [ "`lspci | grep -i nvidia`" != "" ]; then
+        . ./pre-install-cuda.sh
+    else
+        # nothing
+    fi
+fi
+
 sudo reboot
