@@ -65,7 +65,7 @@ fi
 
 if [ "$config" != "" ]; then
     
-    . ./pull-bricks.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
+    . ./install-bricks.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
     
     if [ $? -eq 0 ]; then
         # build docker

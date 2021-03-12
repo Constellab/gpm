@@ -2,11 +2,40 @@
 
 This python module allows to manage gws packages (i.e. bricks and labs packages)
 
-## Raw installation (without docker)
 
-To install the packages without docker, use the file ```install-raw-app.sh```.
+## Install docker first
 
-Command: ```install-raw-app.sh --config </config/file/path.json> --app-dir </absolute/path> [--lab-name <name>] [--prod | --dev]```
+```
+cd utils
+. install-docker.sh
+```
+
+The command will install any GPU library and prepare the computer to run docker with GPU capabilities. GPU capabilities are possible for CUDA. The computer will reboot after this command.
+
+## Docker installation
+
+To build the docker image, use the file ```install.sh```. The docker compose template files is in ```./docker```.
+
+Command: ```install.sh [--build] [--config </config/file/path.json>]```.
+
+
+### Example
+
+* Build and run in production mode
+
+```
+. install.sh --build --config ./config/config.json
+```
+
+* Build and run in dev mode
+
+```
+. install.sh --dev --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
+```
+
+## Misc: raw update of bricks
+
+Command: ```get-bricks.sh --config </config/file/path.json> --app-dir </absolute/path> [--lab-name <name>] [--prod | --dev]```
 
 * OPTION ```--app-dir```. The installation path of the application
 * OPTION ```--config```. The path of the configuration file (JSON file). Defaults to ```./config/config.json```. A default config file is given by ```./config/config.json```
@@ -16,48 +45,7 @@ Command: ```install-raw-app.sh --config </config/file/path.json> --app-dir </abs
 ### Example
 
 ```
-. install-raw-app.sh --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
+. get-bricks.sh --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
 ```
 
 * OPTION ```--lab-name``` is the name of lab used as entrypoint. Defaults to ```main```
-
-## Docker installation
-
-To build the docker image, use the file ```start-docker.sh```. The docker compose template files is in ```./docker```.
-
-Command: ```start-docker.sh [--build] [--config </config/file/path.json>]```.
-
-### Environment variables
-
-Docker compose variables:
-```yml
-environment:
-  - APP_DIR: ...
-  - LAB_NAME: ...
-  - START_MODE: ...
-```
-* ```LAB_NAME```, default to ```main```. It is the main user lab used as entrypoint. This lab must exists in the labs sub-directory in the ```WORKSPACE```.
-* ```START_MODE```, defaults to ```--prod```. Allows starting the server in production (```--prod```) or development (```--dev```) mode. No token is required to access the lab in development. 
-
-
-WARNING: For security reasons, nether starts the server in developement mode while using it in production mode. Everyone could access it from internet.
-
-### Example
-
-* Build and run in dev mode
-```
-. start-docker.sh --build --config ./config/config.json
-```
-
-* Build and run in production mode
-
-```
-. start-docker.sh --dev --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
-```
-
-# Push/pull bricks and labs
-
-Not yet implemented
-
-* ```pull.sh --pull <brick-name>``` to pull a brick (or a lab). The docker image must be rebuild to update changes (run ```start-docker``` to rebuild).
-* ```push.sh --push <brick-name> <tag>``` to push a brick (or a lab) using a tag name.
