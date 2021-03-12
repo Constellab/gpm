@@ -25,7 +25,7 @@ __cdir__ = os.path.dirname(os.path.abspath(__file__))
 class GPM():
     git_url = "https://gitea.gencovery.com/gws/"
     config = []
-    structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./sandbox", "./tmp", "./notebooks"]
+    structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./sandbox", "./tmp"]
     _lab_name = "main"
     __is_pulled = []
 
@@ -153,9 +153,9 @@ class GPM():
             dest_dir = os.path.join(self.get_gws_workspace(), "./data/biota/db/")
             self.download(url, dest_dir, "db.sqlite3.zip")
 
-            #copy notebook files
-            src_files = glob.glob(os.path.join(__cdir__, "../ipynb/**"))
-            dest_dir = os.path.join(self.get_gws_workspace(), "./notebooks")
+            #copy sandbox files
+            src_files = glob.glob(os.path.join(__cdir__, "../notebooks/**"))
+            dest_dir = os.path.join(self.get_gws_workspace(), "./sandbox")
             for src in src_files:
                 dst = os.path.join(dest_dir, src.split("/")[-1])
                 shutil.copy2(src, dst)
@@ -168,9 +168,9 @@ class GPM():
             self.pull(self.get_user_workspace(), repo_names=repo_names, force=False)
             self._install_user_main()
 
-            #copy notebook files
-            src_files = glob.glob(os.path.join(__cdir__, "../ipynb/**"))
-            dest_dir = os.path.join(self.get_user_workspace(), "./notebooks")
+            #copy sandbox files
+            src_files = glob.glob(os.path.join(__cdir__, "../notebooks/**"))
+            dest_dir = os.path.join(self.get_user_workspace(), "./sandbox")
             for src in src_files:
                 dst = os.path.join(dest_dir, src.split("/")[-1])
                 shutil.copy2(src, dst)

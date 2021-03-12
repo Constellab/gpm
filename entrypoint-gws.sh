@@ -39,11 +39,11 @@ if [ "$1" == "--runserver" ]; then
     cd /app
 
     # install ubuntu packages
-    for path in `find /app/gws/.gws/ -mindepth 1 -maxdepth 3 -name 'packages.txt'`; do
+    for path in `find /app/gws/.gws/ -mindepth 1 -maxdepth 4 -name 'requirements-apt.txt'`; do
         cat $path | xargs apt-get install -y
     done
 
-    for path in `find /app/gws/user/ -mindepth 1 -maxdepth 3 -name 'packages.txt'`; do
+    for path in `find /app/gws/user/ -mindepth 1 -maxdepth 4 -name 'requirements-apt.txt'`; do
         cat $path | xargs apt-get install -y
     done
 
@@ -55,17 +55,23 @@ if [ "$1" == "--runserver" ]; then
     done
 
     for brick in `find /app/gws/user/bricks -mindepth 1 -maxdepth 1 -type d`; do
-        if [ -f "$brick/bin/build.py" ]; then
-            python3 "$brick/bin/build.py"
+        if [ -f "$brick/dep/install.py" ]; then
+            python3 "$brick/dep/install.py"
+        fi
+    done
+    
+    for brick in `find /app/gws/user/bricks -mindepth 1 -maxdepth 1 -type d`; do
+        if [ -f "$brick/dep/install.sh" ]; then
+            python3 "$brick/dep/install.sh"
         fi
     done
 
     # install python dependencies
-    for path in `find /app/gws/.gws/ -mindepth 1 -maxdepth 3 -name 'requirements.txt'`; do
+    for path in `find /app/gws/.gws/ -mindepth 1 -maxdepth 4 -name 'requirements-pip.txt'`; do
         python3 -m pip install -r $path
     done
 
-    for path in `find /app/gws/user/ -mindepth 1 -maxdepth 3 -name 'requirements.txt'`; do
+    for path in `find /app/gws/user/ -mindepth 1 -maxdepth 4 -name 'requirements-pip.txt'`; do
         python3 -m pip install -r $path
     done
 
