@@ -25,7 +25,7 @@ __cdir__ = os.path.dirname(os.path.abspath(__file__))
 class GPM():
     git_url = "https://gitea.gencovery.com/gws/"
     config = []
-    structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./sandbox", "./tmp"]
+    structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./notebooks", "./tmp"]
     _lab_name = "main"
     __is_pulled = []
 
@@ -128,10 +128,6 @@ class GPM():
         if os.path.exists(file_path):
             return file_path, "brick", "user"
 
-        # file_path = os.path.join(self.get_user_workspace(), "labs", repo_name)
-        # if os.path.exists(file_path):
-        #     return file_path, "lab", "user"
-
         file_path = os.path.join(self.get_user_workspace(), "externs", repo_name)
         if os.path.exists(file_path):
             return file_path, "externs", "user"
@@ -149,12 +145,12 @@ class GPM():
 
             # pull biota data
             url = self.config["urls"]["biota_db"]
-            dest_dir = os.path.join(self.get_gws_workspace(), "./data/biota/db/")
+            dest_dir = os.path.join(self.get_gws_workspace(), "./data/prod/biota/db/")
             self.download(url, dest_dir, "db.sqlite3.zip")
 
-            #copy sandbox files
+            #copy notebooks files
             src_files = glob.glob(os.path.join(__cdir__, "../notebooks/**"))
-            dest_dir = os.path.join(self.get_gws_workspace(), "./sandbox")
+            dest_dir = os.path.join(self.get_gws_workspace(), "./notebooks")
             for src in src_files:
                 dst = os.path.join(dest_dir, src.split("/")[-1])
                 shutil.copy2(src, dst)
@@ -167,9 +163,9 @@ class GPM():
             self.pull(self.get_user_workspace(), repo_names=repo_names, force=False)
             self._install_user_main()
 
-            #copy sandbox files
+            #copy notebooks files
             src_files = glob.glob(os.path.join(__cdir__, "../notebooks/**"))
-            dest_dir = os.path.join(self.get_user_workspace(), "./sandbox")
+            dest_dir = os.path.join(self.get_user_workspace(), "./notebooks")
             for src in src_files:
                 dst = os.path.join(dest_dir, src.split("/")[-1])
                 shutil.copy2(src, dst)
@@ -387,7 +383,7 @@ class GPM():
             if self.config["git"]["shallow"]:
                 git_kwargs = {
                     "depth": 1,
-                    "shallow_submodules": true
+                    "shallow_submodules": True
                 }
             else:
                 git_kwargs = {}
