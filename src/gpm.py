@@ -283,11 +283,11 @@ class GPM():
 
     @property
     def gws_bricks(self):
-        return self.config["gws_bricks"]
+        return self.config["dependencies"]["gws"]
     
     @property
     def user_bricks(self):
-        return self.config["user_bricks"]
+        return self.config["dependencies"]["user"]
 
     def pull(self, workspace_dir, repo_names=[], origin=None, username="", userpwd="", force=False):
         if origin == None:
@@ -384,10 +384,9 @@ class GPM():
             print(f"Git clone {repo_name} from {tab[0]}://{tab[1]}")
             tmp_repo_dir = os.path.join(workspace_dir, "tmp", repo_name)
             
-            if not self.config["git"]["shallow"]:
+            if self.config["git"]["shallow"]:
                 git_kwargs = {
                     "depth": 1,
-                    "no_single_branch": true,
                     "shallow_submodules": true
                 }
             else:
