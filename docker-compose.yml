@@ -18,8 +18,8 @@ services:
       - VIRTUAL_HOST=lab.(VIRTUAL_HOST)
       - LETSENCRYPT_HOST=lab.(VIRTUAL_HOST)
       - LETSENCRYPT_EMAIL=admin@gencovery.com
-      - LOCAL_STORE=(LOCAL_STORE)
       - GPU=(GPU)
+      - (LOCAL_STORE_ENV)
     volumes:
       - (APP_DIR):/app/gws/
       - (LOCAL_STORE_VOLUME)
@@ -42,8 +42,8 @@ services:
       - JLAB_TOKEN=(JLAB_TOKEN)
       - JLAB_HOME_DIR=(JLAB_HOME_DIR)
       - LAB_URI=(LAB_URI)
-      - LOCAL_STORE=(LOCAL_STORE)
       - GPU=(GPU)
+      - (LOCAL_STORE_ENV)
     volumes:
       - (APP_DIR):/app/gws/
       - (LOCAL_STORE_VOLUME)

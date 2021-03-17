@@ -27,9 +27,9 @@ class GPM():
     config = []
     structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./sandbox", "./tmp"]
     _lab_name = "main"
-    __is_pulled = []
+    __is_pulled = []f
 
-    def __init__(self, gws_workspace="", user_workspace="", no_single_branch=None):
+    def __init__(self, gws_workspace="", user_workspace="", shallow=None):
         self._read_config()
 
         if gws_workspace != "":
@@ -38,11 +38,10 @@ class GPM():
         if user_workspace != "":
             self.config["user_workspace"] = user_workspace
 
-        if not no_single_branch is None:
-            if not 'no_single_branch' in self.config:
-                self.config["no_single_branch"] = True
+        if shallow is None:
+            self.config["shallow"] = self.config.get("shallow", True)
         else:
-            self.config["no_single_branch"] = no_single_branch
+            self.config["shallow"] = shallow
 
         self._write_config()
 
@@ -149,7 +148,7 @@ class GPM():
             self.pull(self.get_gws_workspace(), repo_names=repo_names, force=False)
 
             # pull biota data
-            url = self.config["biota_db_url"]
+            url = self.config["urls"]["biota_db"]
             dest_dir = os.path.join(self.get_gws_workspace(), "./data/biota/db/")
             self.download(url, dest_dir, "db.sqlite3.zip")
 
@@ -214,7 +213,9 @@ class GPM():
             settings["user_email"]          = self.config["lab"].get("user_email", "")
             settings["admin_email"]         = self.config["lab"].get("admin_email", "")
 
-            settings["dependencies"]        = settings.get("dependencies",[]) + self.config.get("user_bricks",[])
+            settings["dependencies"]        = settings.get("dependencies",[]) + \
+                                                self.config.get("dependencies",[]).get("gws",[]) + \
+                                                self.config.get("dependencies",[]).get("user",[])
             
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=4)
@@ -382,12 +383,18 @@ class GPM():
         else:
             print(f"Git clone {repo_name} from {tab[0]}://{tab[1]}")
             tmp_repo_dir = os.path.join(workspace_dir, "tmp", repo_name)
+            
+            if not self.config["git"]["shallow"]
+                git_kwargs = {
+                    "depth": 1
+                    "no_single_branch": true,
+                    "shallow_submodules": true
+                }
+                
             git.Repo.clone_from(
                 url, 
                 tmp_repo_dir, 
-                no_single_branch=self.config["no_single_branch"], 
-                depth=1, 
-                shallow_submodules=True
+                **git_kwargs
             )
 
             repo_type = self.read_repo_type(repo_dir=tmp_repo_dir)
@@ -465,9 +472,9 @@ class GPM():
 @click.option('--pull', help='Pull a brick or a lab')
 @click.option('--push', help="Push a brick or a lab")
 @click.option('--tag', help="Tag name (for push command)")
-@click.option('--no-single-branch', is_flag=True, help="Get all git branches")
-def main(ctx, gws_workspace, user_workspace, pull, push, tag, no_single_branch):
-    g = GPM(gws_workspace=gws_workspace, user_workspace=user_workspace, no_single_branch=no_single_branch)
+@click.option('--shallow', is_flag=True, help="Get git shallow-code copy if True")
+def main(ctx, gws_workspace, user_workspace, pull, push, tag, shallow):
+    g = GPM(gws_workspace=gws_workspace, user_workspace=user_workspace, shallow=shallow)
 
     if gws_workspace != "":
         g.install_gws()

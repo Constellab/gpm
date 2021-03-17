@@ -4,6 +4,7 @@
         "title": "Gencovery Lab",
         "description": "Gencovery Digital Lab as a Service",
         "app_dir": "/home/ubuntu/app",
+        "data_dir": "../../data/",
         "start_mode": "--prod",
         "virtual_host": "test.gencovery.io",
         "uri": "91620768-2cdd-11eb-adc1-0242ac120002",
@@ -16,10 +17,14 @@
         "central_api_url": "api.gencovery.com",
         "central_api_key": "EplKZ3sE0uepRQLzHiHyh4BA5ycu0QVe6dnkFFz8dj8%3D"
     },
-    "gws_bricks": [
-        "biox"
-    ],
-    "user_bricks": [],
-    "local_store": "",
-    "biota_db_url": "https://share.gencovery.com/s/knew7fWLYt7dEHG/download"
+    "dependencies":{
+        "gws": [],
+        "user": []
+    },
+    "urls": {
+        "biota_db": "https://share.gencovery.com/s/knew7fWLYt7dEHG/download"
+    },
+    "git":{
+        "shallow": true
+    }
 }

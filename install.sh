@@ -16,7 +16,7 @@ start_mode="--prod"
 virtual_host=""
 config="./config/config.json"
 option="-d"
-local_store=""
+volume=""
 
 while :; do
     case $1 in
@@ -52,7 +52,7 @@ if [ "$machine" == "Linux" ]; then
     start_mode=`jq '.lab.start_mode' ${config} | sed -e 's/^"//' -e 's/"$//'`
     virtual_host=`jq '.lab.virtual_host' ${config} | sed -e 's/^"//' -e 's/"$//'`
     app_dir=`jq '.lab.app_dir' ${config} | sed -e 's/^"//' -e 's/"$//'`
-    local_store=`jq '.local_store' ${config} | sed -e 's/^"//' -e 's/"$//'`
+    volume=`jq '.volume' ${config} | sed -e 's/^"//' -e 's/"$//'`
 fi
 
 # detect GPU
@@ -65,7 +65,7 @@ fi
 
 if [ "$config" != "" ]; then
     
-    . ./install-bricks.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
+    . ./get-bricks.sh --app-dir $app_dir --lab-name $lab_name --config $config --docker
     
     if [ $? -eq 0 ]; then
         # build docker
@@ -90,17 +90,17 @@ if [ "$config" != "" ]; then
             ./docker-compose.yml > ./.docker-compose.yml
 
         # mount the store as a docker volume
-        if [ "$local_store" != "" -a -d $local_store ]; then
-            mkdir -p ${local_store}/${lab_uri}/.gws/data
+        if [ "$volume" != "" -a -d $volume ]; then
+            mkdir -p ${volume}/${lab_uri}/.gws/data
             mkdir -p ${lab_uri}/${lab_uri}/user/data
 
-            sed -e "s#(LOCAL_STORE)#/mnt/store#g" \
-                -e "s#- (LOCAL_STORE_VOLUME)#- $local_store:/mnt/store#g" \
+            sed -e "s#- (LOCAL_STORE_ENV)#- LOCAL_STORE=/mnt/store#g" \
+                -e "s#- (LOCAL_STORE_VOLUME)#- $volume:/mnt/store#g" \
                 ./.docker-compose.yml > ./.docker-compose-tmp.yml
            
             mv ./.docker-compose-tmp.yml ./.docker-compose.yml
         else
-            sed -e "s#(LOCAL_STORE)##g" \
+            sed -e "s#- (LOCAL_STORE_ENV)##g" \
                 -e "s#- (LOCAL_STORE_VOLUME)##g" \
                 ./.docker-compose.yml > ./.docker-compose-tmp.yml
            
