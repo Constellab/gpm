@@ -37,7 +37,6 @@ user_wks="${app_dir}/user"
 mkdir -p $gws_wks
 mkdir -p $user_wks
 
-
 venv_dir="${app_dir}/.venv"
 curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 python3 get-pip.py
@@ -61,7 +60,6 @@ if [ "$config" != "" ]; then
         python3 ./src/gpm.py --gws-workspace $gws_wks
         python3 ./src/gpm.py --user-workspace $user_wks --lab-name $lab_name
     fi
-    
 else
     echo "No config file found."
 fi
