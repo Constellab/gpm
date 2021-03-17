@@ -27,7 +27,7 @@ class GPM():
     config = []
     structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./sandbox", "./tmp"]
     _lab_name = "main"
-    __is_pulled = []f
+    __is_pulled = []
 
     def __init__(self, gws_workspace="", user_workspace="", shallow=None):
         self._read_config()
