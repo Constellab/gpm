@@ -384,12 +384,14 @@ class GPM():
             print(f"Git clone {repo_name} from {tab[0]}://{tab[1]}")
             tmp_repo_dir = os.path.join(workspace_dir, "tmp", repo_name)
             
-            if not self.config["git"]["shallow"]
+            if not self.config["git"]["shallow"]:
                 git_kwargs = {
-                    "depth": 1
+                    "depth": 1,
                     "no_single_branch": true,
                     "shallow_submodules": true
                 }
+            else:
+                git_kwargs = {}
                 
             git.Repo.clone_from(
                 url, 
