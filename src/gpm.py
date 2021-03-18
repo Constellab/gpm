@@ -95,6 +95,9 @@ class GPM():
 
         if dest_zipfile_path.endswith(".zip"):
             self.unzip(dest_zipfile_path)
+            
+            print(dest_zipfile_path)
+            
             os.remove(dest_zipfile_path)
 
         return dest_zipfile_path
@@ -453,10 +456,10 @@ class GPM():
     
     # -- U --
 
-    def unzip(self,filename):
-        print(f"Extracting {filename} ..")
+    def unzip(self, zipfile_path):
         with ZipFile(filename, 'r') as zipObj:
-            path = os.path.dirname(filename)
+            path = os.path.dirname(zipfile_path)
+            print(f"Extracting {zipfile_path} to {path} ...")
             zipObj.extractall(path)
         print(f"Extraction finished.")
 
@@ -477,9 +480,9 @@ class GPM():
 @click.pass_context
 @click.option('--gws-workspace', help='GWS workspace dir (absolute path)', required=False, default="")
 @click.option('--user-workspace', help='User workspace dir (absolute path)', required=False, default="")
-@click.option('--tag', help="Tag name (for push command)")
+@click.option('--tag', help="Tag name (for push command)", required=False, default="")
 @click.option('--shallow', is_flag=True, help="Get git shallow-code copy if True")
-def main(ctx, gws_workspace, user_workspace, tag, shallow):
+def main(ctx, gws_workspace="", user_workspace="", tag="", shallow=True):
     g = GPM(gws_workspace=gws_workspace, user_workspace=user_workspace, shallow=shallow)
 
     if gws_workspace:
