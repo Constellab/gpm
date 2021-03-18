@@ -36,15 +36,17 @@ services:
       dockerfile: .Dockerfile-jlab
     command: ["--runserver"]
     environment:
+      - LAB_NAME=(LAB_NAME)
+      - JLAB_TOKEN=(JLAB_TOKEN)
+      - JLAB_HOME_DIR=(JLAB_HOME_DIR)
+      - LAB_URI=(LAB_URI)
+      - START_MODE=(START_MODE)
       - VIRTUAL_PORT=8888
       - VIRTUAL_HOST=jlab.(VIRTUAL_HOST)
       - LETSENCRYPT_HOST=jlab.(VIRTUAL_HOST)
       - LETSENCRYPT_EMAIL=admin@gencovery.com
-      - JLAB_TOKEN=(JLAB_TOKEN)
-      - JLAB_HOME_DIR=(JLAB_HOME_DIR)
-      - LAB_URI=(LAB_URI)
       - CONDA_VERSION=latest
-      - GPU=(GPU)
+      - (GPU)
       - (LOCAL_STORE_ENV)
     volumes:
       - (APP_DIR):/app/gws/

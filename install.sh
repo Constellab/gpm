@@ -86,7 +86,7 @@ if [ "$config" != "" ]; then
             -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
             -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
             -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
-            -e "s/(GPU)/${gpu}/g" \
+            -e "s/(GPU)/GPU=${gpu}/g" \
             ./docker-compose.yml > ./.docker-compose.yml
 
         # mount the store as a docker volume

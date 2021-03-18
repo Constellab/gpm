@@ -76,14 +76,19 @@ if [ "$1" == "--runserver" ]; then
     done
 
     # create symbolic links to local_store
-    if [ -d $LOCAL_STORE ]; then
+    if [ "$LOCAL_STORE" != "" -a -d $LOCAL_STORE ]; then
         if [ ! -d "${LOCAL_STORE}/${LAB_URI}/.gws/" ]; then
             mkdir -p ${LOCAL_STORE}/${LAB_URI}/.gws/
             mkdir -p ${LOCAL_STORE}/${LAB_URI}/user/
         fi
-
-        ln -s ${LOCAL_STORE}/${LAB_URI}/.gws/data /app/gws/.gws/data/
-        ln -s ${LOCAL_STORE}/${LAB_URI}/user/data /app/gws/user/data/
+        
+        cd "${LOCAL_STORE}/${LAB_URI}/.gws/"
+        ln -s "/app/gws/.gws/data/" data
+        
+        cd "${LOCAL_STORE}/${LAB_URI}/user/"
+        ln -s "/app/gws/user/data/" data
+        
+        cd /app
     fi
 
     # run server
