@@ -49,17 +49,7 @@ python3 -m pip install --upgrade pip
 if [ "$config" != "" ]; then
     cp $config ./.config.json
     python3 -m pip install -r "requirements.txt"
-    #python3 ./src/gpm.py --gws-workspace $gws_wks
     python3 ./src/gpm.py --gws-workspace $gws_wks --user-workspace $user_wks --lab-name $lab_name
-
-    if [ "$mount-disk" != "" ]; then
-        #already mounted
-        #python3 ./src/gpm.py --gws-workspace $gws_wks --no-biodata-download
-        python3 ./src/gpm.py --gws-workspace $gws_wks --user-workspace $user_wks --lab-name $lab_name --no-biodata-download
-    else
-        #python3 ./src/gpm.py --gws-workspace $gws_wks
-        python3 ./src/gpm.py --gws-workspace $gws_wks --user-workspace $user_wks --lab-name $lab_name
-    fi
 else
     echo "No config file found."
 fi

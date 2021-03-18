@@ -95,9 +95,6 @@ class GPM():
 
         if dest_zipfile_path.endswith(".zip"):
             self.unzip(dest_zipfile_path)
-            
-            print(dest_zipfile_path)
-            
             os.remove(dest_zipfile_path)
 
         return dest_zipfile_path
@@ -457,9 +454,9 @@ class GPM():
     # -- U --
 
     def unzip(self, zipfile_path):
-        with ZipFile(filename, 'r') as zipObj:
+        print(f"Extracting {zipfile_path} ...")
+        with ZipFile(zipfile_path, 'r') as zipObj:
             path = os.path.dirname(zipfile_path)
-            print(f"Extracting {zipfile_path} to {path} ...")
             zipObj.extractall(path)
         print(f"Extraction finished.")
 
@@ -490,9 +487,6 @@ def main(ctx, gws_workspace="", user_workspace="", tag="", shallow=True):
     
     if user_workspace:
         g.install_user()
-
-
-# -- ENTRY POINT --
 
 if __name__ == "__main__":
     main()
