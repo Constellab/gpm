@@ -372,7 +372,7 @@ class GPM():
 
 
     def _pull_repo(self, workspace_dir, repo_name, user, pwd, origin, force):
-        url = .strip("/") + "/" + repo_name.strip("/") + ".git"
+        url = origin.strip("/") + "/" + repo_name.strip("/") + ".git"
 
         tab = url.split("://")
         url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
