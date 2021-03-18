@@ -24,7 +24,7 @@ __cdir__ = os.path.dirname(os.path.abspath(__file__))
 
 class GPM():
     default_git_origin = "https://gitea.gencovery.com/gws/"
-    default_git_origin_token = DEFAULT_GIT_ORIGIN
+    default_git_origin_token = "DEFAULT_GIT_ORIGIN"
     
     config = []
     structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./notebooks", "./tmp"]
