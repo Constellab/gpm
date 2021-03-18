@@ -357,7 +357,8 @@ class GPM():
                         for dep in deps:
                             is_already_pulled = (dep in self.__is_pulled)
                             if not is_already_pulled:
-                                self.pull(workspace_dir, repos={ dep: origin }, username=git_user, userpwd=git_pwd, force=force)
+                                repos = {dep: origin}
+                                self.pull(workspace_dir, repos=repos, username=git_user, userpwd=git_pwd, force=force)
 
                         # # pull externs
                         # deps = settings.get("externs",[])
