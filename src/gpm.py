@@ -336,7 +336,7 @@ class GPM():
             
             if repos[repo_name]:
                 origin = repos[repo_name]
-                if origin == self.default_git_origin_token
+                if origin == self.default_git_origin_token:
                     origin = self.default_git_origin
             else:
                 origin = self.default_git_origin
