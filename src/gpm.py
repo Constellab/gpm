@@ -219,7 +219,8 @@ class GPM():
             
             dep_gws = self.config.get("dependencies",{}).get("gws",{})
             dep_user = self.config.get("dependencies",{}).get("user",{})
-            settings["dependencies"]        = settings.get("dependencies",[]]) + \
+            
+            settings["dependencies"]        = settings.get("dependencies",[]) + \
                                                 list(dep_gws.keys()) + \
                                                 list(dep_user.keys())
             
