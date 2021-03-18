@@ -18,6 +18,7 @@ services:
       - VIRTUAL_HOST=lab.(VIRTUAL_HOST)
       - LETSENCRYPT_HOST=lab.(VIRTUAL_HOST)
       - LETSENCRYPT_EMAIL=admin@gencovery.com
+      - CONDA_VERSION=latest
       - GPU=(GPU)
       - (LOCAL_STORE_ENV)
     volumes:
@@ -42,6 +43,7 @@ services:
       - JLAB_TOKEN=(JLAB_TOKEN)
       - JLAB_HOME_DIR=(JLAB_HOME_DIR)
       - LAB_URI=(LAB_URI)
+      - CONDA_VERSION=latest
       - GPU=(GPU)
       - (LOCAL_STORE_ENV)
     volumes:
