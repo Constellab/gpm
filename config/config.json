@@ -18,8 +18,8 @@
         "central_api_key": "EplKZ3sE0uepRQLzHiHyh4BA5ycu0QVe6dnkFFz8dj8%3D"
     },
     "dependencies":{
-        "gws": [],
-        "user": []
+        "gws": {"biox": "DEFAULT_GIT_ORIGIN"},
+        "user": {}
     },
     "urls": {
         "biota_db": "https://share.gencovery.com/s/knew7fWLYt7dEHG/download"

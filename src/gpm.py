@@ -23,7 +23,9 @@ from zipfile import ZipFile
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
 
 class GPM():
-    git_url = "https://gitea.gencovery.com/gws/"
+    default_git_origin = "https://gitea.gencovery.com/gws/"
+    default_git_origin_token = DEFAULT_GIT_ORIGIN
+    
     config = []
     structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./notebooks", "./tmp"]
     _lab_name = "main"
@@ -140,8 +142,10 @@ class GPM():
         self.__is_pulled = []
         if self.get_gws_workspace().startswith("/"):
             self.create_wks_dirs(self.get_gws_workspace(), skip_main=True)
-            repo_names=self.gws_bricks
-            self.pull(self.get_gws_workspace(), repo_names=repo_names, force=False)
+            repos=self.gws_bricks
+            if not repos:
+                repos = { "biox": "DEFAULT_GIT_ORIGIN" }
+            self.pull(self.get_gws_workspace(), repos=repos, force=False)
 
             # pull biota data
             url = self.config["urls"]["biota_db"]
@@ -159,8 +163,12 @@ class GPM():
         self.__is_pulled = []
         if self.get_user_workspace().startswith("/"):
             self.create_wks_dirs(self.get_user_workspace(), skip_main=False)
-            repo_names = ["skeleton"]+self.user_bricks
-            self.pull(self.get_user_workspace(), repo_names=repo_names, force=False)
+            repos = { 
+                "skeleton": "DEFAULT_GIT_ORIGIN", 
+                **self.user_bricks 
+            }
+
+            self.pull(self.get_user_workspace(), repos=repos, force=False)
             self._install_user_main()
 
             #copy notebooks files
@@ -278,19 +286,14 @@ class GPM():
     # -- P -- 
 
     @property
-    def gws_bricks(self):
-        return self.config["dependencies"]["gws"]
+    def gws_bricks(self) -> dict:
+        return self.config["dependencies"].get("gws",{})
     
     @property
-    def user_bricks(self):
-        return self.config["dependencies"]["user"]
+    def user_bricks(self) -> dict:
+        return self.config["dependencies"].get("user", {})
 
-    def pull(self, workspace_dir, repo_names=[], origin=None, username="", userpwd="", force=False):
-        if origin == None:
-            origin = self.git_url
-
-        origin = origin.strip("/")
-
+    def pull(self, workspace_dir, repos={}, username="", userpwd="", force=False):
         git_user = ""
         git_pwd = ""
         private_file = os.path.join(__cdir__, "../.private.json")
@@ -329,7 +332,15 @@ class GPM():
 
         git_pwd = urllib.parse.quote(git_pwd)
         
-        for repo_name in repo_names:
+        for repo_name in repos:
+            
+            if repos[repo_name]:
+                origin = repos[repo_name]
+                if origin == self.default_git_origin_token
+                    origin = self.default_git_origin
+            else:
+                origin = self.default_git_origin
+            
             self._pull_repo(workspace_dir, repo_name, git_user, git_pwd, origin, force)
             self.__is_pulled.append(repo_name)
 
@@ -346,7 +357,7 @@ class GPM():
                         for dep in deps:
                             is_already_pulled = (dep in self.__is_pulled)
                             if not is_already_pulled:
-                                self.pull(workspace_dir, repo_names=[ dep ], origin=origin, username=git_user, userpwd=git_pwd, force=force)
+                                self.pull(workspace_dir, repos={ dep: origin }, username=git_user, userpwd=git_pwd, force=force)
 
                         # # pull externs
                         # deps = settings.get("externs",[])
@@ -360,7 +371,7 @@ class GPM():
 
 
     def _pull_repo(self, workspace_dir, repo_name, user, pwd, origin, force):
-        url = origin + "/" + repo_name.strip("/") + ".git"
+        url = .strip("/") + "/" + repo_name.strip("/") + ".git"
 
         tab = url.split("://")
         url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
