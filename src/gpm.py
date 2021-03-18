@@ -31,7 +31,7 @@ class GPM():
     _lab_name = "main"
     __is_pulled = []
 
-    def __init__(self, gws_workspace="", user_workspace="", shallow=None):
+    def __init__(self, gws_workspace="", user_workspace="", shallow=True):
         self._read_config()
 
         if gws_workspace != "":
@@ -40,11 +40,7 @@ class GPM():
         if user_workspace != "":
             self.config["user_workspace"] = user_workspace
 
-        if shallow is None:
-            self.config["shallow"] = self.config.get("shallow", True)
-        else:
-            self.config["shallow"] = shallow
-
+        self.config["shallow"] = self.config.get("shallow", shallow)
         self._write_config()
 
     # -- C -- 
@@ -481,24 +477,16 @@ class GPM():
 @click.pass_context
 @click.option('--gws-workspace', help='GWS workspace dir (absolute path)', required=False, default="")
 @click.option('--user-workspace', help='User workspace dir (absolute path)', required=False, default="")
-@click.option('--pull', help='Pull a brick or a lab')
-@click.option('--push', help="Push a brick or a lab")
 @click.option('--tag', help="Tag name (for push command)")
 @click.option('--shallow', is_flag=True, help="Get git shallow-code copy if True")
-def main(ctx, gws_workspace, user_workspace, pull, push, tag, shallow):
+def main(ctx, gws_workspace, user_workspace, tag, shallow):
     g = GPM(gws_workspace=gws_workspace, user_workspace=user_workspace, shallow=shallow)
 
-    if gws_workspace != "":
+    if gws_workspace:
         g.install_gws()
     
-    if user_workspace != "":
+    if user_workspace:
         g.install_user()
-
-    if pull:
-        pass
-
-    if push:
-        pass
 
 
 # -- ENTRY POINT --
