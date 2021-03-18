@@ -4,7 +4,7 @@ base_image="ubuntu:20.04"
 runtime=""
 distribution=$(. /etc/os-release;echo $ID:$VERSION_ID)
 max_distribution_for_gpu="ubuntus:20.04"
-gpu=""
+gpu="none"
 
 app_dir="/home/ubuntu/app"
 lab_name="main"
@@ -86,9 +86,9 @@ if [ "$config" != "" ]; then
             -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
             -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
             -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
-            -e "s/(GPU)/GPU=${gpu}/g" \
+            -e "s/(GPU)/${gpu}/g" \
             ./docker-compose.yml > ./.docker-compose.yml
-
+        
         # mount the store as a docker volume
         if [ "$volume" != "" -a -d $volume ]; then
             mkdir -p ${volume}/${lab_uri}/.gws/data

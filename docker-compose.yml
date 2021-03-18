@@ -46,7 +46,7 @@ services:
       - LETSENCRYPT_HOST=jlab.(VIRTUAL_HOST)
       - LETSENCRYPT_EMAIL=admin@gencovery.com
       - CONDA_VERSION=latest
-      - (GPU)
+      - GPU=(GPU)
       - (LOCAL_STORE_ENV)
     volumes:
       - (APP_DIR):/app/gws/
