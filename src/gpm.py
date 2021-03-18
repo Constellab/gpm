@@ -64,22 +64,22 @@ class GPM():
 
     def download(self, url, dest_dir, dest_filename):
         print(f"Downloading {url} ...")
-        dest_file_path = os.path.join(dest_dir,dest_filename)
+        dest_zipfile_path = os.path.join(dest_dir,dest_filename)
 
-        if os.path.exists(dest_file_path):
-            print(f"Data {dest_file_path} already exists")
+        if os.path.exists(dest_zipfile_path):
+            print(f"Data {dest_zipfile_path} already exists")
             return
         
         
-        if dest_file_path.endswith(".zip"):
-            if os.path.exists(re.sub(r"\.zip$", "", dest_file_path)):
-                print(f"Unzipped data {dest_file_path} already exists")
+        if dest_zipfile_path.endswith(".zip"):
+            if os.path.exists(re.sub(r"\.zip$", "", dest_zipfile_path)):
+                print(f"Unzipped data {dest_zipfile_path} already exists")
                 return
 
         if not os.path.exists(dest_dir):
             os.makedirs(dest_dir)
         
-        with open(dest_file_path, 'wb') as f:
+        with open(dest_zipfile_path, 'wb') as f:
             response = requests.get(url, stream=True)
             total = response.headers.get('content-length')
 
@@ -97,11 +97,11 @@ class GPM():
         
         sys.stdout.write('\n')
 
-        if dest_file_path.endswith(".zip"):
-            self.unzip(dest_file_path)
-            os.remove(dest_file_path)
+        if dest_zipfile_path.endswith(".zip"):
+            self.unzip(dest_zipfile_path)
+            os.remove(dest_zipfile_path)
 
-        return dest_file_path
+        return dest_zipfile_path
 
     # -- G --
 
@@ -219,8 +219,9 @@ class GPM():
             
             dep_gws = self.config.get("dependencies",{}).get("gws",{})
             dep_user = self.config.get("dependencies",{}).get("user",{})
-            
-            settings["dependencies"]        = settings.get("dependencies",{}).update(dep_gws).update(dep_user)
+            settings["dependencies"]        = settings.get("dependencies",[]]) + \
+                                                list(dep_gws.keys()) + \
+                                                list(dep_user.keys())
             
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=4)
