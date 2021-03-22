@@ -207,8 +207,8 @@ class GPM():
             settings["jlab_home_dir"]       = self.config["lab"].get("jlab_home_dir", "")
             
             settings["central"]             = {}
-            settings["central"]["api_key"]  = self.config["lab"]["central"].get("api_key", "")
-            settings["central"]["api_url"]  = self.config["lab"]["central"].get("api_url", "")
+            settings["central"]["api_key"]  = self.config["lab"].get("central",{}).get("api_key", "")
+            settings["central"]["api_url"]  = self.config["lab"].get("central",{}).get("api_url", "")
 
             settings["owner"]                = {}
             settings["owner"]["uri"]         = self.config["lab"]["user"].get("uri", "")
