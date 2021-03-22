@@ -65,7 +65,7 @@ fi
 if [ "$volume" != "" ] && [ -d "$volume" ]; then
     sudo mkdir -p ${volume}/app
     sudo chown -R $(whoami) ${volume}/app
-    sudo chmod -R u+w ${volume}/app
+    chmod -R u+w ${volume}/app
     
     if [ -d "${volume}/app" ]; then
         app_dir="${volume}/app"
@@ -74,7 +74,7 @@ fi
 
 # create app_dir if required
 if [ ! -d "${app_dir}" ]; then
-    sudo mkdir -p "${app_dir}"
+    mkdir -p "${app_dir}"
 fi
 
 # detect GPU
