@@ -205,13 +205,15 @@ class GPM():
             
             settings["jlab_token"]          = self.config["lab"].get("jlab_token", "")
             settings["jlab_home_dir"]       = self.config["lab"].get("jlab_home_dir", "")
+            
+            settings["central"]             = {}
+            settings["central"]["api_key"]  = self.config["lab"]["central"].get("api_key", "")
+            settings["central"]["api_url"]  = self.config["lab"]["central"].get("api_url", "")
 
-            settings["central_api_key"]     = self.config["lab"].get("central_api_key", "")
-            settings["central_api_url"]     = self.config["lab"].get("central_api_url", "")
-
-            settings["user_uri"]            = self.config["lab"].get("user_uri", "")
-            settings["user_email"]          = self.config["lab"].get("user_email", "")
-            settings["admin_email"]         = self.config["lab"].get("admin_email", "")
+            settings["owner"]                = {}
+            settings["owner"]["uri"]         = self.config["lab"]["user"].get("uri", "")
+            settings["owner"]["email"]       = self.config["lab"]["user"].get("email", "admin@gencovery.com")
+            settings["owner"]["full_name"]   = self.config["lab"]["user"].get("full_name", "Owner")
             
             dep_gws = self.config.get("dependencies",{}).get("gws",{})
             dep_user = self.config.get("dependencies",{}).get("user",{})
