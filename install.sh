@@ -65,7 +65,7 @@ fi
 if [ "$volume" != "" ] && [ -d "$volume" ]; then
     mkdir -p ${volume}/app
     
-    if[ -d "${volume}/app" ]; then
+    if [ -d "${volume}/app" ]; then
         app_dir="${volume}/app"
     fi
 fi
