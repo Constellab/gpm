@@ -63,7 +63,9 @@ fi
 
 # mount the store as a docker volume
 if [ "$volume" != "" ] && [ -d "$volume" ]; then
-    mkdir -p ${volume}/app
+    sudo mkdir -p ${volume}/app
+    sudo chown -R $(whoami) ${volume}/app
+    sudo chmod -R u+w ${volume}/app
     
     if [ -d "${volume}/app" ]; then
         app_dir="${volume}/app"
@@ -72,7 +74,7 @@ fi
 
 # create app_dir if required
 if [ ! -d "${app_dir}" ]; then
-    mkdir -p "${app_dir}"
+    sudo mkdir -p "${app_dir}"
 fi
 
 # detect GPU
