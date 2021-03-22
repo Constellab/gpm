@@ -211,9 +211,13 @@ class GPM():
             settings["central"]["api_url"]  = self.config["lab"].get("central",{}).get("api_url", "")
 
             settings["owner"]                = {}
-            settings["owner"]["uri"]         = self.config["lab"]["user"].get("uri", "")
-            settings["owner"]["email"]       = self.config["lab"]["user"].get("email", "admin@gencovery.com")
-            settings["owner"]["full_name"]   = self.config["lab"]["user"].get("full_name", "Owner")
+            settings["owner"]["uri"]         = self.config["lab"]["owner"].get("uri", "")
+            settings["owner"]["email"]       = self.config["lab"]["owner"].get("email", "admin@gencovery.com")
+            settings["owner"]["full_name"]   = self.config["lab"]["owner"].get("full_name", "Owner")
+            
+            settings["admin"]                = {}
+            settings["admin"]["uri"]         = self.config["lab"]["admin"].get("uri", "")
+            settings["admin"]["email"]       = self.config["lab"]["admin"].get("email", "admin@gencovery.com")
             
             dep_gws = self.config.get("dependencies",{}).get("gws",{})
             dep_user = self.config.get("dependencies",{}).get("user",{})
