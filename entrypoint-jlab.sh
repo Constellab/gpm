@@ -37,22 +37,6 @@ if [ "$1" == "--runserver" ]; then
         python3 -m pip install -r $path
     done
 
-    # create symbolic links to local_store
-    if [ -n "$LOCAL_STORE" ] && [ -d "$LOCAL_STORE" ]; then
-        if [ ! -d "${LOCAL_STORE}/${LAB_URI}/.gws/" ]; then
-            mkdir -p ${LOCAL_STORE}/${LAB_URI}/.gws/
-            mkdir -p ${LOCAL_STORE}/${LAB_URI}/user/
-        fi
-        
-        cd "${LOCAL_STORE}/${LAB_URI}/.gws/"
-        ln -s "/app/gws/.gws/data/" data
-        
-        cd "${LOCAL_STORE}/${LAB_URI}/user/"
-        ln -s "/app/gws/user/data/" data
-        
-        cd /app
-    fi
-    
     # run server
     export SHELL=/bin/bash
     exec jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir=${JLAB_HOME_DIR} --allow-root --NotebookApp.token=${JLAB_TOKEN} --NotebookApp.password=

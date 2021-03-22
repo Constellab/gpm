@@ -75,22 +75,6 @@ if [ "$1" == "--runserver" ]; then
         python3 -m pip install -r $path
     done
 
-    # create symbolic links to local_store
-    if [ -n "$LOCAL_STORE" ] && [ -d "$LOCAL_STORE" ]; then
-        if [ ! -d "${LOCAL_STORE}/${LAB_URI}/.gws/" ]; then
-            mkdir -p ${LOCAL_STORE}/${LAB_URI}/.gws/
-            mkdir -p ${LOCAL_STORE}/${LAB_URI}/user/
-        fi
-        
-        cd "${LOCAL_STORE}/${LAB_URI}/.gws/"
-        ln -s "/app/gws/.gws/data/" data
-        
-        cd "${LOCAL_STORE}/${LAB_URI}/user/"
-        ln -s "/app/gws/user/data/" data
-        
-        cd /app
-    fi
-
     # run server
     exec python3 "/app/gws/user/main/${lab_name}/manage.py" --runserver $lab_uri $lab_token $start_mode
 else
