@@ -30,5 +30,6 @@
     },
     "git":{
         "shallow": true
-    }
+    },
+    "volume": "/mnt/store"
 }

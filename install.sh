@@ -16,7 +16,7 @@ virtual_host=""
 template_config="./config/template_config.json"
 active_config=".config.json"
 option="-d"
-volume="/mnt/store"
+volume=""
 
 while :; do
     case $1 in
