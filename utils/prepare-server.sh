@@ -27,7 +27,7 @@ sudo apt-get -y install docker-compose
 sudo usermod -aG docker $USER
 
 # mount /dev/sbd disk
-sudo ./mount/mount.sh
+. ./mount/mount.sh
 
 # Detect GPU and install
 if [[ "$distribution" == "$max_distribution_for_gpu" ]] || [[ "$distribution" < "$max_distribution_for_gpu" ]]; then

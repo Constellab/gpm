@@ -5,8 +5,7 @@ part="${disk}1"
 
 if [ "`lsblk | grep $disk`" ]; then
     if [ "`cat /proc/mounts | grep $disk`" == "" ]; then
-        
-        
+
         if [ "`lsblk | grep $part`" == "" ]; then
             # create the partion
             echo "Create partition $part"
@@ -29,11 +28,8 @@ if [ "`lsblk | grep $disk`" ]; then
         echo "Mount disk $disk"
         sudo mkdir -p /mnt/store
         sudo mount /dev/${part} /mnt/store
+        
     else:
         echo "Disk $disk already mounted"
     fi
-fi
-
-if [ "`lsblk | grep sdsdffd`" == "" ]; then
-    echo "oui"
 fi
