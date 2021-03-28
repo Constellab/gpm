@@ -387,7 +387,7 @@ class GPM():
             except:
                 pass
             
-            try
+            try:
                 o.pull()
                 o.set_url(saved_url)
             except:
