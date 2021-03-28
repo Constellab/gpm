@@ -382,9 +382,16 @@ class GPM():
             git_repo = git.Repo(repo_dir)
             o = git_repo.remotes.origin
             saved_url = o.url
-            o.set_url(url)
-            o.pull()
-            o.set_url(saved_url)
+            try:
+                o.set_url(url)
+            except:
+                pass
+            
+            try
+                o.pull()
+                o.set_url(saved_url)
+            except:
+                pass
         else:
             print(f"Git clone {repo_name} from {tab[0]}://{tab[1]}")
             tmp_repo_dir = os.path.join(workspace_dir, "tmp", repo_name)
