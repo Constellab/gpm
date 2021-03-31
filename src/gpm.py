@@ -219,12 +219,10 @@ class GPM():
             settings["admin"]["uri"]         = self.config["lab"]["admin"].get("uri", "")
             settings["admin"]["email"]       = self.config["lab"]["admin"].get("email", "admin@gencovery.com")
             
-            dep_gws = self.config.get("dependencies",{}).get("gws",{})
-            dep_user = self.config.get("dependencies",{}).get("user",{})
-            
-            settings["dependencies"]        = settings.get("dependencies",[]) + \
-                                                list(dep_gws.keys()) + \
-                                                list(dep_user.keys())
+            dep_gws = self.config.get("dependencies",{}).get("gws",[])
+            dep_user = self.config.get("dependencies",{}).get("user",[])
+            settings["dependencies"]         = settings.get("dependencies",[]) + list(dep_gws.keys()) + list(dep_user.keys())
+            settings["dependencies"]         = list(set(settings["dependencies"]))
             
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=4)
