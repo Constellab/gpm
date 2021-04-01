@@ -39,40 +39,30 @@ if [ "$1" == "--runserver" ]; then
     cd /app
 
     # install ubuntu packages
-    for path in `find /app/gws/.gws/ -mindepth 1 -maxdepth 4 -name 'requirements-apt.txt'`; do
-        cat $path | xargs apt-get install -y
-    done
-
-    for path in `find /app/gws/user/ -mindepth 1 -maxdepth 4 -name 'requirements-apt.txt'`; do
-        cat $path | xargs apt-get install -y
-    done
-
-    # build c++ bricks
-    for brick in `find /app/gws/.gws/bricks -mindepth 1 -maxdepth 1 -type d`; do
-        if [ -f "$brick/bin/build.py" ]; then
-            python3 "$brick/bin/build.py"
-        fi
-    done
-
-    for brick in `find /app/gws/user/bricks -mindepth 1 -maxdepth 1 -type d`; do
-        if [ -f "$brick/dep/install.py" ]; then
-            python3 "$brick/dep/install.py"
-        fi
+    for wks in ".gws" "user"; do
+        for path in `find /app/gws/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-apt.txt'`; do
+            cat $path | xargs apt-get install -y
+        done
     done
     
-    for brick in `find /app/gws/user/bricks -mindepth 1 -maxdepth 1 -type d`; do
-        if [ -f "$brick/dep/install.sh" ]; then
-            python3 "$brick/dep/install.sh"
-        fi
-    done
-
     # install python dependencies
-    for path in `find /app/gws/.gws/ -mindepth 1 -maxdepth 4 -name 'requirements-pip.txt'`; do
-        python3 -m pip install -r $path
+    for wks in ".gws" "user"; do
+        for path in `find /app/gws/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-pip.txt'`; do
+            python3 -m pip install -r $path
+        done
     done
-
-    for path in `find /app/gws/user/ -mindepth 1 -maxdepth 4 -name 'requirements-pip.txt'`; do
-        python3 -m pip install -r $path
+    
+    # post-installation hooks
+    for wks in ".gws" "user"; do
+        for brick in `find /app/gws/$wks/bricks -mindepth 1 -maxdepth 1 -type d`; do
+            if [ -f "$brick/dep/install.py" ]; then
+                python3 "$brick/dep/install.py"
+            fi
+            
+            if [ -f "$brick/dep/install.sh" ]; then
+                . "$brick/dep/install.sh"
+            fi
+        done
     done
 
     # run server
