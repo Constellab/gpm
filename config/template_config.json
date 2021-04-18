@@ -13,12 +13,14 @@
         "jlab_home_dir": "/app/gws",
         "admin": {
             "email": "admin@gencovery.com",
-            "full_name": "Admin"
+            "fist_name": "Admin",
+            "last_name": ""
         },
         "owner": {
             "uri": "88f3cddc-2cdd-11eb-adc1-0242ac120002",
             "email": "admin@gencovery.com",
-            "full_name": "Owner"
+            "fist_name": "Owner",
+            "last_name": ""
         }
     },
     "dependencies":{
