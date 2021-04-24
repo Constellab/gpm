@@ -35,7 +35,7 @@ if [ "$1" == "--runserver" ]; then
     
     # post-installation hooks
     if [ -f /opt/conda/etc/profile.d/conda.sh ]; then
-        . /opt/conda/etc/profile.d/conda.sh
+        bash /opt/conda/etc/profile.d/conda.sh
     fi
     
     for wks in ".gws" "user"; do
@@ -45,7 +45,7 @@ if [ "$1" == "--runserver" ]; then
             fi
             
             if [ -f "$brick/dep/install.sh" ]; then
-                . "$brick/dep/install.sh"
+                bash "$brick/dep/install.sh"
             fi
         done
     done
