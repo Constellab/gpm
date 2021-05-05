@@ -2,9 +2,7 @@
 
 app_dir=""
 lab_name="main"
-is_docker="no"
-config="./config/config.json"
-mount-disk=""
+config="./config/template_config.json"
 
 while :; do
     case $1 in
@@ -19,13 +17,6 @@ while :; do
         --config) 
             config=${2%/}
             shift  
-        ;;
-        --docker) 
-            is_docker="yes"               
-        ;;
-        --mount-disk) 
-            mount-disk=${2%/}
-            shift           
         ;;
         *) break
     esac

@@ -3,7 +3,7 @@
         "name": "main",
         "title": "Gencovery Lab",
         "description": "Gencovery Digital Lab as a Service",
-        "app_dir": "/home/ubuntu/app",
+        "app_dir": "./",
         "data_dir": "../../data/",
         "start_mode": "--prod",
         "virtual_host": "test.gencovery.io",

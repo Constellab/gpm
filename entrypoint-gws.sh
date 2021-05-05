@@ -8,9 +8,13 @@ if [ "$1" == "--runserver" ]; then
     local_storage=""
 
     if [ -n "$LAB_NAME" ]; then
-        lab_name=$LAB_NAME
+        lab_name=$LAB_NAME #override lab_name
     fi
 
+    if [ -n "$lab_name" ]; then
+        lab_name="main" #default value if no lab_name is given
+    fi
+    
     if [ -n "$LAB_TOKEN" -a "$LAB_TOKEN" != "" ]; then
         lab_token="--lab-token $LAB_TOKEN"
     fi
