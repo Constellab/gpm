@@ -4,7 +4,7 @@ set -e
 if [ "$1" == "--runserver" ]; then
     
     # build and install dlib
-    build_dir="/app/gws/.gws/externs/dlib-cpp/build-jlab"
+    build_dir="/app/lab/.gws/externs/dlib-cpp/build-jlab"
     if [ ! -d "$build_dir" ]; then
         mkdir -p $build_dir
         cd $build_dir
@@ -21,14 +21,14 @@ if [ "$1" == "--runserver" ]; then
 
     # install ubuntu packages
     for wks in ".gws" "user"; do
-        for path in `find /app/gws/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-apt.txt'`; do
+        for path in `find /app/lab/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-apt.txt'`; do
             cat $path | xargs apt-get install -y
         done
     done
     
     # install python dependencies
     for wks in ".gws" "user"; do
-        for path in `find /app/gws/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-pip.txt'`; do
+        for path in `find /app/lab/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-pip.txt'`; do
             python3 -m pip install -r $path
         done
     done
@@ -39,7 +39,7 @@ if [ "$1" == "--runserver" ]; then
     fi
     
     for wks in ".gws" "user"; do
-        for brick in `find /app/gws/$wks/bricks -mindepth 1 -maxdepth 1 -type d`; do
+        for brick in `find /app/lab/$wks/bricks -mindepth 1 -maxdepth 1 -type d`; do
             if [ -f "$brick/dep/install.py" ]; then
                 python3 "$brick/dep/install.py"
             fi

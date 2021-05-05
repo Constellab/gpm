@@ -21,7 +21,7 @@ services:
       - CONDA_VERSION=latest
       - GPU=(GPU)
     volumes:
-      - (APP_DIR):/app/gws/
+      - (APP_DIR):/app/lab/
     networks:
        - nginx-proxy
     restart: always
@@ -46,7 +46,7 @@ services:
       - CONDA_VERSION=latest
       - GPU=(GPU)
     volumes:
-      - (APP_DIR):/app/gws/
+      - (APP_DIR):/app/lab/
     networks:
        - nginx-proxy
     restart: always
