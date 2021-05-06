@@ -58,7 +58,7 @@
 	// This is used to mount the lab directory in the docker to an absolute directory. The bricks will be installed in the mounted folder
 	// REPLACE THE ABSOLUTE PATH WITH A PATH IN YOUR COMPUTER WHERE YOU WANT THE BRICKS
 	"mounts": [
-		"source=C:\\Users\\Benjamin\\Documents\\Project\\Gencovery\\lab2\\lab,target=/workspaces/lab,type=bind,consistency=cached"
+		"source=C:\\Users\\Benjamin\\Documents\\Project\\Gencovery\\lab2,target=/workspaces/lab,type=bind,consistency=cached"
 	],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
