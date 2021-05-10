@@ -1,0 +1,4 @@
+# This file ise usefule to avoir commiting windows end of line character that will break in linux
+* text=auto eol=lf
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
