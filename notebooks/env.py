@@ -45,7 +45,6 @@ def activate( brick = "main" ):
     # activate local db
     from gws.settings import Settings
     settings = Settings.retrieve()
-    settings.use_prod_biota_db(True)
     settings.data["is_test"] = True        
     settings.save()
     
