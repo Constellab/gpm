@@ -50,6 +50,20 @@ services:
     networks:
        - nginx-proxy
     restart: always
+
+  # VS code server
+  vs-code-server:
+    image: codercom/code-server 
+    ports:
+      - "8080:8080"
+    container_name: vs-code-server
+    volumes:
+      - type: bind
+        source: (APP_DIR)
+        target: /home/coder/project
+      - type: bind
+        source: ./vs-code-server-config
+        target: /home/coder/.config 
   
   # Reverse proxy
   nginx-proxy:
