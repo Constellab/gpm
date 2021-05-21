@@ -39,35 +39,35 @@ if [ "$1" == "--runserver" ]; then
     cd /app
 
     # install ubuntu packages
-    for wks in ".gws" "user"; do
-        for path in `find /app/gws/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-apt.txt'`; do
-            cat $path | xargs apt-get install -y
-        done
-    done
-
-    # install python dependencies
-    for wks in ".gws" "user"; do
-        for path in `find /app/gws/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-pip.txt'`; do
-            python3 -m pip install -r $path
-        done
-    done
-
-    # post-installation hooks
-    if [ -f /opt/conda/etc/profile.d/conda.sh ]; then
-        . /opt/conda/etc/profile.d/conda.sh
-    fi
-
-    for wks in ".gws" "user"; do
-        for brick in `find /app/gws/$wks/bricks -mindepth 1 -maxdepth 1 -type d`; do
-            if [ -f "$brick/dep/install.py" ]; then
-                python3 "$brick/dep/install.py"
-            fi
-
-            if [ -f "$brick/dep/install.sh" ]; then
-                . "$brick/dep/install.sh"
-            fi
-        done
-    done
+#    for wks in ".gws" "user"; do
+#        for path in `find /app/gws/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-apt.txt'`; do
+#            cat $path | xargs apt-get install -y
+#        done
+#    done
+#
+#    # install python dependencies
+#    for wks in ".gws" "user"; do
+#        for path in `find /app/gws/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-pip.txt'`; do
+#            python3 -m pip install -r $path
+#        done
+#    done
+#
+#    # post-installation hooks
+#    if [ -f /opt/conda/etc/profile.d/conda.sh ]; then
+#        . /opt/conda/etc/profile.d/conda.sh
+#    fi
+#
+#    for wks in ".gws" "user"; do
+#        for brick in `find /app/gws/$wks/bricks -mindepth 1 -maxdepth 1 -type d`; do
+#            if [ -f "$brick/dep/install.py" ]; then
+#                python3 "$brick/dep/install.py"
+#            fi
+#
+#            if [ -f "$brick/dep/install.sh" ]; then
+#                . "$brick/dep/install.sh"
+#            fi
+#        done
+#    done
 
     # run server
     exec python3 "/app/gws/user/main/${lab_name}/manage.py" --runserver $lab_uri $lab_token $start_mode

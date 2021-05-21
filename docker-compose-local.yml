@@ -5,7 +5,7 @@ services:
   # GWS
   gws:
     build:
-      context: ./
+      context: ./Dockerfile-local
     # command: ["--runserver", "skeleton"]
     environment:
       - LAB_NAME=skeleton
@@ -13,11 +13,11 @@ services:
       - LAB_URI=
       - START_MODE=
     ports:
-      - "3001:3000"
-    container_name: gpm
+      - "3000:3000"
+    container_name: gws
       # - VIRTUAL_PORT=3000
       # - VIRTUAL_HOST=lab.(VIRTUAL_HOST)
       # - LETSENCRYPT_HOST=lab.(VIRTUAL_HOST)
       # - LETSENCRYPT_EMAIL=admin@gencovery.com
     volumes:
-      - ../gws:/app/gws/
+      - ../lab2:/app/gws/
