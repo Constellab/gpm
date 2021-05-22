@@ -3,7 +3,7 @@ set -e
 
 if [ "$1" == "--runserver" ]; then
     if [ -n $2 ]; then
-        $LAB_NAME=$2
+        LAB_NAME=$2
     fi
 
     # build and install dlib
