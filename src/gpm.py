@@ -200,12 +200,10 @@ class GPM():
             settings["name"]                = self.config["lab"].get("name", "main")
             settings["uri"]                 = self.config["lab"].get("uri", "")
             settings["token"]               = self.config["lab"].get("token", "")
+            settings["work_dir"]            = self.config["lab"].get("work_dir", "")
             settings["host"]                = self.config["lab"].get("host", "0.0.0.0")
             settings["virtual_host"]        = self.config["lab"].get("virtual_host", "lab.test.gencovery.io")
-            
-            settings["jlab_token"]          = self.config["lab"].get("jlab_token", "")
-            settings["jlab_home_dir"]       = self.config["lab"].get("jlab_home_dir", "")
-            
+   
             settings["central"]             = {}
             settings["central"]["api_key"]  = self.config["lab"].get("central",{}).get("api_key", "")
             settings["central"]["api_url"]  = self.config["lab"].get("central",{}).get("api_url", "")
@@ -213,11 +211,14 @@ class GPM():
             settings["owner"]                = {}
             settings["owner"]["uri"]         = self.config["lab"]["owner"].get("uri", "")
             settings["owner"]["email"]       = self.config["lab"]["owner"].get("email", "admin@gencovery.com")
-            settings["owner"]["full_name"]   = self.config["lab"]["owner"].get("full_name", "Owner")
+            settings["owner"]["first_name"]  = self.config["lab"]["owner"].get("first_name", "Owner")
+            settings["owner"]["last_name"]   = self.config["lab"]["owner"].get("last_name", "")
             
             settings["admin"]                = {}
             settings["admin"]["uri"]         = self.config["lab"]["admin"].get("uri", "")
             settings["admin"]["email"]       = self.config["lab"]["admin"].get("email", "admin@gencovery.com")
+            settings["admin"]["first_name"]  = self.config["lab"]["owner"].get("first_name", "Admin")
+            settings["admin"]["last_name"]   = self.config["lab"]["owner"].get("last_name", "")
             
             dep_gws = self.config.get("dependencies",{}).get("gws",[])
             dep_user = self.config.get("dependencies",{}).get("user",[])

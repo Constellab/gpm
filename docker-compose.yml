@@ -10,10 +10,11 @@ services:
       dockerfile: .Dockerfile-gws
     command: ["--runserver", "(LAB_NAME)"]
     environment:
+      - LAB_URI=(LAB_URI)
       - LAB_NAME=(LAB_NAME)
       - LAB_TOKEN=(LAB_TOKEN)
-      - LAB_URI=(LAB_URI)
-      - START_MODE=(START_MODE)
+      - LAB_WORK_DIR=(LAB_WORK_DIR)
+      - LAB_START_MODE=(LAB_START_MODE)
       - VIRTUAL_PORT=3000
       - VIRTUAL_HOST=lab.(VIRTUAL_HOST)
       - LETSENCRYPT_HOST=lab.(VIRTUAL_HOST)
@@ -34,11 +35,11 @@ services:
       dockerfile: .Dockerfile-jlab
     command: ["--runserver"]
     environment:
-      - LAB_NAME=(LAB_NAME)
-      - JLAB_TOKEN=(JLAB_TOKEN)
-      - JLAB_HOME_DIR=(JLAB_HOME_DIR)
       - LAB_URI=(LAB_URI)
-      - START_MODE=(START_MODE)
+      - LAB_NAME=(LAB_NAME)
+      - LAB_TOKEN=(LAB_TOKEN)
+      - LAB_WORK_DIR=(LAB_WORK_DIR)
+      - LAB_START_MODE=(START_MODE)
       - VIRTUAL_PORT=8888
       - VIRTUAL_HOST=jlab.(VIRTUAL_HOST)
       - LETSENCRYPT_HOST=jlab.(VIRTUAL_HOST)
@@ -50,20 +51,45 @@ services:
     networks:
        - nginx-proxy
     restart: always
-
-  # VS code server
-  vs-code-server:
-    image: codercom/code-server 
-    ports:
-      - "8080:8080"
-    container_name: vs-code-server
+  
+  # VSCode lab
+  jlab:
+    image: vlab:latest
+    build:
+      context: ./
+      dockerfile: .Dockerfile-vlab
+    command: ["--runserver"]
+    environment:
+      - LAB_URI=(LAB_URI)
+      - LAB_NAME=(LAB_NAME)
+      - LAB_TOKEN=(LAB_TOKEN)
+      - LAB_WORK_DIR=(LAB_WORK_DIR)
+      - LAB_START_MODE=(LAB_START_MODE)
+      - VIRTUAL_PORT=8080
+      - VIRTUAL_HOST=vlab.(VIRTUAL_HOST)
+      - LETSENCRYPT_HOST=vlab.(VIRTUAL_HOST)
+      - LETSENCRYPT_EMAIL=admin@gencovery.com
+      - CONDA_VERSION=latest
+      - GPU=(GPU)
     volumes:
-      - type: bind
-        source: (APP_DIR)
-        target: /home/coder/project
-      - type: bind
-        source: ./vs-code-server-config
-        target: /home/coder/.config 
+      - (APP_DIR):/app/lab/
+    networks:
+       - nginx-proxy
+    restart: always
+    
+  # VS code lab
+  #vs-code-server:
+  #  image: codercom/code-server 
+  #  ports:
+  #    - "8080:8080"
+  #  container_name: vs-code-server
+  #  volumes:
+  #    - type: bind
+  #      source: (APP_DIR)
+  #      target: /home/coder/project
+  #    - type: bind
+  #      source: ./vs-code-server-config
+  #      target: /home/coder/.config 
   
   # Reverse proxy
   nginx-proxy:

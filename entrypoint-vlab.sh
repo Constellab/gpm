@@ -2,12 +2,9 @@
 set -e
 
 if [ "$1" == "--runserver" ]; then
-    if [ -n $2 ]; then
-        $LAB_NAME=$2
-    fi
-
+    
     # build and install dlib
-    build_dir="/app/lab/.gws/externs/dlib-cpp/build-gws"
+    build_dir="/app/lab/.gws/externs/dlib-cpp/build-vlab"
     if [ ! -d "$build_dir" ]; then
         mkdir -p $build_dir
         cd $build_dir
@@ -17,6 +14,7 @@ if [ "$1" == "--runserver" ]; then
     else
         cd $build_dir
     fi
+    cd $build_dir
     make install
     ldconfig
     cd /app
@@ -51,9 +49,10 @@ if [ "$1" == "--runserver" ]; then
             fi
         done
     done
-
+    
     # run server
-    exec python3 "/app/lab/user/main/${LAB_NAME}/manage.py" --runserver --uri $LAB_URI --token $LAB_TOKEN --mode $LAB_START_MODE
+    export $PASSWORD=${LAB_TOKEN}
+    exec code-server --auth password --bind-addr 0.0.0.0:8080 --user-data-dir ${LAB_WORK_DIR}
 else
     exec "$@"
 fi

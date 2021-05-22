@@ -50,9 +50,8 @@ if [ "$machine" == "Linux" ]; then
     lab_name=`jq '.lab.name' ${active_config} | sed -e 's/^"//' -e 's/"$//'`
     lab_uri=`jq '.lab.uri' ${active_config} | sed -e 's/^"//' -e 's/"$//'`
     lab_token=`jq '.lab.token' ${active_config} | sed -e 's/^"//' -e 's/"$//'`
-    jlab_token=`jq '.lab.jlab_token' ${active_config} | sed -e 's/^"//' -e 's/"$//'`
-    jlab_home_dir=`jq '.lab.jlab_home_dir' ${active_config} | sed -e 's/^"//' -e 's/"$//'`
-    start_mode=`jq '.lab.start_mode' ${active_config} | sed -e 's/^"//' -e 's/"$//'`
+    lab_work_dir=`jq '.lab.work_dir' ${active_config} | sed -e 's/^"//' -e 's/"$//'`
+    lab_start_mode=`jq '.lab.start_mode' ${active_config} | sed -e 's/^"//' -e 's/"$//'`
     virtual_host=`jq '.lab.virtual_host' ${active_config} | sed -e 's/^"//' -e 's/"$//'`
     app_dir=`jq '.lab.app_dir' ${active_config} | sed -e 's/^"//' -e 's/"$//'`
     volume=`jq '.volume' ${active_config} | sed -e 's/^"//' -e 's/"$//'`
@@ -104,9 +103,8 @@ if [ -d "${app_dir}" ]; then
         -e "s/(LAB_NAME)/${lab_name}/g" \
         -e "s/(LAB_TOKEN)/${lab_token}/g" \
         -e "s/(LAB_URI)/${lab_uri}/g" \
-        -e "s/(START_MODE)/${start_mode}/g" \
-        -e "s/(JLAB_TOKEN)/${jlab_token}/g" \
-        -e "s/(JLAB_HOME_DIR)/${jlab_home_dir//\//\\/}/g" \
+        -e "s/(LAB_WORK_DIR)/${lab_work_dir//\//\\/}/g" \
+        -e "s/(LAB_START_MODE)/${lab_start_mode}/g" \
         -e "s/(VIRTUAL_HOST)/${virtual_host}/g" \
         -e "s/(GPU)/${gpu}/g" \
         ./docker-compose.yml > ./.docker-compose.yml

@@ -52,7 +52,7 @@ if [ "$1" == "--runserver" ]; then
     
     # run server
     export SHELL=/bin/bash
-    exec jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir=${JLAB_HOME_DIR} --allow-root --NotebookApp.token=${JLAB_TOKEN} --NotebookApp.password=
+    exec jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir=${LAB_WORK_DIR} --allow-root --NotebookApp.token=${LAB_TOKEN} --NotebookApp.password=
 else
     exec "$@"
 fi

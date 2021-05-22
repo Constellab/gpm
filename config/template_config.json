@@ -4,22 +4,20 @@
         "title": "Gencovery Lab",
         "description": "Gencovery Digital Lab as a Service",
         "app_dir": "/home/ubuntu/app",
-        "data_dir": "../../data/",
-        "start_mode": "--prod",
+        "start_mode": "prod",
         "virtual_host": "test.gencovery.io",
         "uri": "91620768-2cdd-11eb-adc1-0242ac120002",
         "token": "JSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq24",
-        "jlab_token": "JSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq24",
-        "jlab_home_dir": "/app/lab",
+        "work_dir": "/app/lab",
         "admin": {
             "email": "admin@gencovery.com",
-            "fist_name": "Admin",
+            "first_name": "Admin",
             "last_name": ""
         },
         "owner": {
             "uri": "88f3cddc-2cdd-11eb-adc1-0242ac120002",
             "email": "admin@gencovery.com",
-            "fist_name": "Owner",
+            "first_name": "Owner",
             "last_name": ""
         }
     },
