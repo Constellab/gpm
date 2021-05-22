@@ -6,12 +6,14 @@ distribution=$(. /etc/os-release;echo $ID:$VERSION_ID)
 max_distribution_for_gpu="ubuntus:20.04"
 gpu="none"
 app_dir="/home/ubuntu/app"
+
 lab_name="main"
 lab_uri=""
 lab_token=""
-jlab_token=""
-jlab_home_dir=""
-start_mode="--prod"
+lab_token=""
+lab_work_dir="/app/lab"
+lab_start_mode="prod"
+
 virtual_host=""
 template_config="./config/template_config.json"
 active_config=".config.json"
@@ -120,6 +122,6 @@ if [ -d "${app_dir}" ]; then
     
 else
 
-    echo "The app_dir ${app_dir} does not exists. Exit!"
+    echo "The app_dir ${app_dir} does not exist. Exit!"
     
 fi

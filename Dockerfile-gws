@@ -1,7 +1,7 @@
 FROM (BASE_IMAGE)
 LABEL maintainer="Admin <admin@gencovery.com>"
 
-ENV WORK_DIR /app/gpm
+ENV WORK_DIR /app/.gpm
 ENV GWS_EXTERN_DIR /app/lab/.gws/externs
 ENV CONDA_VERSION latest
 

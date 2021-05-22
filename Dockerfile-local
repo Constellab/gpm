@@ -3,7 +3,7 @@
 FROM ubuntu:20.04
 LABEL maintainer="Admin <admin@gencovery.com>"
 
-ENV WORK_DIR /app/gpm
+ENV WORK_DIR /app/.gpm
 ENV GWS_EXTERN_DIR /app/gws/.gws/externs
 ENV CONDA_VERSION latest
 
