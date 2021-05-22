@@ -1,7 +1,5 @@
 #!/bin/bash
 
-cd "$(dirname "$0")"
-
 sudo apt-get -y update
 
 sudo apt-get -y install \
