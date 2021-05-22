@@ -21,6 +21,8 @@ services:
       - LETSENCRYPT_EMAIL=admin@gencovery.com
       - CONDA_VERSION=latest
       - GPU=(GPU)
+    depends_on:
+      - mariadb
     volumes:
       - (APP_DIR):/app
       - (APP_DIR)/lab:/lab
@@ -47,6 +49,9 @@ services:
       - LETSENCRYPT_EMAIL=admin@gencovery.com
       - CONDA_VERSION=latest
       - GPU=(GPU)
+    depends_on:
+      - mariadb
+      - gws
     volumes:
       - (APP_DIR):/app
       - (APP_DIR)/lab:/lab
@@ -73,6 +78,10 @@ services:
       - LETSENCRYPT_EMAIL=admin@gencovery.com
       - CONDA_VERSION=latest
       - GPU=(GPU)
+    depends_on:
+      - mariadb
+      - gws
+      - jlab
     volumes:
       - (APP_DIR):/app
       - (APP_DIR)/lab:/lab
@@ -81,15 +90,15 @@ services:
     restart: always
   
   # DB
-  db:
+  mariadb:
     image: mariadb:10
     environment:
-      - MYSQL_ROOT_PASSWORD=rootyaHLydHZtSEbkXrGQDw6LDb3nZK9hW8H
+      - MYSQL_ROOT_PASSWORD=gencovery
       - MYSQL_USER=gws
-      - MYSQL_PASSWORD=gwsyaHLydHZtSEbkXrGQDw6LDb3nZK9hW8H
+      - MYSQL_PASSWORD=gencovery
       - MYSQL_DATABASE=gws
     volumes:
-      - (APP_DIR)/lab/.mariadb:/var/lib/mysql
+      - (APP_DIR)/lab/.sys/db/mariadb:/var/lib/mysql
     networks:
        - nginx-proxy
     restart: always

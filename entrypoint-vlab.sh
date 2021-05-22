@@ -50,7 +50,7 @@ if [ "$1" == "--runserver" ]; then
         done
     done
     
-    vlab_app_dir="/app/lab/.vlab/"
+    vlab_app_dir="/app/lab/.sys/vlab/"
     if [ ! -d "$vlab_app_dir" ]; then
         mkdir -p $vlab_app_dir
     fi
