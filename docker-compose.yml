@@ -79,21 +79,21 @@ services:
     networks:
        - nginx-proxy
     restart: always
-    
-  # VS code lab
-  #vs-code-server:
-  #  image: codercom/code-server 
-  #  ports:
-  #    - "8080:8080"
-  #  container_name: vs-code-server
-  #  volumes:
-  #    - type: bind
-  #      source: (APP_DIR)
-  #      target: /home/coder/project
-  #    - type: bind
-  #      source: ./vs-code-server-config
-  #      target: /home/coder/.config 
   
+  # DB
+  db:
+    image: mariadb:10
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootyaHLydHZtSEbkXrGQDw6LDb3nZK9hW8H
+      - MYSQL_USER=gws
+      - MYSQL_PASSWORD=gwsyaHLydHZtSEbkXrGQDw6LDb3nZK9hW8H
+      - MYSQL_DATABASE=gws
+    volumes:
+      - (APP_DIR)/lab/.mariadb:/var/lib/mysql
+    networks:
+       - nginx-proxy
+    restart: always
+    
   # Reverse proxy
   nginx-proxy:
     image: jwilder/nginx-proxy

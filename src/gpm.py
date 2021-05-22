@@ -179,7 +179,7 @@ class GPM():
         dest_dir = os.path.join(self.get_user_workspace(), "main", self.lab_name)
 
         if not os.path.exists(dest_dir):
-            shutil.move(
+            shutil.copytree(
                 skeleton_dir, 
                 dest_dir
             )
