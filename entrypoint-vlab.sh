@@ -51,7 +51,7 @@ if [ "$1" == "--runserver" ]; then
     done
     
     # run server
-    export $PASSWORD=${LAB_TOKEN}
+    export PASSWORD=${LAB_TOKEN}
     exec code-server --auth password --bind-addr 0.0.0.0:8080 --user-data-dir ${LAB_WORK_DIR}
 else
     exec "$@"
