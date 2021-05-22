@@ -97,6 +97,9 @@ if [ -d "${app_dir}" ]; then
 
     sed -e "s#(BASE_IMAGE)#${base_image}#g" \
         ./Dockerfile-jlab > ./.Dockerfile-jlab
+        
+    sed -e "s#(BASE_IMAGE)#${base_image}#g" \
+        ./Dockerfile-vlab > ./.Dockerfile-vlab
 
     sed -e "s#(BASE_IMAGE)#${base_image}#g" \
         -e "s/(APP_DIR)/${app_dir//\//\\/}/g" \
