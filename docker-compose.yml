@@ -53,7 +53,7 @@ services:
     restart: always
   
   # VSCode lab
-  jlab:
+  vlab:
     image: vlab:latest
     build:
       context: ./
