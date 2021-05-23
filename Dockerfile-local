@@ -50,7 +50,7 @@ EXPOSE 3000
 
 #COPY ./test.sh /test.sh
 COPY ./entrypoint-windows.sh /entrypoint.sh
-COPY ./entrypoint/entrypoint-install-dep.sh /entrypoint-install-dep.sh
+COPY ./entrypoint-install-dep.sh /entrypoint-install-dep.sh
 
 RUN chmod +x /entrypoint.sh
 

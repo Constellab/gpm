@@ -54,7 +54,7 @@ RUN curl -fsSL https://code-server.dev/install.sh | sh
 EXPOSE 8080
 
 COPY ./entrypoint-vlab.sh /entrypoint.sh
-COPY ./entrypoint/entrypoint-install-dep.sh /entrypoint-install-dep.sh
+COPY ./entrypoint-install-dep.sh /entrypoint-install-dep.sh
 
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
