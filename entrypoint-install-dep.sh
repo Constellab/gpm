@@ -9,7 +9,7 @@ if [ ! -d "$build_dir" ]; then
     cmake -DUSE_AVX_INSTRUCTIONS=ON -DBUILD_SHARED_LIBS=1 ..
     cmake --build . --config Release
     make
-    touch READY
+    touch $ready_file
 fi
 
 echo "Wait for dlib build to finish ..."
