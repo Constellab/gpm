@@ -13,7 +13,7 @@ if [ ! -d "$build_dir" ]; then
 fi
 
 echo "Wait for dlib build to finish ..."
-while [ ! -f "$ready_file" ]; then
+while [ ! -f "$ready_file" ]; do
     sleep 1
 done
 
