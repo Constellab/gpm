@@ -51,6 +51,9 @@ RUN apt-get -y install r-base
 EXPOSE 8888
 
 COPY ./entrypoint-jlab.sh /entrypoint.sh
+COPY ./entrypoint/entrypoint-install-dep.sh /entrypoint-install-dep.sh
+
+
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD [ "--runserver" ]

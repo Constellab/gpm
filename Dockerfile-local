@@ -50,11 +50,16 @@ EXPOSE 3000
 
 #COPY ./test.sh /test.sh
 COPY ./entrypoint-windows.sh /entrypoint.sh
+COPY ./entrypoint/entrypoint-install-dep.sh /entrypoint-install-dep.sh
+
 RUN chmod +x /entrypoint.sh
 
 # use to make the sh file work in windows
 RUN sed -i -e 's/\r$//' /entrypoint.sh
 RUN sed -i -e 's/\r$//' /entrypoint.sh
+
+RUN sed -i -e 's/\r$//' /entrypoint-install-dep.sh
+RUN sed -i -e 's/\r$//' /entrypoint-install-dep.sh
 
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD [ "--runserver", "main" ]
