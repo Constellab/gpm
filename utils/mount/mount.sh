@@ -4,8 +4,12 @@ disk="sdb"
 part="${disk}1"
 
 if [ "`lsblk | grep $disk`" ]; then
+    # sdb partition is found
+    
     if [ "`cat /proc/mounts | grep $disk`" == "" ]; then
-
+        
+        # sdb is not mounted
+        
         if [ "`lsblk | grep $part`" == "" ]; then
             # create the partion
             echo "Create partition $part"

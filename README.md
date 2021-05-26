@@ -1,23 +1,96 @@
 # GWS Package Manager
 
-This python module allows to manage gws packages (i.e. bricks and labs packages)
+This python module allows to manage gws packages. It is namely used to deploy lab docker on unix instances.
 
-## Install docker first
+## How to?
 
-```sh
+### Requirements
+
+* OS: Ubuntu (>= 20.04)
+  * For GPU docker use Ubuntu 20.04 only!
+
+### Step 1: Prepare the server instance
+
+Run the following commands
+
+```
 cd utils
-. install-docker.sh
+. prepare-server.sh
 ```
 
-The command will install any GPU library and prepare the computer to run docker with GPU capabilities. GPU capabilities are possible for CUDA. The computer will reboot after this command.
+#### NVIDIA GPU: cuda driver
 
-## Docker installation
+If NVIDA-GPU is detected on the instance, all GPU drivers will automatically be installed using sub-script `./utils/gpu/install-cuda.sh`. The computer will reboot after this command.
+
+#### Disk mount
+
+If a disk partition `sdb` is detected, the disk will be automatically formated and mounted on the server using `./utils/gpu/install-cuda.sh`.
+
+We make the assumption here that `sda` is the default disk partition of the isntance and `sdb` is therefore the second one. If `sdb` is alredy formated or mounted, it won't be reformated.
+
+### Step 2: Install the docker
+
+The script `install.sh` will search for a config file `.config.json` to deploy the docker. A template config file exists in `./config/template_config.json`. It explains, all the configuration that are needed to create a new docker.
+
+#### Create the config file
+
+Run
+
+```
+cp ./config/template_config.json .config.json
+```
+
+Update the following fields in file `.config.json`
+
+```
+{
+...
+"start_mode": "prod",
+"virtual_host": "test.gencovery.io",
+"uri": "",
+"token": "",
+...
+}
+```   
+* `start_mode` value must be set to `prod` by default. Set the value to `dev` to configure the lab in development mode.
+* `virtual_host` is the base URL of the domain of the lab. If the virtual host is `test.gencovery.io` then
+  * the Main lab will accessible via `lab.test.gencovery.io`
+  * the Jupyter lab will accessible via `jlab.test.gencovery.io` (WILL DEPRECATED SOON)
+  * the VScode lab will accessible via `vlab.test.gencovery.io`
+  
+  All the subdomains will be automatically configured with approriate HTTPS certificats behind a `nginx` proxy.
+
+* `uri` is the unique identifier of the lab
+* `token` is the private token of the lab used for user authentications. It MUST be kept private.
+
+* DNS configuration:
+In this case, the domain `*.test.gencovery.io` must be configured on the the public IP of the instance otherwise the certficats will not be properly created. The DNS configuration is done through OVHcloud servers.
+
+#### Build and install the docker
+
+```
+. install.sh
+```
+
+The config file `.config.sh` is used by default.
+
+#### Rebuild the docker
+
+```
+. install.sh --build
+```
+
+The config file `.config.sh` is used by default.
+
+## Manual usages
+
+### Docker installation
 
 To build the docker image, use the file ```install.sh```. The docker compose template files is in ```./docker```.
 
 Command: ```install.sh [--build] [--config </config/file/path.json>]```.
 
-### Example
+#### Example
 
 * Build and run in production mode
 
@@ -25,13 +98,7 @@ Command: ```install.sh [--build] [--config </config/file/path.json>]```.
 . install.sh --build --config ./config/config.json
 ```
 
-* Build and run in dev mode
-
-```sh
-. install.sh --dev --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
-```
-
-## Misc: raw update of bricks
+### Misc: raw update of bricks
 
 Command: ```get-bricks.sh --config </config/file/path.json> --app-dir </absolute/path> [--lab-name <name>] [--prod | --dev]```
 
@@ -40,7 +107,7 @@ Command: ```get-bricks.sh --config </config/file/path.json> --app-dir </absolute
 * OPTION ```--lab-name```. The name of lab used as entrypoint. Defaults to ```main```
 * OPTION ```--prod``` or ```--dev``` to install in production or development mode. Defaults to ```--prod```.
 
-### Example
+#### Example
 
 ```sh
 . get-bricks.sh --app-dir </user/work/dir> --config ./config/config.json --lab-name foo
@@ -48,7 +115,7 @@ Command: ```get-bricks.sh --config </config/file/path.json> --app-dir </absolute
 
 * OPTION ```--lab-name``` is the name of lab used as entrypoint. Defaults to ```main```
 
-## Setup local development
+### Setup local development
 
 To work on gws locally, I recommend using VS code and remote container.
 
@@ -73,7 +140,7 @@ Once done, you are ready to open the project in a remote docker container :
 
 and that's it, your VS code docker environment is configured
 
-### Open a brick in docker environment
+#### Open a brick in docker environment
 
 VS Code creae a docker container for your environment. You can open another folder than gpm in this environment.
 
