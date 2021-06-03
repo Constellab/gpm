@@ -118,6 +118,9 @@ if [ -d "${app_dir}" ]; then
     mkdir -p $nginx_confd_dir
     cp ./client_max_body_size.conf ${nginx_confd_dir}/client_max_body_size.conf
 
+    # Login to the gitlab registry
+    docker login -u "gencovery-reader" -p "bssyvAzB2uPKz6p9A3TE" registry.gitlab.com
+
     docker-compose -f .docker-compose.yml up $option
     
 else

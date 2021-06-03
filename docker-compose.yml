@@ -85,6 +85,22 @@ services:
     networks:
        - nginx-proxy
     restart: always
+
+  # Front
+  front:
+    image: registry.gitlab.com/gencovery/monorepo/lab-front:latest
+    ports:
+      - "81:80"
+    environment:
+      - API_URL=https://lab.(VIRTUAL_HOST)/
+      - CODE_SERVER_URL=https://vlab.(VIRTUAL_HOST)
+      - VIRTUAL_PORT=81
+      - VIRTUAL_HOST=front.(VIRTUAL_HOST)
+      - LETSENCRYPT_HOST=front.(VIRTUAL_HOST)
+      - LETSENCRYPT_EMAIL=admin@gencovery.com
+    networks:
+       - nginx-proxy
+    restart: always
   
   # DB
   mariadb:
