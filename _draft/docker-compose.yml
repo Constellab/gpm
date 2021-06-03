@@ -30,6 +30,34 @@ services:
        - nginx-proxy
     restart: always
   
+  # Jupiter lab
+  jlab:
+    image: jlab:latest
+    build:
+      context: ./
+      dockerfile: .Dockerfile-jlab
+    command: ["--runserver"]
+    environment:
+      - LAB_URI=(LAB_URI)
+      - LAB_NAME=(LAB_NAME)
+      - LAB_TOKEN=(LAB_TOKEN)
+      - LAB_WORK_DIR=(LAB_WORK_DIR)
+      - LAB_START_MODE=(START_MODE)
+      - VIRTUAL_PORT=8888
+      - VIRTUAL_HOST=jlab.(VIRTUAL_HOST)
+      - LETSENCRYPT_HOST=jlab.(VIRTUAL_HOST)
+      - LETSENCRYPT_EMAIL=admin@gencovery.com
+      - CONDA_VERSION=latest
+      - GPU=(GPU)
+    depends_on:
+      - mariadb
+    volumes:
+      - (APP_DIR):/app
+      - (APP_DIR)/lab:/lab
+    networks:
+       - nginx-proxy
+    restart: always
+  
   # VSCode lab
   vlab:
     image: vlab:latest
