@@ -23,7 +23,7 @@ from zipfile import ZipFile
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
 
 class GPM():
-    default_git_origin = "https://gitea.gencovery.com/gws/"
+    default_git_origin = "https://gitlab.com/gencovery/"
     default_git_origin_token = "DEFAULT_GIT_ORIGIN"
     
     config = []
