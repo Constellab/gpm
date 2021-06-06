@@ -4,7 +4,7 @@ services:
 
   # Core GLAB
   gws:
-    image: gpm-cpu:latest
+    image: gpm-gpu:latest
     command: ["--runserver"]
     ports:
       - "3000:80"
@@ -32,7 +32,7 @@ services:
   
   # Jupiter lab
   jlab:
-    image: gpm-cpu:latest
+    image: gpm-gpu:latest
     command: ["--runjlab"]
     ports:
       - "8888:80"
@@ -60,7 +60,7 @@ services:
 
   # VSCode lab
   vlab:
-    image: gpm-cpu:latest
+    image: gpm-gpu:latest
     command: ["--runvlab"]
     ports:
       - "8080:80"

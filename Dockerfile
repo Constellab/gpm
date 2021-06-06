@@ -1,5 +1,9 @@
-FROM "ubuntu:20.04"
+
+ARG IMAGE="ubuntu:20.04"
+FROM $IMAGE
+#FROM "ubuntu:20.04"
 #FROM "nvidia/cuda:11.2.1-runtime-ubuntu20.04"
+
 LABEL maintainer="Admin <admin@gencovery.com>"
 
 ENV LAB_NAME main
