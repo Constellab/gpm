@@ -74,4 +74,7 @@ fi
 sudo cp "./client_max_body_size.conf" "/srv/nginx/conf.d/client_max_body_size.conf"
 
 # copy config files
-cp ".config.json" "${app_dir}/dev/lab/.sys/.config.json"
+if [ ! -d "${app_dir}/.sys/" ]; then
+    mkdir -p "${app_dir}/.sys/"
+fi
+cp ".config.json" "${app_dir}/.sys/.config.json"
