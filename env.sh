@@ -49,7 +49,6 @@ fi
 if [[ "$distribution" == "$max_distribution_for_gpu" ]] || [[ "$distribution" < "$max_distribution_for_gpu" ]]; then
     if [ "`lspci | grep -i nvidia`" != "" ]; then
         gpu="cuda"
-        base_image="nvidia/cuda:11.2.1-runtime-ubuntu20.04"
     else
         gpu=""
     fi
@@ -61,7 +60,6 @@ fi
 # build docker
 echo "Building docker ..."
 
-export BASE_IMAGE=${base_image}
 export APP_DIR=${app_dir}
 export LAB_NAME=${lab_name}
 export LAB_TOKEN=${lab_token}

@@ -7,7 +7,7 @@ FROM $IMAGE
 LABEL maintainer="Admin <admin@gencovery.com>"
 
 ENV LAB_NAME main
-ENV WORKDIR_DIR /glab
+ENV WORKDIR_DIR /gpm
 ENV CONDA_VERSION latest
 
 ADD ./ ${WORKDIR_DIR}
