@@ -77,4 +77,4 @@ sudo cp "./client_max_body_size.conf" "/srv/nginx/conf.d/client_max_body_size.co
 if [ ! -d "${app_dir}/.sys/" ]; then
     mkdir -p "${app_dir}/.sys/"
 fi
-cp ".config.json" "${app_dir}/.sys/.config.json"
+cp "./.config.json" "${app_dir}/.sys/config.json"

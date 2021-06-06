@@ -428,7 +428,7 @@ class GPM():
     # -- W --
 
     __is_pulled = []
-    __config_file_path = "/lab/.sys/.config.json"
+    __config_file_path = "/lab/.sys/config.json"
     __public_key_file_path = os.path.join(__cdir__,".key.pub")
     __public_file = os.path.join(__cdir__,".public.json")
     __default_git_origin = "https://gitlab.com/gencovery/"
