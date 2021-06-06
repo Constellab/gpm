@@ -3,12 +3,13 @@
 FROM ubuntu:20.04
 LABEL maintainer="Admin <admin@gencovery.com>"
 
-ENV WORK_DIR /app/.gpm
-ENV GWS_EXTERN_DIR /app/gws/.gws/externs
+ENV LAB_NAME main
+ENV APP_DIR /app
+ENV GPM_DIR /app/.gpm
 ENV CONDA_VERSION latest
 
-ADD ./ ${WORK_DIR}
-WORKDIR ${WORK_DIR}
+ADD ./ ${GPM_DIR}
+WORKDIR ${GPM_DIR}
 
 # install python
 RUN apt-get -y update
@@ -57,9 +58,6 @@ RUN chmod +x /entrypoint.sh
 # use to make the sh file work in windows
 RUN sed -i -e 's/\r$//' /entrypoint.sh
 RUN sed -i -e 's/\r$//' /entrypoint.sh
-
-RUN sed -i -e 's/\r$//' /entrypoint-install-dep.sh
-RUN sed -i -e 's/\r$//' /entrypoint-install-dep.sh
 
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD [ "--runserver", "main" ]

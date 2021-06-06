@@ -1,32 +1,16 @@
 #!/bin/bash
 
-# build and install dlib
-build_dir="/app/lab/.gws/externs/dlib-cpp/build"
-ready_file="$build_dir/READY"
-if [ ! -f "$ready_file" ]; then
-    if [ ! -d "$build_dir" ]; then
-        mkdir -p $build_dir
-    fi
-    
-    cd $build_dir
-    cmake -DUSE_AVX_INSTRUCTIONS=ON -DBUILD_SHARED_LIBS=1 ..
-    cmake --build . --config Release
-    make
-    touch $ready_file
+python3 -m pip install GitPython 
+python3 -m pip install requests 
+python3 -m pip install click 
+python3 -m pip install cryptography 
+
+# pull all git repo
+if [ -f "/gpm/gpm.py" ]; then
+    python3 "/gpm/gpm.py"
+elif [ -f "gpm.py" ]; then
+    python3 gpm.py
 fi
-
-echo "Wait for dlib build to finish ..."
-while [ ! -f "$ready_file" ]; do
-    sleep 1
-    echo "wait .."
-done
-
-echo "Build done!"
-echo "Installing dlib ..."
-
-cd $build_dir
-make install
-ldconfig
 
 # install ubuntu packages
 for wks in ".gws" "user"; do
@@ -47,6 +31,7 @@ if [ -f /opt/conda/etc/profile.d/conda.sh ]; then
     bash /opt/conda/etc/profile.d/conda.sh
 fi
 
+# call custom brick install
 for wks in ".gws" "user"; do
     for brick in `find /app/lab/$wks/bricks -mindepth 1 -maxdepth 1 -type d`; do
         if [ -f "$brick/dep/install.py" ]; then

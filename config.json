@@ -4,11 +4,10 @@
         "title": "Gencovery Lab",
         "description": "Gencovery Digital Lab as a Service",
         "app_dir": "/home/ubuntu/app",
-        "start_mode": "prod",
         "virtual_host": "test.gencovery.io",
         "uri": "91620768-2cdd-11eb-adc1-0242ac120002",
         "token": "JSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq24",
-        "work_dir": "/app/lab",
+        "work_dir": "/lab",
         "admin": {
             "email": "admin@gencovery.com",
             "first_name": "Admin",
@@ -22,16 +21,19 @@
         }
     },
     "dependencies":{
-        "gws": {"biox": "DEFAULT_GIT_ORIGIN"},
+        "gws": {"biox": "DEFAULT_ORIGIN"},
         "user": {}
     },
     "central": {
         "api_key": "123456",
         "api_url": ""
     },
+    
     "urls": {
-        "biota_db": "https://share.gencovery.com/s/Eo34Y8sxgqSdSMz/download"
+        "biota:sqlite3db": "https://share.gencovery.com/s/Eo34Y8sxgqSdSMz/download",
+        "biota:mariadb": ""
     },
+
     "git":{
         "shallow": true
     },

@@ -1,14 +1,13 @@
-
 # LICENSE
 # This software is the exclusive property of Gencovery SAS. 
 # The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
 # About us: https://gencovery.com
 
-# Gencovery Package Manager
-
 import click
 import git
-import os, sys, json
+import os
+import sys
+import json
 import requests
 import json
 import subprocess
@@ -17,36 +16,32 @@ import pip
 import urllib
 import re
 import glob
-
-from zipfile import ZipFile
+from cryptography.fernet import Fernet
 
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
 
+# ####################################################################
+#
+# GPM class
+#
+# ####################################################################
+
 class GPM():
-    default_git_origin = "https://gitlab.com/gencovery/"
-    default_git_origin_token = "DEFAULT_GIT_ORIGIN"
-    
+    """
+    Package manager
+    """
     config = []
-    structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./notebooks", "./tmp"]
-    _lab_name = "main"
-    __is_pulled = []
 
-    def __init__(self, gws_workspace="", user_workspace="", shallow=True):
+    def __init__(self, gws_workspace, user_workspace, shallow=True):
         self._read_config()
-
-        if gws_workspace != "":
-            self.config["gws_workspace"] = gws_workspace
-        
-        if user_workspace != "":
-            self.config["user_workspace"] = user_workspace
-
+        self.config["gws_workspace"] = gws_workspace
+        self.config["user_workspace"] = user_workspace
         self.config["shallow"] = self.config.get("shallow", shallow)
-        self._write_config()
 
     # -- C -- 
 
     def create_wks_dirs(self, workspace, skip_main = False):
-        for k in self.structure:
+        for k in self.__structure:
             if k == "main" and skip_main:
                 continue
 
@@ -58,46 +53,29 @@ class GPM():
 
     # -- D --
 
-    def download(self, url, dest_dir, dest_filename):
-        print(f"Downloading {url} ...")
-        dest_zipfile_path = os.path.join(dest_dir,dest_filename)
+    def decrypt_message(self, encrypted_message):
+        """
+        Decrypts an encrypted message
+        """
+        key = self.load_key()
+        f = Fernet(key)
+        decrypted_message = f.decrypt(encrypted_message.encode())
+        return decrypted_message.decode()
 
-        if os.path.exists(dest_zipfile_path):
-            print(f"Data {dest_zipfile_path} already exists")
-            return
-        
-        
-        if dest_zipfile_path.endswith(".zip"):
-            if os.path.exists(re.sub(r"\.zip$", "", dest_zipfile_path)):
-                print(f"Unzipped data {dest_zipfile_path} already exists")
-                return
+    # -- E --
 
-        if not os.path.exists(dest_dir):
-            os.makedirs(dest_dir)
-        
-        with open(dest_zipfile_path, 'wb') as f:
-            response = requests.get(url, stream=True)
-            total = response.headers.get('content-length')
+    def encrypt_message(self, message):
+        """
+        Encrypts a message
+        """
+        if not os.path.exists(self.__public_key_file_path):
+            self.generate_key()
 
-            if total is None:
-                f.write(response.content)
-            else:
-                downloaded = 0
-                total = int(total)
-                for data in response.iter_content(chunk_size=max(int(total/1000), 1024*1024)):
-                    downloaded += len(data)
-                    f.write(data)
-                    done = int(50*downloaded/total)
-                    sys.stdout.write('\r[{}{}]'.format('█' * done, '.' * (50-done)))
-                    sys.stdout.flush()
-        
-        sys.stdout.write('\n')
-
-        if dest_zipfile_path.endswith(".zip"):
-            self.unzip(dest_zipfile_path)
-            os.remove(dest_zipfile_path)
-
-        return dest_zipfile_path
+        key = self.load_key()
+        encoded_message = message.encode()
+        f = Fernet(key)
+        encrypted_message = f.encrypt(encoded_message)
+        return encrypted_message.decode()
 
     # -- G --
 
@@ -132,24 +110,30 @@ class GPM():
 
         return None, None, None
 
+    def generate_key(self):
+        """
+        Generates a key and save it into a file
+        """
+        key = Fernet.generate_key()
+        with open(self.__public_key_file_path, "wb") as f:
+            f.write(key)
+
     # -- I --
+
+    def is_ready(self) -> bool:
+        return os.path.exists(self.__config_file_path)
 
     def install_gws(self):
         self.__is_pulled = []
         if self.get_gws_workspace().startswith("/"):
             self.create_wks_dirs(self.get_gws_workspace(), skip_main=True)
-            repos=self.gws_bricks
+            repos = self.get_gws_bricks()
             if not repos:
-                repos = { "biox": "DEFAULT_GIT_ORIGIN" }
-            self.pull(self.get_gws_workspace(), repos=repos, force=False)
-
-            # pull biota data
-            url = self.config["urls"]["biota_db"]
-            dest_dir = os.path.join(self.get_gws_workspace(), "./data/prod/biota/db/")
-            self.download(url, dest_dir, "db.sqlite3.zip")
+                repos = { "biox": "DEFAULT_ORIGIN" }
+            self.pull(self.get_gws_workspace(), repos=repos)
 
             #copy notebooks files
-            src_files = glob.glob(os.path.join(__cdir__, "../notebooks/**"))
+            src_files = glob.glob(os.path.join(__cdir__, "./ipynb/**"))
             dest_dir = os.path.join(self.get_gws_workspace(), "./notebooks")
             for src in src_files:
                 dst = os.path.join(dest_dir, src.split("/")[-1])
@@ -160,15 +144,15 @@ class GPM():
         if self.get_user_workspace().startswith("/"):
             self.create_wks_dirs(self.get_user_workspace(), skip_main=False)
             repos = { 
-                "skeleton": "DEFAULT_GIT_ORIGIN", 
-                **self.user_bricks 
+                "skeleton": "DEFAULT_ORIGIN",
+                **self.get_user_bricks()
             }
 
-            self.pull(self.get_user_workspace(), repos=repos, force=False)
+            self.pull(self.get_user_workspace(), repos=repos)
             self._install_user_main()
 
             #copy notebooks files
-            src_files = glob.glob(os.path.join(__cdir__, "../notebooks/**"))
+            src_files = glob.glob(os.path.join(__cdir__, "./ipynb/**"))
             dest_dir = os.path.join(self.get_user_workspace(), "./notebooks")
             for src in src_files:
                 dst = os.path.join(dest_dir, src.split("/")[-1])
@@ -220,11 +204,11 @@ class GPM():
             settings["admin"]["first_name"]  = self.config["lab"]["owner"].get("first_name", "Admin")
             settings["admin"]["last_name"]   = self.config["lab"]["owner"].get("last_name", "")
             
-            dep_gws = self.config.get("dependencies",{}).get("gws",[])
-            dep_user = self.config.get("dependencies",{}).get("user",[])
-            settings["dependencies"]         = settings.get("dependencies",[]) + list(dep_gws.keys()) + list(dep_user.keys())
-            settings["dependencies"]         = list(set(settings["dependencies"]))
-            
+            dep = settings.get("dependencies",{})
+            dep.update(self.config.get("dependencies",{}).get("gws",{}))
+            dep.update(self.config.get("dependencies",{}).get("user",{}))
+            settings["dependencies"] = dep
+
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=4)
 
@@ -271,6 +255,12 @@ class GPM():
 
     # -- L --
 
+    def load_key(self):
+        """
+        Load the previously generated key
+        """
+        return open(self.__public_key_file_path, "rb").read()
+
     @property
     def lab_name(self):
         return self.config["lab"].get("name", "main")
@@ -278,74 +268,61 @@ class GPM():
     # -- R --
 
     def _read_config(self):
-        with open( self.config_file_path, 'r') as f:
+        with open( self.__config_file_path, 'r') as f:
             try:
                 self.config = json.load(f)
                 return
-            except:
-                raise Exception("Cannot parse the config file. Please check file config file.")
+            except Exception as err:
+                raise Exception("Cannot parse the config file. Please check file config file.") from err
         
         raise Exception("Cannot open the config file")
     
     # -- P -- 
 
-    @property
-    def gws_bricks(self) -> dict:
+    def get_gws_bricks(self) -> dict:
         return self.config["dependencies"].get("gws",{})
     
-    @property
-    def user_bricks(self) -> dict:
+    def get_user_bricks(self) -> dict:
         return self.config["dependencies"].get("user", {})
 
-    def pull(self, workspace_dir, repos={}, username="", userpwd="", force=False):
-        git_user = ""
-        git_pwd = ""
-        private_file = os.path.join(__cdir__, "../.private.json")
-        if os.path.exists(private_file):
-            with open(private_file, 'r') as f:
-                private = json.load(f)
-                git_user = private["git"]["login"]
-                git_pwd = private["git"]["password"]
+    def pull(self, workspace_dir, repos={}):
+        git_user = None
+        git_pwd = None
 
-        if git_user == "" or git_pwd == "":
-            private_file = os.path.join(__cdir__, "../.public.json")
-            if os.path.exists(private_file):
-                with open(private_file, 'r') as f:
+        def _get_git_credentials():
+            if os.path.exists(self.__public_file):
+                with open(self.__public_file, 'r') as f:
                     private = json.load(f)
             else:
-                raise Exception("File .public.json not found")
+                raise Exception(f"File {self.__public_file} not found")
 
             git_user = private["git"]["login"]
-            git_pwd = private["git"]["password"]
+            git_pwd = private["git"]["credentials"]
             
             if not git_pwd:
                 raise Exception("The invalid git password")
             elif len(git_pwd) < 64:
-                import _crypt
-                git_pwd = _crypt.encrypt_message(git_pwd)
-                private["git"]["password"] = git_pwd
-                with open(private_file, 'w') as f:
+                git_pwd = self.encrypt_message(git_pwd)
+                private["git"]["credentials"] = git_pwd
+                with open(self.__public_file, 'w') as f:
                     json.dump(private, f, indent=4)
             else:
-                import _crypt
-                git_pwd = _crypt.decrypt_message(git_pwd)
+                git_pwd = self.decrypt_message(git_pwd)
 
-        os.environ['GIT_ASKPASS'] = os.path.join(__cdir__,'askpass.sh')
-        os.environ['GIT_USERNAME'] = git_user
-        os.environ['GIT_PASSWORD'] = git_pwd
+            git_pwd = urllib.parse.quote(git_pwd)
 
-        git_pwd = urllib.parse.quote(git_pwd)
-        
+            return git_user, git_pwd
+
+        git_user, git_pwd = _get_git_credentials()
+
         for repo_name in repos:
-            
-            if repos[repo_name]:
-                origin = repos[repo_name]
-                if origin == self.default_git_origin_token:
-                    origin = self.default_git_origin
+            origin = repos[repo_name]
+            if origin == self.__default_git_origin_token:
+                origin = self.__default_git_origin.strip("/") + "/" + repo_name + ".git"
+                self._pull_repo(workspace_dir, repo_name, origin, user=git_user, pwd=git_pwd)
             else:
-                origin = self.default_git_origin
+                self._pull_repo(workspace_dir, repo_name, origin)
             
-            self._pull_repo(workspace_dir, repo_name, git_user, git_pwd, origin, force)
             self.__is_pulled.append(repo_name)
 
             # pull sub repos
@@ -355,42 +332,39 @@ class GPM():
                 with open(settings_file) as f:
                     try:
                         settings = json.load(f)
-
-                        # pull bricks
-                        deps = settings.get("dependencies",[]) + settings.get("externs",[])
-                        for dep in deps:
-                            is_already_pulled = (dep in self.__is_pulled)
+                        deps = settings.get("dependencies",{})
+                        deps.update(settings.get("externs",{}))
+                        for name in deps:
+                            is_already_pulled = (name in self.__is_pulled)
+                            origin = deps[name]
                             if not is_already_pulled:
-                                repos = {dep: origin}
-                                self.pull(workspace_dir, repos=repos, username=git_user, userpwd=git_pwd, force=force)
+                                self.pull(workspace_dir, repos={name: origin})
                     except:
                         pass
 
 
-    def _pull_repo(self, workspace_dir, repo_name, user, pwd, origin, force):
-        url = origin.strip("/") + "/" + repo_name.strip("/") + ".git"
+    def _pull_repo(self, workspace_dir, repo_name, origin, user=None, pwd=None):
 
-        tab = url.split("://")
-        url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
-
+        if user:
+            url = origin.strip("/")
+            tab = url.split("://")
+            if pwd:
+                url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
+            else:
+                url = f"{tab[0]}://{user}@{tab[1]}"
+        else:
+            url = origin.strip("/")
+        
         repo_dir, repo_type, wk = self.get_repo_dir(repo_name)
         alredy_exists = not repo_dir is None
         if alredy_exists:
-            #if force:            
-            print(f"Git update {repo_type} {repo_name} (in {wk}) from {tab[0]}://{tab[1]}")
+            print(f"Git update {repo_type} {repo_name} (in {repo_dir}) from {origin}")
             git_repo = git.Repo(repo_dir)
             o = git_repo.remotes.origin
             saved_url = o.url
-            try:
-                o.set_url(url)
-            except:
-                pass
-            
-            try:
-                o.pull()
-                o.set_url(saved_url)
-            except:
-                pass
+            o.set_url(url)
+            o.pull()
+            o.set_url(saved_url)
         else:
             print(f"Git clone {repo_name} from {tab[0]}://{tab[1]}")
             tmp_repo_dir = os.path.join(workspace_dir, "tmp", repo_name)
@@ -420,7 +394,6 @@ class GPM():
             shutil.move(tmp_repo_dir, repo_dir)
             git_repo = git.Repo(repo_dir)
 
-        import re
         try:
             #set submodules pwd
             for sub in git_repo.submodules:
@@ -439,7 +412,6 @@ class GPM():
                 tab = re.split("://(.+@)?", sub_url)
                 sub_url = f"{tab[0]}://{tab[2]}"   #tab[1] containt hypothetical "login"
                 sub.config_writer().set_value("url", sub_url).release()
-
         except:
             pass
 
@@ -451,47 +423,25 @@ class GPM():
 
     # -- S --
 
-    @property
-    def config_file_path(self):
-        return os.path.join(__cdir__,"../.config.json")
-    
     # -- U --
-
-    def unzip(self, zipfile_path):
-        print(f"Extracting {zipfile_path} ...")
-        with ZipFile(zipfile_path, 'r') as zipObj:
-            path = os.path.dirname(zipfile_path)
-            zipObj.extractall(path)
-        print(f"Extraction finished.")
 
     # -- W --
 
-    def _write_config(self):
-        with open(self.config_file_path, 'w') as f:
-            try:
-                json.dump(self.config, f, indent=4)
-            except:
-                raise Exception("Cannot parse the config file. Please check file config file.")
-    
-
-@click.command(context_settings=dict(
-    ignore_unknown_options=True,
-    allow_extra_args=True
-))
-@click.pass_context
-@click.option('--gws-workspace', help='GWS workspace dir (absolute path)', required=False, default="")
-@click.option('--user-workspace', help='User workspace dir (absolute path)', required=False, default="")
-@click.option('--tag', help="Tag name (for push command)", required=False, default="")
-@click.option('--shallow', is_flag=True, help="Get git shallow-code copy if True")
-def main(ctx, gws_workspace="", user_workspace="", tag="", shallow=True):
-    g = GPM(gws_workspace=gws_workspace, user_workspace=user_workspace, shallow=shallow)
-
-    if gws_workspace:
-        g.install_gws()
-    
-    if user_workspace:
-        g.install_user()
+    __is_pulled = []
+    __config_file_path = "/lab/.sys/config.json"
+    __public_key_file_path = os.path.join(__cdir__,".key.pub")
+    __public_file = os.path.join(__cdir__,".public.json")
+    __default_git_origin = "https://gitlab.com/gencovery/"
+    __default_git_origin_token = "DEFAULT_ORIGIN"
+    __structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./notebooks", "./tmp"]
 
 if __name__ == "__main__":
-    main()
+    g = GPM(
+        gws_workspace="/lab/.gws",
+        user_workspace="/lab/user",
+        shallow=True
+    )
     
+    if g.is_ready():
+        g.install_gws()
+        g.install_user()

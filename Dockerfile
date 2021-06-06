@@ -1,17 +1,18 @@
-FROM (BASE_IMAGE)
+FROM "ubuntu:20.04"
+#FROM "nvidia/cuda:11.2.1-runtime-ubuntu20.04"
 LABEL maintainer="Admin <admin@gencovery.com>"
 
-ENV WORK_DIR /app/.gpm
-ENV GWS_EXTERN_DIR /app/lab/.gws/externs
+ENV LAB_NAME main
+ENV WORKDIR_DIR /glab
 ENV CONDA_VERSION latest
 
-ADD ./ ${WORK_DIR}
-WORKDIR ${WORK_DIR}
+ADD ./ ${WORKDIR_DIR}
+WORKDIR ${WORKDIR_DIR}
 
 # install python
 RUN apt-get -y update
 RUN apt-get -y install python3 python3-distutils
-RUN apt-get -y install git curl nano zip unzip bzip2 wget htop
+RUN apt-get -y install git curl zip unzip bzip2 wget
 
 # install pip
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
@@ -26,10 +27,6 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}
     rm miniconda.sh && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
     
-# install jupyter lab
-RUN python3 -m pip install jupyterlab
-RUN python3 -m pip install ipywidgets
-
 # install bazel
 RUN apt-get -y install gnupg
 RUN curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
@@ -48,12 +45,34 @@ RUN apt-get -y install libopenblas-dev liblapack-dev
 # install R
 RUN apt-get -y install r-base
 
-EXPOSE 8888
+# install jupyter lab
+RUN python3 -m pip install jupyterlab
+RUN python3 -m pip install ipywidgets
 
-COPY ./entrypoint-jlab.sh /entrypoint.sh
-COPY ./entrypoint-install-dep.sh /entrypoint-install-dep.sh
+# install code-server for remote vscode
+RUN curl -fsSL https://code-server.dev/install.sh | sh
 
+# Create forlder for the vs code config
+RUN mkdir -p ${USER}/.local/share/code-server/ && mkdir -p ${USER}/.local/share/code-server/User
+# Add config for vs code
+COPY ./.vs-code-server-config/settings.json /root/.local/share/code-server/User/settings.json 
 
+# install code-server extensions
+# Install jupyter extension
+RUN code-server --install-extension ms-toolsai.jupyter
+# instal manually python extension version 2020.10.332292344 because higher verison have problem with code-server
+# https://github.com/cdr/code-server/issues/2341
+RUN wget https://github.com/microsoft/vscode-python/releases/download/2020.10.332292344/ms-python-release.vsix \
+ && code-server --install-extension ./ms-python-release.vsix || true
+
+# Install git graph extension
+RUN code-server --install-extension mhutchie.git-graph
+
+#EXPOSE 3000
+
+COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
 CMD [ "--runserver" ]
+#CMD [ "--runjlab" ]
+#CMD [ "--runvlab" ]
