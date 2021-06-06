@@ -10,7 +10,7 @@ case "${uname_out}" in
     *)          machine="UNKNOWN:${uname_out}"
 esac
 
-config_file_path="config.json"
+config_file_path=".config.json"
 
 if [ "$machine" == "Linux" ]; then
     sudo apt-get -y update
