@@ -24,7 +24,7 @@ services:
     volumes:
       - /home/ubuntu/app/prod:/app
       - /home/ubuntu/app/prod/lab:/lab
-      - /home/ubuntu/app/.sys/config.json:/lab/.sys/config.json:ro
+      - /home/ubuntu/app/conf/config.json:/app/conf/config.json:ro
       - /home/ubuntu/app/data:/data
     networks:
        - nginx-proxy
@@ -52,7 +52,7 @@ services:
     volumes:
       - /home/ubuntu/app/dev:/app
       - /home/ubuntu/app/dev/lab:/lab
-      - /home/ubuntu/app/.sys/config.json:/lab/.sys/config.json:ro
+      - /home/ubuntu/app/conf/config.json:/app/conf/config.json:ro
       - /home/ubuntu/app/data:/data
     networks:
        - nginx-proxy
@@ -80,7 +80,7 @@ services:
     volumes:
       - /home/ubuntu/app/dev:/app
       - /home/ubuntu/app/dev/lab:/lab
-      - /home/ubuntu/app/.sys/config.json:/lab/.sys/config.json:ro
+      - /home/ubuntu/app/conf/config.json:/app/conf/config.json:ro
       - /home/ubuntu/app/data:/data
     networks:
        - nginx-proxy
