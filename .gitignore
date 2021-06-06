@@ -1,6 +1,15 @@
 *.DS_Store
 
 # -----------------------------------------------------------
+# Private and local files
+# -----------------------------------------------------------
+.private.json
+.private.txt
+.settings.json
+.config.json
+.docker-compose.yml
+
+# -----------------------------------------------------------
 # Bazel
 # -----------------------------------------------------------
 *~
@@ -86,9 +95,6 @@ __pycache__/
 # C extensions
 *.so
 
-# tax dependances
-taxdump.tar.gz
-
 # Distribution / packaging
 .Python
 build/
@@ -152,6 +158,9 @@ instance/
 # Scrapy stuff:
 .scrapy
 
+# Sphinx documentation
+docs/_build/
+
 # PyBuilder
 target/
 
@@ -214,10 +223,6 @@ dmypy.json
 # pytype static type analyzer
 .pytype/
 
-#vscode settings
-#.vscode/settings.json
-
-#bin
-bin/
-
+# IDE 
+.vscode
 .idea
