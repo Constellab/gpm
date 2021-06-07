@@ -22,8 +22,10 @@ services:
     volumes:
       - /mnt/store/app/prod:/app
       - /mnt/store/app/prod/lab:/lab
+      - /mnt/store/app/prod/logs:/logs
+      - /mnt/store/app/prod/data:/prod-data
+      - /mnt/store/app/dev/data:/dev-data
       - /mnt/store/app/conf/config.json:/app/conf/config.json:ro
-      - /mnt/store/app/data:/data
     networks:
        - nginx-proxy
     restart: always
@@ -48,8 +50,10 @@ services:
     volumes:
       - /mnt/store/app/dev:/app
       - /mnt/store/app/dev/lab:/lab
+      - /mnt/store/app/dev/logs:/logs
+      - /mnt/store/app/prod/data:/prod-data
+      - /mnt/store/app/dev/data:/dev-data
       - /mnt/store/app/conf/config.json:/app/conf/config.json:ro
-      - /mnt/store/app/data:/data
     networks:
        - nginx-proxy
     restart: always
@@ -75,8 +79,10 @@ services:
     volumes:
       - /mnt/store/app/dev:/app
       - /mnt/store/app/dev/lab:/lab
+      - /mnt/store/app/dev/logs:/logs
+      - /mnt/store/app/prod/data:/prod-data
+      - /mnt/store/app/dev/data:/dev-data
       - /mnt/store/app/conf/config.json:/app/conf/config.json:ro
-      - /mnt/store/app/data:/data
     networks:
        - nginx-proxy
     restart: always

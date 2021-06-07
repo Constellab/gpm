@@ -22,8 +22,10 @@ services:
     volumes:
       - /home/ubuntu/app/prod:/app
       - /home/ubuntu/app/prod/lab:/lab
+      - /home/ubuntu/app/prod/logs:/logs
+      - /home/ubuntu/app/prod/data:/prod-data
+      - /home/ubuntu/app/dev/data:/dev-data
       - /home/ubuntu/app/conf/config.json:/app/conf/config.json:ro
-      - /home/ubuntu/app/data:/data
     networks:
        - nginx-proxy
     restart: always
@@ -49,8 +51,10 @@ services:
     volumes:
       - /home/ubuntu/app/dev:/app
       - /home/ubuntu/app/dev/lab:/lab
+      - /home/ubuntu/app/dev/logs:/logs
+      - /home/ubuntu/app/prod/data:/prod-data
+      - /home/ubuntu/app/dev/data:/dev-data
       - /home/ubuntu/app/conf/config.json:/app/conf/config.json:ro
-      - /home/ubuntu/app/data:/data
     networks:
        - nginx-proxy
     restart: always
@@ -75,8 +79,10 @@ services:
     volumes:
       - /home/ubuntu/app/dev:/app
       - /home/ubuntu/app/dev/lab:/lab
+      - /home/ubuntu/app/dev/logs:/logs
+      - /home/ubuntu/app/prod/data:/prod-data
+      - /home/ubuntu/app/dev/data:/dev-data
       - /home/ubuntu/app/conf/config.json:/app/conf/config.json:ro
-      - /home/ubuntu/app/data:/data
     networks:
        - nginx-proxy
     restart: always
