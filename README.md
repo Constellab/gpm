@@ -6,13 +6,13 @@ This repository allows deploying of gencovery docker labs
 
 ### For CPU
 * Glab Image: `docker build --tag glab-cpu --build-arg IMAGE="ubuntu:20.04" . -f ./dockerfile/glab/Dockerfile`
-* Vlab Image: `docker build --tag vlab-cpu --build-arg IMAGE="ubuntu:20.04" . -f ./dockerfile/vlab/Dockerfile`
-* Jlab Image: `docker build --tag jlab-cpu --build-arg IMAGE="ubuntu:20.04" . -f ./dockerfile/jlab/Dockerfile`
+* Vlab Image: `docker build --tag vlab-cpu --build-arg IMAGE="glab-cpu:latest" . -f ./dockerfile/vlab/Dockerfile`
+* Jlab Image: `docker build --tag jlab-cpu --build-arg IMAGE="glab-cpu:latest" . -f ./dockerfile/jlab/Dockerfile`
 
 ### For GPU
 * Glab Image: `docker build --tag glab-gpu --build-arg IMAGE="nvidia/cuda:11.2.1-runtime-ubuntu20.04" . -f ./dockerfile/glab/Dockerfile`
-* Vlab Image: `docker build --tag vlab-gpu --build-arg IMAGE="nvidia/cuda:11.2.1-runtime-ubuntu20.04" . -f ./dockerfile/vlab/Dockerfile`
-* Jlab Image: `docker build --tag jlab-gpu --build-arg IMAGE="nvidia/cuda:11.2.1-runtime-ubuntu20.04" . -f ./dockerfile/jlab/Dockerfile`
+* Vlab Image: `docker build --tag vlab-gpu --build-arg IMAGE="glab-gpu:latest" . -f ./dockerfile/vlab/Dockerfile`
+* Jlab Image: `docker build --tag jlab-gpu --build-arg IMAGE="glab-gpu:latest" . -f ./dockerfile/jlab/Dockerfile`
 
 ## Start dockers using gpm image
 
