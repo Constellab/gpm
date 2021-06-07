@@ -1,0 +1,72 @@
+image: docker:latest
+services:
+  - docker:dind
+
+variables:
+  DOCKER_DRIVER: overlay
+  GIT_DEPTH: 0
+  CPU: cpu
+  GPU: gpu
+  GLAB: glab
+  VLAB: vlab
+  JLAB: jlab
+
+
+stages:
+  - build-cpu
+  - build-gpu
+
+#  Build the glab, vlab and jlab cpu images and push them to the registry
+build-cpu:
+  stage: build-cpu
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    # Build the gws (GLAB) image with a latest tag and a tag for the commit
+    - docker build --build-arg IMAGE="ubuntu:20.04" --cache-from $CI_REGISTRY_IMAGE/$GLAB-$CPU:latest --tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:latest . -f dockerfile/glab/Dockerfile
+    # Push both image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$GLAB-$CPU:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$GLAB-$CPU:latest
+
+    # Build the code server (VLAB) image from the GLAB Image with a latest tag and a tag for the commit
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$CPU:latest" --cache-from $CI_REGISTRY_IMAGE/$VLAB-$CPU:latest --tag $CI_REGISTRY_IMAGE/$VLAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$VLAB-$CPU:latest . -f dockerfile/vlab/Dockerfile
+    # Push both image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$VLAB-$CPU:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$VLAB-$CPU:latest
+
+    # Build the jupyter lab (JLAB) image from the GLAB Image with a latest tag and a tag for the commit
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$CPU:latest" --cache-from $CI_REGISTRY_IMAGE/$JLAB-$CPU:latest --tag $CI_REGISTRY_IMAGE/$JLAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$JLAB-$CPU:latest . -f dockerfile/jlab/Dockerfile
+    # Push both image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$JLAB-$CPU:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$JLAB-$CPU:latest
+  only:
+    - master
+
+
+#  Build the glab, vlab and jlab gpu images and push them to the registry
+build-gpu:
+  stage: build-gpu
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    # Build the gws (GLAB) image with a latest tag and a tag for the commit
+    - docker build --build-arg IMAGE="nvidia/cuda:11.2.1-runtime-ubuntu20.04" --cache-from $CI_REGISTRY_IMAGE/$GLAB-$GPU:latest --tag $CI_REGISTRY_IMAGE/$GLAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$GLAB-$GPU:latest . -f dockerfile/glab/Dockerfile
+    # Push both image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$GLAB-$GPU:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$GLAB-$GPU:latest
+
+    # Build the code server (VLAB) image with a latest tag and a tag for the commit
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$GPU:latest" --cache-from $CI_REGISTRY_IMAGE/$VLAB-$GPU:latest --tag $CI_REGISTRY_IMAGE/$VLAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$VLAB-$GPU:latest . -f dockerfile/vlab/Dockerfile
+    # Push both image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$VLAB-$GPU:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$VLAB-$GPU:latest
+
+    # Build the jupyter lab (JLAB) image with a latest tag and a tag for the commit
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$GPU:latest" --cache-from $CI_REGISTRY_IMAGE/$JLAB-$GPU:latest --tag $CI_REGISTRY_IMAGE/$JLAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$JLAB-$GPU:latest . -f dockerfile/jlab/Dockerfile
+    # Push both image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$JLAB-$GPU:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$JLAB-$GPU:latest
+  only:
+    - master
+
+
