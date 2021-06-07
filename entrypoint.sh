@@ -1,18 +1,20 @@
 #!/bin/bash
 set -e
 
-# install labs
-if [ "$1" == "--runserver" ]; then
+# start labs
+
+if [ "$1" == "--run-glab" ]; then
     # gws lab
+    # default port=3000, ip=0.0.0.0
     bash "/gpm/gpm.sh" 
     exec python3 "/app/lab/user/main/main/manage.py" --uri $LAB_URI --token $LAB_TOKEN --runserver --runmode "prod"
-elif [ "$1" == "--runjlab" ]; then
-    # jupiter la
+elif [ "$1" == "--run-jlab" ]; then
+    # jupyter lab
     bash "/gpm/gpm.sh"
     export SHELL=/bin/bash
     exec jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --notebook-dir=${LAB_WORK_DIR} --allow-root --NotebookApp.token=${LAB_TOKEN} --NotebookApp.password=
     exec "$@"
-elif [ "$1" == "--runvlab" ]; then
+elif [ "$1" == "--run-vlab" ]; then
     # vscode lab
     bash "/gpm/gpm.sh"
     export PASSWORD=${LAB_TOKEN}

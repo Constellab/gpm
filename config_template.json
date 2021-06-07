@@ -26,7 +26,7 @@
     },
     "central": {
         "api_key": "123456",
-        "api_url": ""
+        "api_url": "https://pre-prod-back.gws.gencovery.com/"
     },
     
     "urls": {
