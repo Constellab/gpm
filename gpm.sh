@@ -5,12 +5,28 @@ python3 -m pip install requests
 python3 -m pip install click 
 python3 -m pip install cryptography 
 
+if [ $LAB_FORCE_UPGRADE == "0" ]; then 
+    # sleep 10 secs to let the piority to another process
+    sleep 10
+fi
+
+n=1
+while [ -f "/gpm/GIT_UPGRADE_IN_PROGRESS" ] && [ $n -le 30 ]; do
+    echo "$n - Upgrade of repo already in progress. Sleep 10 secs ..."
+    sleep 10
+    n=$(( $n + 1 ))
+done
+
+touch "/gpm/GIT_UPGRADE_IN_PROGRESS"
+
 # pull all git repo
 if [ -f "/gpm/gpm.py" ]; then
     python3 "/gpm/gpm.py"
 elif [ -f "gpm.py" ]; then
     python3 gpm.py
 fi
+
+rm "/gpm/GIT_UPGRADE_IN_PROGRESS"
 
 # install ubuntu packages
 for wks in ".gws" "user"; do

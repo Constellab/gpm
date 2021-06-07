@@ -13,6 +13,7 @@ services:
       - LAB_NAME=${LAB_NAME}
       - LAB_TOKEN=${LAB_TOKEN}
       - LAB_WORK_DIR=${LAB_WORK_DIR}
+      - LAB_FORCE_UPGRADE=1
       - VIRTUAL_PORT=3000
       - VIRTUAL_HOST=lab.${VIRTUAL_HOST}
       - LETSENCRYPT_HOST=lab.{VIRTUAL_HOST}
@@ -30,20 +31,21 @@ services:
        - nginx-proxy
     restart: always
   
-  # Jupiter lab
-  jlab:
+  # VSCode lab
+  vlab:
     image: gpm-cpu:latest
-    command: ["--runjlab"]
+    command: ["--runvlab"]
     ports:
-      - "8888:80"
+      - "8080:80"
     environment:
       - LAB_URI=${LAB_URI}
       - LAB_NAME=${LAB_NAME}
       - LAB_TOKEN=${LAB_TOKEN}
       - LAB_WORK_DIR=${LAB_WORK_DIR}
-      - VIRTUAL_PORT=8888
-      - VIRTUAL_HOST=jlab.${VIRTUAL_HOST}
-      - LETSENCRYPT_HOST=jlab.${VIRTUAL_HOST}
+      - LAB_FORCE_UPGRADE=1
+      - VIRTUAL_PORT=8080
+      - VIRTUAL_HOST=vlab.${VIRTUAL_HOST}
+      - LETSENCRYPT_HOST=vlab.${VIRTUAL_HOST}
       - LETSENCRYPT_EMAIL=admin@gencovery.com
       - CONDA_VERSION=latest
       - GPU=${GPU}
@@ -57,26 +59,28 @@ services:
     networks:
        - nginx-proxy
     restart: always
-
-  # VSCode lab
-  vlab:
+    
+  # Jupiter lab
+  jlab:
     image: gpm-cpu:latest
-    command: ["--runvlab"]
+    command: ["--runjlab"]
     ports:
-      - "8080:80"
+      - "8888:80"
     environment:
       - LAB_URI=${LAB_URI}
       - LAB_NAME=${LAB_NAME}
       - LAB_TOKEN=${LAB_TOKEN}
       - LAB_WORK_DIR=${LAB_WORK_DIR}
-      - VIRTUAL_PORT=8080
-      - VIRTUAL_HOST=vlab.${VIRTUAL_HOST}
-      - LETSENCRYPT_HOST=vlab.${VIRTUAL_HOST}
+      - LAB_FORCE_UPGRADE=0
+      - VIRTUAL_PORT=8888
+      - VIRTUAL_HOST=jlab.${VIRTUAL_HOST}
+      - LETSENCRYPT_HOST=jlab.${VIRTUAL_HOST}
       - LETSENCRYPT_EMAIL=admin@gencovery.com
       - CONDA_VERSION=latest
       - GPU=${GPU}
     depends_on:
       - gws_dev_db
+      - vlab
     volumes:
       - /home/ubuntu/app/dev:/app
       - /home/ubuntu/app/dev/lab:/lab
