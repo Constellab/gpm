@@ -15,6 +15,8 @@ WORKDIR ${WORKDIR_DIR}
 RUN python3 -m pip install jupyterlab
 RUN python3 -m pip install ipywidgets
 
+EXPOSE 8888
+
 COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]

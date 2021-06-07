@@ -30,6 +30,8 @@ RUN wget https://github.com/microsoft/vscode-python/releases/download/2020.10.33
 # Install git graph extension
 RUN code-server --install-extension mhutchie.git-graph
 
+EXPOSE 8080
+
 COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
