@@ -134,7 +134,7 @@ services:
       - 443:443
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
-      - /srv/nginx/vhost.d:/etc/nginx/vhost.d
+      - /app/nginx/vhost.d:/etc/nginx/vhost.d
       - /srv/nginx/certs:/etc/nginx/certs:ro
       - /srv/nginx/html:/usr/share/nginx/html
       - /srv/nginx/conf.d/client_max_body_size.conf:/etc/nginx/conf.d/client_max_body_size.conf:ro
@@ -151,9 +151,9 @@ services:
       - NGINX_PROXY_CONTAINER:nginx-proxy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - /app/nginx/vhost.d:/etc/nginx/vhost.d
-      - /app/nginx/certs:/etc/nginx/certs:rw
-      - /app/nginx/html:/usr/share/nginx/html
+      - /srv/nginx/vhost.d:/etc/nginx/vhost.d
+      - /srv/nginx/certs:/etc/nginx/certs:rw
+      - /srv/nginx/html:/usr/share/nginx/html
     networks:
       - nginx-proxy
     depends_on:

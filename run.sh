@@ -5,7 +5,13 @@
 docker login -u "gencovery-reader" -p "bssyvAzB2uPKz6p9A3TE" registry.gitlab.com
 
 if [ -n "$GPU" ]; then
-    docker-compose -f ./docker-compose/gpu/docker-compose.yml up $option
+    disk="-disk"
 else
-    docker-compose -f ./docker-compose/cpu/docker-compose.yml up $option
+    disk="disk"
+fi
+
+if [ -n "$GPU" ]; then
+    docker-compose -f ./docker-compose/gpu${disk}/docker-compose.yml up $option
+else
+    docker-compose -f ./docker-compose/cpu${disk}/docker-compose.yml up $option
 fi

@@ -20,10 +20,10 @@ services:
     depends_on:
       - gws_prod_db
     volumes:
-      - /home/ubuntu/app/prod:/app
-      - /home/ubuntu/app/prod/lab:/lab
-      - /home/ubuntu/app/conf/config.json:/app/conf/config.json:ro
-      - /home/ubuntu/app/data:/data
+      - /mnt/store/app/prod:/app
+      - /mnt/store/app/prod/lab:/lab
+      - /mnt/store/app/conf/config.json:/app/conf/config.json:ro
+      - /mnt/store/app/data:/data
     networks:
        - nginx-proxy
     restart: always
@@ -47,10 +47,10 @@ services:
       - gws_dev_db
       - vlab
     volumes:
-      - /home/ubuntu/app/dev:/app
-      - /home/ubuntu/app/dev/lab:/lab
-      - /home/ubuntu/app/conf/config.json:/app/conf/config.json:ro
-      - /home/ubuntu/app/data:/data
+      - /mnt/store/app/dev:/app
+      - /mnt/store/app/dev/lab:/lab
+      - /mnt/store/app/conf/config.json:/app/conf/config.json:ro
+      - /mnt/store/app/data:/data
     networks:
        - nginx-proxy
     restart: always
@@ -73,10 +73,10 @@ services:
     depends_on:
       - gws_dev_db
     volumes:
-      - /home/ubuntu/app/dev:/app
-      - /home/ubuntu/app/dev/lab:/lab
-      - /home/ubuntu/app/conf/config.json:/app/conf/config.json:ro
-      - /home/ubuntu/app/data:/data
+      - /mnt/store/app/dev:/app
+      - /mnt/store/app/dev/lab:/lab
+      - /mnt/store/app/conf/config.json:/app/conf/config.json:ro
+      - /mnt/store/app/data:/data
     networks:
        - nginx-proxy
     restart: always
@@ -106,7 +106,7 @@ services:
       - MYSQL_PASSWORD=gencovery
       - MYSQL_DATABASE=gws
     volumes:
-      - /home/ubuntu/app/prod/data/mariadb:/var/lib/mysql
+      - /mnt/store/app/prod/data/mariadb:/var/lib/mysql
     networks:
        - nginx-proxy
     restart: always
@@ -120,7 +120,7 @@ services:
       - MYSQL_PASSWORD=gencovery
       - MYSQL_DATABASE=gws
     volumes:
-      - /home/ubuntu/app/dev/data/mariadb:/var/lib/mysql
+      - /mnt/store/app/dev/data/mariadb:/var/lib/mysql
     networks:
        - nginx-proxy
     restart: always

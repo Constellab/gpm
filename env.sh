@@ -36,7 +36,10 @@ if [ "$volume" != "" ] && [ -d "$volume" ]; then
     
     if [ -d "${volume}/app" ]; then
         app_dir="${volume}/app"
+        disk="disk"
     fi
+else
+    disk=""
 fi
 
 if [ ! -d "${app_dir}/prod/lab/.sys/" ]; then
@@ -60,12 +63,16 @@ fi
 # build docker
 echo "Building docker ..."
 
+# docker env variables
 export APP_DIR=${app_dir}
 export LAB_NAME=${lab_name}
 export LAB_TOKEN=${lab_token}
 export LAB_WORK_DIR=${lab_work_dir}
 export VIRTUAL_HOST=${virtual_host}
 export GPU=${gpu}
+
+# other env variables
+export DISK=${disk}
 
 # copy nginx client_max_body_size config
 if [ ! -d "/srv/nginx/conf.d/" ]; then
