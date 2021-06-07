@@ -134,7 +134,7 @@ services:
       - 443:443
     volumes:
       - /var/run/docker.sock:/tmp/docker.sock:ro
-      - /app/nginx/vhost.d:/etc/nginx/vhost.d
+      - /srv/nginx/vhost.d:/etc/nginx/vhost.d
       - /srv/nginx/certs:/etc/nginx/certs:ro
       - /srv/nginx/html:/usr/share/nginx/html
       - /srv/nginx/conf.d/client_max_body_size.conf:/etc/nginx/conf.d/client_max_body_size.conf:ro
