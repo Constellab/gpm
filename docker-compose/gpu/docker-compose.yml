@@ -13,7 +13,7 @@ services:
       - LAB_FORCE_UPGRADE=1
       - VIRTUAL_PORT=3000
       - VIRTUAL_HOST=lab.${VIRTUAL_HOST}
-      - LETSENCRYPT_HOST=lab.{VIRTUAL_HOST}
+      - LETSENCRYPT_HOST=lab.${VIRTUAL_HOST}
       - LETSENCRYPT_EMAIL=admin@gencovery.com
       - CONDA_VERSION=latest
       - GPU=${GPU}
