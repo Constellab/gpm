@@ -65,6 +65,7 @@ echo "Building docker ..."
 
 # docker env variables
 export APP_DIR=${app_dir}
+export LAB_URI=${lab_uri}
 export LAB_NAME=${lab_name}
 export LAB_TOKEN=${lab_token}
 export LAB_WORK_DIR=${lab_work_dir}
