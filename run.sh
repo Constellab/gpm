@@ -7,7 +7,7 @@ docker login -u "gencovery-reader" -p "bssyvAzB2uPKz6p9A3TE" registry.gitlab.com
 if [ -n "$DISK" ]; then
     disk="-disk"
 else
-    disk="disk"
+    disk=""
 fi
 
 if [ -n "$GPU" ]; then
