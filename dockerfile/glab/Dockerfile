@@ -49,6 +49,9 @@ RUN apt-get -y install libopenblas-dev liblapack-dev
 # install R
 RUN apt-get -y install r-base
 
+# install mariadb client
+RUN apt-get -y install mariadb-client
+
 EXPOSE 3000
 
 COPY ./entrypoint.sh /entrypoint.sh
