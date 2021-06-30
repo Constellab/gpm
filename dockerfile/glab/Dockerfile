@@ -49,8 +49,9 @@ RUN apt-get -y install libopenblas-dev liblapack-dev
 # install R
 RUN apt-get -y install r-base
 
-# install mariadb client
+# install mariadb client, rsync
 RUN apt-get -y install mariadb-client
+RUN apt-get -y install rsync
 
 EXPOSE 3000
 
