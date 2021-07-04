@@ -3,7 +3,7 @@
         "name": "main",
         "title": "Gencovery Lab",
         "description": "Gencovery Digital Lab as a Service",
-        "app_dir": "/home/ubuntu/app",
+        "app_dir": "/app",
         "virtual_host": "test.gencovery.io",
         "uri": "91620768-2cdd-11eb-adc1-0242ac120002",
         "token": "JSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq24",
@@ -36,6 +36,5 @@
 
     "git":{
         "shallow": true
-    },
-    "volume": "/mnt/store"
+    }
 }

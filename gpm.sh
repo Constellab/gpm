@@ -30,14 +30,14 @@ rm "/gpm/LAB_UPGRADE_IN_PROGRESS"
 
 # install ubuntu packages
 for wks in ".gws" "user"; do
-    for path in `find /app/lab/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-apt.txt'`; do
+    for path in `find /lab/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-apt.txt'`; do
         cat $path | xargs apt-get install -y
     done
 done
 
 # install python dependencies
 for wks in ".gws" "user"; do
-    for path in `find /app/lab/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-pip.txt'`; do
+    for path in `find /lab/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-pip.txt'`; do
         python3 -m pip install -r $path
     done
 done
@@ -49,7 +49,7 @@ fi
 
 # call custom brick install
 for wks in ".gws" "user"; do
-    for brick in `find /app/lab/$wks/bricks -mindepth 1 -maxdepth 1 -type d`; do
+    for brick in `find /lab/$wks/bricks -mindepth 1 -maxdepth 1 -type d`; do
         if [ -f "$brick/.dep/pre-install.py" ]; then
             python3 "$brick/.dep/pre-install.py"
         fi
