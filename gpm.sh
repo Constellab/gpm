@@ -50,12 +50,12 @@ fi
 # call custom brick install
 for wks in ".gws" "user"; do
     for brick in `find /app/lab/$wks/bricks -mindepth 1 -maxdepth 1 -type d`; do
-        if [ -f "$brick/dep/install.py" ]; then
-            python3 "$brick/dep/install.py"
+        if [ -f "$brick/.dep/pre-install.py" ]; then
+            python3 "$brick/.dep/pre-install.py"
         fi
 
-        if [ -f "$brick/dep/install.sh" ]; then
-            bash "$brick/dep/install.sh"
+        if [ -f "$brick/.dep/pre-install.sh" ]; then
+            bash "$brick/.dep/pre-install.sh"
         fi
     done
 done
