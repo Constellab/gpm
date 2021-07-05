@@ -24,6 +24,36 @@ RUN python3 get-pip.py
 RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install --upgrade setuptools
 
+# install gws dependencies
+RUN python3 -m pip install peewee fastapi uvicorn starlette-context
+RUN python3 -m pip install passlib
+RUN python3 -m pip install python-multipart
+RUN python3 -m pip install aiofiles
+RUN python3 -m pip install pyjwt
+RUN python3 -m pip install itsdangerous
+RUN python3 -m pip install awesome-slugify
+RUN python3 -m pip install click
+RUN python3 -m pip install sphinx sphinx-rtd-theme rinohtype
+RUN python3 -m pip install psutil
+RUN python3 -m pip install pymysql mysql-connector
+RUN python3 -m pip install pylint mypy
+RUN python3 -m pip install python-swiftclient
+
+# install biota dependencies
+RUN python3 -m pip install biopython
+
+# install gaia dependencies
+RUN python3 -m pip install tensorflow 
+RUN python3 -m pip install torch torchvision torchaudio
+RUN python3 -m pip install scipy==1.4.1
+RUN python3 -m pip install scikit-learn
+RUN python3 -m pip install pandas
+RUN python3 -m pip install matplotlib
+RUN python3 -m pip install xlrd >= 1.0.0
+RUN python3 -m pip install numpy<1.19.0,>=1.16.0
+RUN python3 -m pip install dill
+RUN python3 -m pip install cvxpy
+
 # install conda
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O miniconda.sh && \
     mkdir -p /opt && \
