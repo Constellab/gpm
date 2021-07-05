@@ -45,11 +45,11 @@ RUN python3 -m pip install biopython
 # install gaia dependencies
 RUN python3 -m pip install tensorflow 
 RUN python3 -m pip install torch torchvision torchaudio
-RUN python3 -m pip install numpy<1.19.0,>=1.16.0
-RUN python3 -m pip install scipy==1.7.0
-RUN python3 -m pip install scikit-learn
+RUN python3 -m pip install numpy
 RUN python3 -m pip install pandas
 RUN python3 -m pip install matplotlib
+RUN python3 -m pip install scipy>=1.7.0
+RUN python3 -m pip install scikit-learn
 RUN python3 -m pip install xlrd>=1.0.0
 RUN python3 -m pip install dill
 RUN python3 -m pip install cvxpy
