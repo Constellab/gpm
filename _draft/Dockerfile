@@ -16,8 +16,7 @@ WORKDIR ${WORKDIR_DIR}
 # install python & base packages
 RUN apt-get -y update && \
     apt-get -y install python3 python3-distutils && \
-    apt-get -y install git curl zip unzip bzip2 wget rsync && \
-    apt-get -y install pipenv
+    apt-get -y install git curl zip unzip bzip2 wget rsync
 
 # install pip
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
@@ -47,6 +46,36 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}
     sh miniconda.sh -b -p /opt/conda && \
     rm miniconda.sh && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
+    
+# install gws dependencies
+RUN python3 -m pip install peewee fastapi uvicorn starlette-context && \
+    python3 -m pip install sphinx sphinx-rtd-theme rinohtype && \
+    python3 -m pip install passlib && \
+    python3 -m pip install python-multipart && \
+    python3 -m pip install aiofiles && \
+    python3 -m pip install pyjwt && \
+    python3 -m pip install itsdangerous && \
+    python3 -m pip install awesome-slugify && \
+    python3 -m pip install click && \
+    python3 -m pip install psutil && \
+    python3 -m pip install pymysql mysql-connector && \
+    python3 -m pip install pylint mypy && \
+    python3 -m pip install python-swiftclient
+
+# install biota dependencies
+RUN python3 -m pip install biopython
+
+# install gaia dependencies
+RUN python3 -m pip install tensorflow && \
+    python3 -m pip install torch torchvision torchaudio && \
+    python3 -m pip install numpy && \
+    python3 -m pip install pandas && \
+    python3 -m pip install matplotlib && \
+    python3 -m pip install scipy>=1.7.0 && \
+    python3 -m pip install scikit-learn && \
+    python3 -m pip install xlrd>=1.0.0 && \
+    python3 -m pip install dill && \
+    python3 -m pip install cvxpy
 
 # install R
 RUN apt-get -y install r-base

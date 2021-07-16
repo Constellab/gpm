@@ -289,31 +289,29 @@ class GPM():
         git_user = None
         git_pwd = None
 
-        def _get_git_credentials():
-            if os.path.exists(self.__public_file):
-                with open(self.__public_file, 'r') as f:
-                    private = json.load(f)
-            else:
-                raise Exception(f"File {self.__public_file} not found")
+        # def _get_git_credentials():
+        #     if os.path.exists(self.__public_file):
+        #         with open(self.__public_file, 'r') as f:
+        #             private = json.load(f)
+        #     else:
+        #         raise Exception(f"File {self.__public_file} not found")
+        #     git_user = private["git"]["login"]
+        #     git_pwd = private["git"]["credentials"]
+        #     if not git_pwd:
+        #         raise Exception("The invalid git password")
+        #     elif len(git_pwd) < 64:
+        #         git_pwd = self.encrypt_message(git_pwd)
+        #         private["git"]["credentials"] = git_pwd
+        #         with open(self.__public_file, 'w') as f:
+        #             json.dump(private, f, indent=4)
+        #     else:
+        #         git_pwd = self.decrypt_message(git_pwd)
+        #     git_pwd = urllib.parse.quote(git_pwd)
+        #     return git_user, git_pwd
+        # git_user, git_pwd = _get_git_credentials()
 
-            git_user = private["git"]["login"]
-            git_pwd = private["git"]["credentials"]
-            
-            if not git_pwd:
-                raise Exception("The invalid git password")
-            elif len(git_pwd) < 64:
-                git_pwd = self.encrypt_message(git_pwd)
-                private["git"]["credentials"] = git_pwd
-                with open(self.__public_file, 'w') as f:
-                    json.dump(private, f, indent=4)
-            else:
-                git_pwd = self.decrypt_message(git_pwd)
-
-            git_pwd = urllib.parse.quote(git_pwd)
-
-            return git_user, git_pwd
-
-        git_user, git_pwd = _get_git_credentials()
+        git_user = os.getenv("GIT_USER")
+        git_pwd = os.getenv("GIT_PASSWORD")
 
         for repo_name in repos:
             origin = repos[repo_name]

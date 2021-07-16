@@ -11,7 +11,6 @@ variables:
   VLAB: vlab
   JLAB: jlab
 
-
 stages:
   - build-cpu
   - build-gpu

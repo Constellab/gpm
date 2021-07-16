@@ -12,8 +12,8 @@ ADD ./ ${WORKDIR_DIR}
 WORKDIR ${WORKDIR_DIR}
 
 # install jupyter lab
-RUN python3 -m pip install jupyterlab
-RUN python3 -m pip install ipywidgets
+RUN python3 -m pip install jupyterlab && \
+    python3 -m pip install ipywidgets
 
 EXPOSE 8888
 
