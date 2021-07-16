@@ -289,29 +289,26 @@ class GPM():
         git_user = None
         git_pwd = None
 
-        # def _get_git_credentials():
-        #     if os.path.exists(self.__public_file):
-        #         with open(self.__public_file, 'r') as f:
-        #             private = json.load(f)
-        #     else:
-        #         raise Exception(f"File {self.__public_file} not found")
-        #     git_user = private["git"]["login"]
-        #     git_pwd = private["git"]["credentials"]
-        #     if not git_pwd:
-        #         raise Exception("The invalid git password")
-        #     elif len(git_pwd) < 64:
-        #         git_pwd = self.encrypt_message(git_pwd)
-        #         private["git"]["credentials"] = git_pwd
-        #         with open(self.__public_file, 'w') as f:
-        #             json.dump(private, f, indent=4)
-        #     else:
-        #         git_pwd = self.decrypt_message(git_pwd)
-        #     git_pwd = urllib.parse.quote(git_pwd)
-        #     return git_user, git_pwd
-        # git_user, git_pwd = _get_git_credentials()
-
-        git_user = os.getenv("GIT_USER")
-        git_pwd = os.getenv("GIT_PASSWORD")
+        def _get_git_credentials():
+            if os.path.exists(self.__public_file):
+                with open(self.__public_file, 'r') as f:
+                    private = json.load(f)
+            else:
+                raise Exception(f"File {self.__public_file} not found")
+            git_user = private["git"]["login"]
+            git_pwd = private["git"]["credentials"]
+            if not git_pwd:
+                raise Exception("The invalid git password")
+            elif len(git_pwd) < 64:
+                git_pwd = self.encrypt_message(git_pwd)
+                private["git"]["credentials"] = git_pwd
+                with open(self.__public_file, 'w') as f:
+                    json.dump(private, f, indent=4)
+            else:
+                git_pwd = self.decrypt_message(git_pwd)
+            git_pwd = urllib.parse.quote(git_pwd)
+            return git_user, git_pwd
+        git_user, git_pwd = _get_git_credentials()
 
         for repo_name in repos:
             origin = repos[repo_name]
@@ -340,7 +337,6 @@ class GPM():
                     except:
                         pass
 
-
     def _pull_repo(self, workspace_dir, repo_name, origin, user=None, pwd=None):
 
         if user:
@@ -353,9 +349,9 @@ class GPM():
         else:
             url = origin.strip("/")
         
-        repo_dir, repo_type, wk = self.get_repo_dir(repo_name)
-        alredy_exists = not repo_dir is None
-        if alredy_exists:
+        repo_dir, repo_type, _ = self.get_repo_dir(repo_name)
+        already_exists = not repo_dir is None
+        if already_exists:
             print(f"Git update {repo_type} {repo_name} (in {repo_dir}) from {origin}")
             git_repo = git.Repo(repo_dir)
             o = git_repo.remotes.origin
@@ -366,7 +362,6 @@ class GPM():
         else:
             print(f"Git clone {repo_name} from {tab[0]}://{tab[1]}")
             tmp_repo_dir = os.path.join(workspace_dir, "tmp", repo_name)
-            
             if self.config["git"]["shallow"]:
                 git_kwargs = {
                     "depth": 1,
@@ -374,7 +369,7 @@ class GPM():
                 }
             else:
                 git_kwargs = {}
-                
+
             git.Repo.clone_from(
                 url, 
                 tmp_repo_dir, 
@@ -392,12 +387,19 @@ class GPM():
             shutil.move(tmp_repo_dir, repo_dir)
             git_repo = git.Repo(repo_dir)
 
+            # SECURITY - remove user:pwd from repo url
+            try:
+                o = git_repo.remotes.origin
+                url = re.sub(r"(.*\:\/\/)((.*)?\:?(.*)?@)?(.+)", r"\1\5", o.url)
+                o.set_url(url)
+            except:
+                pass
         try:
             #set submodules pwd
             for sub in git_repo.submodules:
                 sub_url = sub.config_reader().get_value("url")
                 tab = re.split("://(.+@)?", sub_url)                
-                sub_url = f"{tab[0]}://{user}:{pwd}@{tab[2]}" #tab[1] containt hypothetical "login"
+                sub_url = f"{tab[0]}://{user}:{pwd}@{tab[2]}" #tab[1] contains hypothetical "login"
                 sub.config_writer().set_value("url", sub_url).release()
                 print(f"Getting submodule {tab[0]}://{tab[2]}")
 

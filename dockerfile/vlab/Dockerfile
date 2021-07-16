@@ -1,4 +1,3 @@
-
 ARG IMAGE="glab:latest"
 FROM $IMAGE
 
@@ -11,6 +10,10 @@ ENV CONDA_VERSION latest
 ADD ./ ${WORKDIR_DIR}
 WORKDIR ${WORKDIR_DIR}
 
+# install jupyter lab
+RUN python3 -m pip install jupyterlab && \
+    python3 -m pip install ipywidgets
+    
 # install code-server for remote vscode
 RUN curl -fsSL https://code-server.dev/install.sh | sh && \
     mkdir -p ${USER}/.local/share/code-server/ && mkdir -p ${USER}/.local/share/code-server/User

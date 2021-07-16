@@ -1,4 +1,3 @@
-
 ARG IMAGE="glab:latest"
 FROM $IMAGE
 
