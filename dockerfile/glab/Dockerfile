@@ -77,8 +77,9 @@ RUN python3 -m pip install tensorflow && \
     python3 -m pip install dill && \
     python3 -m pip install cvxpy
 
-# install R
-RUN apt-get -y install r-base
+# other installs (R, mariadb-client, etc.)
+RUN apt-get -y install r-base && \
+    apt-get -y install mariadb-client
 
 EXPOSE 3000
 
