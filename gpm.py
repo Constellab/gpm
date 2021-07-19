@@ -198,10 +198,10 @@ class GPM():
             settings["central"]["api_key"]  = self.config.get("central",{}).get("api_key", "")
             settings["central"]["api_url"]  = self.config.get("central",{}).get("api_url", "")
 
-            settings["dependencies"] = {
-                "gws": self.config.get("dependencies",{}).get("gws",{}),
-                "user": self.config.get("dependencies",{}).get("user",{})
-            }
+            dep = {}
+            dep.update(self.config.get("dependencies",{}).get("gws",{}))
+            dep.update(self.config.get("dependencies",{}).get("user",{}))
+            settings["dependencies"] = dep
 
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=4)
