@@ -131,7 +131,6 @@ class GPM():
             if not repos:
                 repos = { "biox": "DEFAULT_ORIGIN" }
             self.pull(self.get_gws_workspace(), repos=repos)
-
             #copy notebooks files
             src_files = glob.glob(os.path.join(__cdir__, "./ipynb/**"))
             dest_dir = os.path.join(self.get_gws_workspace(), "./notebooks")
@@ -147,10 +146,8 @@ class GPM():
                 "skeleton": "DEFAULT_ORIGIN",
                 **self.get_user_bricks()
             }
-
             self.pull(self.get_user_workspace(), repos=repos)
             self._install_user_main()
-
             #copy notebooks files
             src_files = glob.glob(os.path.join(__cdir__, "./ipynb/**"))
             dest_dir = os.path.join(self.get_user_workspace(), "./notebooks")
@@ -161,19 +158,16 @@ class GPM():
     def _install_user_main(self):
         skeleton_dir = os.path.join(self.get_user_workspace(), "bricks", "skeleton")
         dest_dir = os.path.join(self.get_user_workspace(), "main", self.lab_name)
-
         if not os.path.exists(dest_dir):
             shutil.copytree(
                 skeleton_dir, 
                 dest_dir
             )
-
             # rename module
             shutil.move(
                 os.path.join(dest_dir, "skeleton"), 
                 os.path.join(dest_dir, self.lab_name)
             )
-
             # remove .git folder
             shutil.rmtree(os.path.join(dest_dir, ".git"))
 
@@ -204,10 +198,10 @@ class GPM():
             settings["central"]["api_key"]  = self.config.get("central",{}).get("api_key", "")
             settings["central"]["api_url"]  = self.config.get("central",{}).get("api_url", "")
 
-            dep = settings.get("dependencies",{})
-            dep.update(self.config.get("dependencies",{}).get("gws",{}))
-            dep.update(self.config.get("dependencies",{}).get("user",{}))
-            settings["dependencies"] = dep
+            settings["dependencies"] = {
+                "gws": self.config.get("dependencies",{}).get("gws",{}),
+                "user": self.config.get("dependencies",{}).get("user",{})
+            }
 
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=4)
@@ -274,7 +268,6 @@ class GPM():
                 return
             except Exception as err:
                 raise Exception("Cannot parse the config file. Please check file config file.") from err
-        
         raise Exception("Cannot open the config file")
     
     # -- P -- 
