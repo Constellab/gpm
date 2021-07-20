@@ -21,12 +21,8 @@ RUN curl -fsSL https://code-server.dev/install.sh | sh && \
 # Add config for vs code
 COPY ./.vs-code-server-config/settings.json /root/.local/share/code-server/User/settings.json 
 
-# install code-server, jupyter, python, git graph extension
-# install manually python extension version 2020.10.332292344 because higher verison have problem with code-server
-# https://github.com/cdr/code-server/issues/2341
-RUN code-server --install-extension ms-toolsai.jupyter && \
-    wget https://github.com/microsoft/vscode-python/releases/download/2020.10.332292344/ms-python-release.vsix && \
-    code-server --install-extension ./ms-python-release.vsix || true && \
+# install python (including jupyter), git graph extension
+RUN code-server --install-extension ms-python.python && \
     code-server --install-extension mhutchie.git-graph
 
 EXPOSE 8080

@@ -40,6 +40,7 @@ build-cpu:
     - docker push $CI_REGISTRY_IMAGE/$JLAB-$CPU:latest
   only:
     - master
+  when: manual
 
 
 #  Build the glab, vlab and jlab gpu images and push them to the registry
@@ -67,5 +68,5 @@ build-gpu:
     - docker push $CI_REGISTRY_IMAGE/$JLAB-$GPU:latest
   only:
     - master
-
+  when: manual
 
