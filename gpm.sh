@@ -29,14 +29,14 @@ fi
 rm "/lab/LAB_UPGRADE_IN_PROGRESS"
 
 # install ubuntu packages
-for wks in ".gws" "user"; do
+for wks in ".core" "user"; do
     for path in `find /lab/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-apt.txt'`; do
         cat $path | xargs apt-get install -y
     done
 done
 
 # install python dependencies
-for wks in ".gws" "user"; do
+for wks in ".core" "user"; do
     for path in `find /lab/$wks/ -mindepth 1 -maxdepth 4 -name 'requirements-pip.txt'`; do
         python3 -m pip install -r $path
     done
@@ -48,7 +48,7 @@ if [ -f /opt/conda/etc/profile.d/conda.sh ]; then
 fi
 
 # call custom brick install
-for wks in ".gws" "user"; do
+for wks in ".core" "user"; do
     for brick in `find /lab/$wks/bricks -mindepth 1 -maxdepth 1 -type d`; do
         if [ -f "$brick/.hooks/pre-install.py" ]; then
             python3 "$brick/.hooks/pre-install.py"

@@ -32,9 +32,9 @@ class GPM():
     """
     config = []
 
-    def __init__(self, gws_workspace, user_workspace, shallow=True):
+    def __init__(self, core_workspace, user_workspace, shallow=True):
         self._read_config()
-        self.config["gws_workspace"] = gws_workspace
+        self.config["core_workspace"] = core_workspace
         self.config["user_workspace"] = user_workspace
         self.config["shallow"] = self.config.get("shallow", shallow)
 
@@ -79,9 +79,9 @@ class GPM():
 
     # -- G --
 
-    def get_gws_workspace(self):
-        if "gws_workspace" in self.config:
-            return self.config["gws_workspace"]
+    def get_core_workspace(self):
+        if "core_workspace" in self.config:
+            return self.config["core_workspace"]
         else:
             return ""
 
@@ -92,13 +92,13 @@ class GPM():
             return ""
 
     def get_repo_dir(self, repo_name):
-        file_path = os.path.join(self.get_gws_workspace(), "bricks", repo_name)
+        file_path = os.path.join(self.get_core_workspace(), "bricks", repo_name)
         if os.path.exists(file_path):
-            return file_path, "brick", "gws"
+            return file_path, "brick", "core"
 
-        file_path = os.path.join(self.get_gws_workspace(), "externs", repo_name)
+        file_path = os.path.join(self.get_core_workspace(), "externs", repo_name)
         if os.path.exists(file_path):
-            return file_path, "externs", "gws"
+            return file_path, "externs", "core"
 
         file_path = os.path.join(self.get_user_workspace(), "bricks", repo_name)
         if os.path.exists(file_path):
@@ -123,17 +123,17 @@ class GPM():
     def is_ready(self) -> bool:
         return os.path.exists(self.__config_file_path)
 
-    def install_gws(self):
+    def install_core(self):
         self.__is_pulled = []
-        if self.get_gws_workspace().startswith("/"):
-            self.create_wks_dirs(self.get_gws_workspace(), skip_main=True)
-            repos = self.get_gws_bricks()
+        if self.get_core_workspace().startswith("/"):
+            self.create_wks_dirs(self.get_core_workspace(), skip_main=True)
+            repos = self.get_core_bricks()
             if not repos:
                 repos = { "biox": "DEFAULT_ORIGIN" }
-            self.pull(self.get_gws_workspace(), repos=repos)
+            self.pull(self.get_core_workspace(), repos=repos)
             #copy notebooks files
             src_files = glob.glob(os.path.join(__cdir__, "./ipynb/**"))
-            dest_dir = os.path.join(self.get_gws_workspace(), "./notebooks")
+            dest_dir = os.path.join(self.get_core_workspace(), "./notebooks")
             for src in src_files:
                 dst = os.path.join(dest_dir, src.split("/")[-1])
                 shutil.copy2(src, dst)
@@ -159,17 +159,19 @@ class GPM():
         skeleton_dir = os.path.join(self.get_user_workspace(), "bricks", "skeleton")
         dest_dir = os.path.join(self.get_user_workspace(), "main", self.lab_name)
         if not os.path.exists(dest_dir):
-            shutil.copytree(
-                skeleton_dir, 
-                dest_dir
-            )
-            # rename module
-            shutil.move(
-                os.path.join(dest_dir, "skeleton"), 
-                os.path.join(dest_dir, self.lab_name)
-            )
-            # remove .git folder
-            shutil.rmtree(os.path.join(dest_dir, ".git"))
+            shutil.rmtree(dest_dir, ignore_errors=True)
+
+        shutil.copytree(
+            skeleton_dir, 
+            dest_dir
+        )
+        # rename module
+        shutil.move(
+            os.path.join(dest_dir, "skeleton"), 
+            os.path.join(dest_dir, self.lab_name)
+        )
+        # remove .git folder
+        shutil.rmtree(os.path.join(dest_dir, ".git"))
 
         # update settings.json
         settings_file = os.path.join(dest_dir, "settings.json")
@@ -199,7 +201,7 @@ class GPM():
             settings["central"]["api_url"]  = self.config.get("central",{}).get("api_url", "")
 
             settings["dependencies"] = {
-                "gws": self.config.get("dependencies",{}).get("gws",{}),
+                "core": self.config.get("dependencies",{}).get("core",{}),
                 "user": self.config.get("dependencies",{}).get("user",{})
             }
 
@@ -272,8 +274,8 @@ class GPM():
     
     # -- P -- 
 
-    def get_gws_bricks(self) -> dict:
-        return self.config["dependencies"].get("gws",{})
+    def get_core_bricks(self) -> dict:
+        return self.config["dependencies"].get("core",{})
     
     def get_user_bricks(self) -> dict:
         return self.config["dependencies"].get("user", {})
@@ -426,15 +428,15 @@ class GPM():
     __public_file = os.path.join(__cdir__,".public.json")
     __default_git_origin = "https://gitlab.com/gencovery/"
     __default_git_origin_token = "DEFAULT_ORIGIN"
-    __structure = ["./bricks", "./data", "./main", "./logs", "./externs", "./notebooks", "./tmp"]
+    __structure = ["./bricks", "./main", "./externs", "./notebooks", "./tmp"]
 
 if __name__ == "__main__":
     g = GPM(
-        gws_workspace="/lab/.gws",
+        core_workspace="/lab/.core",
         user_workspace="/lab/user",
         shallow=True
     )
     
     if g.is_ready():
-        g.install_gws()
+        g.install_core()
         g.install_user()
