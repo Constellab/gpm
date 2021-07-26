@@ -158,7 +158,7 @@ class GPM():
     def _install_user_main(self):
         skeleton_dir = os.path.join(self.get_user_workspace(), "bricks", "skeleton")
         dest_dir = os.path.join(self.get_user_workspace(), "main", self.lab_name)
-        if not os.path.exists(dest_dir):
+        if os.path.exists(dest_dir):
             shutil.rmtree(dest_dir, ignore_errors=True)
 
         shutil.copytree(
