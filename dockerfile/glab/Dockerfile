@@ -48,7 +48,8 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
     
 # install gws dependencies
-RUN python3 -m pip install peewee fastapi uvicorn starlette-context && \
+RUN python3 -m pip install twine && \
+    python3 -m pip install peewee fastapi uvicorn starlette-context && \
     python3 -m pip install sphinx sphinx-rtd-theme rinohtype && \
     python3 -m pip install passlib && \
     python3 -m pip install python-multipart && \
