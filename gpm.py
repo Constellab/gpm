@@ -32,14 +32,14 @@ class GPM():
 
     def __init__(self, settings_file_path):
         self.settings_file_path = settings_file_path
-        self.env = self.read_env()
+        self.config = self.read_config()
 
     # -- F --
 
     def format_url( self, string: str ) -> str:
         if not string:
             return string
-        variables = self.env.get("variables",{})
+        variables = self.config.get("environment",{}).get("variables",{})
         tab = re.findall(r"\$[A-Za-z_]*", string)
         for token in tab:
             token = token[1:]
@@ -97,20 +97,65 @@ class GPM():
     # -- I --
 
     def install(self):
-        # install pip
-        for dep in self.env.get("pip",[]):
-            source_url = dep.get("source")
-            packages = dep.get("packages")
+        env = self.config.get("environment")
+        # install pip packages
+        print(f"Installing Pip packages ...")
+        for channel in env.get("pip",[]):
+            source_url = channel.get("source")
+            packages = channel.get("packages")
             self.install_through_pip(packages, source_url=source_url)
-        # install git
-        for dep in self.env.get("git",[]):
-            source_url = dep.get("source").strip("/")
-            packages = dep.get("packages")
-            for package in dep.get("packages"):
+        # install git packages
+        print(f"Installing Git packages ...")
+        for channel in env.get("git",[]):
+            source_url = channel.get("source").strip("/")
+            packages = channel.get("packages")
+            for package in channel.get("packages"):
                 self.install_through_git(package, source_url)
 
+    def install_main(self):
+        dest_dir = os.path.join(self.USER_WORKSPACE_DIR, "main")
+        skeleton_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks", "skeleton")
+        if not os.path.exists(skeleton_dir):
+            raise Exception("The skeleton is not found")
+        if os.path.exists(dest_dir):
+            shutil.rmtree(dest_dir, ignore_errors=True)
+        shutil.copytree(
+            skeleton_dir, 
+            dest_dir
+        )
+        # rename module
+        shutil.move(
+            os.path.join(dest_dir, "src", "skeleton"), 
+            os.path.join(dest_dir, "src", self.config["name"])
+        )
+        # remove .git folder
+        shutil.rmtree(os.path.join(dest_dir, ".git"))
+        # update settings.json
+        settings_file = os.path.join(dest_dir, "settings.json")
+        with open(settings_file, 'r') as f:
+            settings                    = json.load(f)
+            settings["name"]            = self.config["name"]
+            settings["token"]           = self.config["token"]
+            settings["virtual_host"]    = self.config["virtual_host"]
+            settings["variables"]       = self.config["variables"]
+            settings["environment"]     = self.config["environment"]
+        with open(settings_file, 'w') as f:
+            json.dump(settings, f, indent=4)
+        # replace all words 'skeleton' in settings.json
+        with open(settings_file, 'r') as f:
+            text = f.read()
+            text = text.replace("skeleton", self.config["name"])
+        with open(settings_file, 'w') as f:
+            f.write(text)
+        # replace all words 'skeleton' in app.py
+        app_file = os.path.join(dest_dir, "src", self.config["name"], "./app.py")
+        with open(app_file, 'r') as f:
+            text = f.read()
+            text = text.replace("skeleton", self.config["name"])
+        with open(app_file, 'w') as f:
+            f.write(text)
+    
     def install_through_pip(self, packages: list, source_url=None):
-        print(f"Installing Pip packages ...")
         if not packages:
             return
         source_url = self.format_url(source_url)
@@ -120,13 +165,11 @@ class GPM():
         GPM.run_proc(cmd)
         
     def install_through_git(self, package, source_url):
-        print(f"Installing Git package {package} ...")
         bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks")
         externs_dir = os.path.join(self.USER_WORKSPACE_DIR, "externs")
         repo, commit_sha, branch = self.parse_git_package(package)
         repo_dir = os.path.join(bricks_dir, repo)
         source_url = f"{source_url}/{repo}.git"
-
         was_in_brick_dir = os.path.exists(repo_dir)
         if was_in_brick_dir:
             self.git_pull(source_url, repo_dir, branch=branch, commit_sha=commit_sha) 
@@ -138,11 +181,9 @@ class GPM():
                 return
             else:
                 self.git_clone(source_url, repo_dir, branch=branch, commit_sha=commit_sha)
-
         if not os.path.exists(repo_dir):
             print(f"Git package {package} could not be installed.")
             return
-
         settings_file = os.path.join(repo_dir, "settings.json")
         is_brick = os.path.exists(settings_file)
         if is_brick:
@@ -182,10 +223,10 @@ class GPM():
         except:
             return False
 
-    def read_env(self) -> dict:
+    def read_config(self) -> dict:
         with open(self.settings_file_path, 'r') as f:
             try:
-                return json.load(f).get("environment")
+                return json.load(f)
             except Exception as err:
                 raise Exception("Cannot parse the config file. Please check file config file.") from err
         raise Exception("Cannot open the config file")
@@ -203,11 +244,13 @@ def install(ctx, test=False, rm=False):
         GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "./tests/config.json")
         gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH)
         gpm.install()
+        gpm.install_main()
         if rm:
             shutil.rmtree(GPM.USER_WORKSPACE_DIR)
     else:
         gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH)
         gpm.install()
+        gpm.install_main()
 
 if __name__ == "__main__":
     install()
