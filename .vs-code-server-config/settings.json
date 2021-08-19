@@ -1,4 +1,9 @@
 {
     "extensions.autoCheckUpdates": false,
-    "extensions.autoUpdate": false
+    "extensions.autoUpdate": false,
+    "workbench.editor.enablePreview": false,
+    "git.ignoreMissingGitWarning": true,
+    "diffEditor.ignoreTrimWhitespace": false,
+    "workbench.editor.revealIfOpen": true,
+    "editor.minimap.enabled": false
 }
