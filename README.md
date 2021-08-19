@@ -1,26 +1,15 @@
-# Dockerlab
+# Gencovery Package Manager (GPM)
 
-This repository allows deploying of gencovery docker labs
+This repository allows managing Gencovery Web Services packages. It is used to create docker images to easily deploy GLab.
 
-## Build image
+* Shell script ```gpm.sh``` is run by the docerfile entrypoint
 
-### For CPU
-* Glab Image: `docker build --tag glab-cpu --build-arg IMAGE="ubuntu:20.04" . -f ./dockerfile/glab/Dockerfile`
-* Vlab Image: `docker build --tag vlab-cpu --build-arg IMAGE="glab-cpu:latest" . -f ./dockerfile/vlab/Dockerfile`
-* Jlab Image: `docker build --tag jlab-cpu --build-arg IMAGE="glab-cpu:latest" . -f ./dockerfile/jlab/Dockerfile`
+* Python script ```gmp.py``` is called by the ```gmp.sh``` and allows pulling and intalling from Pip and Git any library decribed in an evnironment file ```config.json``` as given in folder ```tests/config.json```
 
-### For GPU
-* Glab Image: `docker build --tag glab-gpu --build-arg IMAGE="nvidia/cuda:11.2.1-runtime-ubuntu20.04" . -f ./dockerfile/glab/Dockerfile`
-* Vlab Image: `docker build --tag vlab-gpu --build-arg IMAGE="glab-gpu:latest" . -f ./dockerfile/vlab/Dockerfile`
-* Jlab Image: `docker build --tag jlab-gpu --build-arg IMAGE="glab-gpu:latest" . -f ./dockerfile/jlab/Dockerfile`
+## Testing
 
-## Start dockers using gpm image
-
-To start all docker containers: `bash run.sh`
-
-## Set environment variables
-
-To only set environment variables only : `bash env.sh`
+For testing ```gmp.py``` module, use ```python3 gmp.py --test```.
+Use ```python3 gmp.py --test --rm``` to test and remove testing files.
 
 
 

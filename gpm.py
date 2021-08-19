@@ -3,20 +3,17 @@
 # The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
 # About us: https://gencovery.com
 
-import click
-import git
 import os
-import sys
-import json
-import requests
-import json
-import subprocess
 import shutil
-import pip
-import urllib
+import git
+import subprocess
 import re
+import json
+import urllib
 import glob
-from cryptography.fernet import Fernet
+import time
+import gpm_credentials # @ToDo: remove gpm_credentials later
+import click
 
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
 
@@ -30,413 +27,187 @@ class GPM():
     """
     Package manager
     """
-    config = []
+    USER_WORKSPACE_DIR = "/lab/user/"
+    CONFIG_FILE_PATH = "/conf/config.json"
 
-    def __init__(self, core_workspace, user_workspace, shallow=True):
-        self._read_config()
-        self.config["core_workspace"] = core_workspace
-        self.config["user_workspace"] = user_workspace
-        self.config["shallow"] = self.config.get("shallow", shallow)
+    def __init__(self, settings_file_path):
+        self.settings_file_path = settings_file_path
+        self.env = self.read_env()
 
-    # -- C -- 
+    # -- F --
 
-    def create_wks_dirs(self, workspace, skip_main = False):
-        for k in self.__structure:
-            if k == "main" and skip_main:
-                continue
-
-            d = os.path.join(workspace, k)
-            if not os.path.exists(d):
-                os.makedirs(d)
-            #else:
-            #    print(f"Path {d} already exists")
-
-    # -- D --
-
-    def decrypt_message(self, encrypted_message):
-        """
-        Decrypts an encrypted message
-        """
-        key = self.load_key()
-        f = Fernet(key)
-        decrypted_message = f.decrypt(encrypted_message.encode())
-        return decrypted_message.decode()
-
-    # -- E --
-
-    def encrypt_message(self, message):
-        """
-        Encrypts a message
-        """
-        if not os.path.exists(self.__public_key_file_path):
-            self.generate_key()
-
-        key = self.load_key()
-        encoded_message = message.encode()
-        f = Fernet(key)
-        encrypted_message = f.encrypt(encoded_message)
-        return encrypted_message.decode()
+    def format_url( self, string: str ) -> str:
+        if not string:
+            return string
+        variables = self.env.get("variables",{})
+        tab = re.findall(r"\$[A-Za-z_]*", string)
+        for token in tab:
+            token = token[1:]
+            value = os.getenv(token)
+            if not value:
+                value = variables.get(token)
+                # @ToDo: remove gpm_credentials later
+                if not value:
+                    if token == "GWS_GIT_LOGIN":
+                        value = gpm_credentials.CREDENTIALS.get_git_credentials()[0]
+                    if token == "GWS_GIT_PWD":
+                        value = gpm_credentials.CREDENTIALS.get_git_credentials()[1]
+            if value:
+                string = string.replace("$"+token, value)        
+        return string
 
     # -- G --
 
-    def get_core_workspace(self):
-        if "core_workspace" in self.config:
-            return self.config["core_workspace"]
+    def git_clone(self, url, dest_dir, branch=None, commit_sha=None):
+        print(f"Cloning git repository {url} ... ")
+        url = self.format_url(url)
+        cmd = ["git", "clone", "--depth", "1", "--no-single-branch", url, dest_dir]
+        OK = GPM.run_proc(cmd, cwd=dest_dir)
+        nb_retry = 0
+        while not OK:
+            print(f"Waiting 3 secs and retry ...")
+            time.sleep(3)
+            OK = GPM.run_proc(cmd, cwd=dest_dir)
+            nb_retry += 1
+            if nb_retry >= 3:
+                print(f"Failed!")
+                return False
+        
+        if branch:
+            cmd = ["git", "checkout", branch]
+            if commit_sha:
+                cmd = [*cmd, commit_sha]
+            return GPM.run_proc(cmd, cwd=dest_dir)
         else:
-            return ""
+            return True
 
-    def get_user_workspace(self):
-        if "user_workspace" in self.config:
-            return self.config["user_workspace"]
-        else:
-            return ""
-
-    def get_repo_dir(self, repo_name):
-        file_path = os.path.join(self.get_core_workspace(), "bricks", repo_name)
-        if os.path.exists(file_path):
-            return file_path, "brick", "core"
-
-        file_path = os.path.join(self.get_core_workspace(), "externs", repo_name)
-        if os.path.exists(file_path):
-            return file_path, "externs", "core"
-
-        file_path = os.path.join(self.get_user_workspace(), "bricks", repo_name)
-        if os.path.exists(file_path):
-            return file_path, "brick", "user"
-
-        file_path = os.path.join(self.get_user_workspace(), "externs", repo_name)
-        if os.path.exists(file_path):
-            return file_path, "externs", "user"
-
-        return None, None, None
-
-    def generate_key(self):
-        """
-        Generates a key and save it into a file
-        """
-        key = Fernet.generate_key()
-        with open(self.__public_key_file_path, "wb") as f:
-            f.write(key)
+    def git_pull(self, url, dest_dir, branch=None, commit_sha=None):
+        print(f"Pulling git repository {url} ... ", end="")
+        url = self.format_url(url)
+        if branch:
+            cmd = ["git", "checkout", branch]
+            if commit_sha:
+                cmd = [*cmd, commit_sha]
+            GPM.run_proc(cmd, cwd=dest_dir)
+        cmd = ["git", "pull", url]
+        OK = GPM.run_proc(cmd, cwd=dest_dir)
+        print("Done!")
+        return OK
 
     # -- I --
 
-    def is_ready(self) -> bool:
-        return os.path.exists(self.__config_file_path)
+    def install(self):
+        # install pip
+        for dep in self.env.get("pip",[]):
+            source_url = dep.get("source")
+            packages = dep.get("packages")
+            self.install_through_pip(packages, source_url=source_url)
+        # install git
+        for dep in self.env.get("git",[]):
+            source_url = dep.get("source").strip("/")
+            packages = dep.get("packages")
+            for package in dep.get("packages"):
+                self.install_through_git(package, source_url)
 
-    def install_core(self):
-        self.__is_pulled = []
-        if self.get_core_workspace().startswith("/"):
-            self.create_wks_dirs(self.get_core_workspace(), skip_main=True)
-            repos = self.get_core_bricks()
-            if not repos:
-                repos = { "biox": "DEFAULT_ORIGIN" }
-            self.pull(self.get_core_workspace(), repos=repos)
-            #copy notebooks files
-            src_files = glob.glob(os.path.join(__cdir__, "./ipynb/**"))
-            dest_dir = os.path.join(self.get_core_workspace(), "./notebooks")
-            for src in src_files:
-                dst = os.path.join(dest_dir, src.split("/")[-1])
-                shutil.copy2(src, dst)
+    def install_through_pip(self, packages: list, source_url=None):
+        print(f"Installing Pip packages ...")
+        if not packages:
+            return
+        source_url = self.format_url(source_url)
+        cmd = ["python3", "-m", "pip", "install", *packages]
+        if source_url:
+            cmd = [*cmd, "--extra-index-url", source_url]
+        GPM.run_proc(cmd)
+        
+    def install_through_git(self, package, source_url):
+        print(f"Installing Git package {package} ...")
+        bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks")
+        externs_dir = os.path.join(self.USER_WORKSPACE_DIR, "externs")
+        repo, commit_sha, branch = self.parse_git_package(package)
+        repo_dir = os.path.join(bricks_dir, repo)
+        source_url = f"{source_url}/{repo}.git"
 
-    def install_user(self):
-        self.__is_pulled = []
-        if self.get_user_workspace().startswith("/"):
-            self.create_wks_dirs(self.get_user_workspace(), skip_main=False)
-            repos = { 
-                "skeleton": "DEFAULT_ORIGIN",
-                **self.get_user_bricks()
-            }
-            self.pull(self.get_user_workspace(), repos=repos)
-            self._install_user_main()
-            #copy notebooks files
-            src_files = glob.glob(os.path.join(__cdir__, "./ipynb/**"))
-            dest_dir = os.path.join(self.get_user_workspace(), "./notebooks")
-            for src in src_files:
-                dst = os.path.join(dest_dir, src.split("/")[-1])
-                shutil.copy2(src, dst)
-
-    def _install_user_main(self):
-        skeleton_dir = os.path.join(self.get_user_workspace(), "bricks", "skeleton")
-        dest_dir = os.path.join(self.get_user_workspace(), "main", self.lab_name)
-        if os.path.exists(dest_dir):
-            shutil.rmtree(dest_dir, ignore_errors=True)
-
-        shutil.copytree(
-            skeleton_dir, 
-            dest_dir
-        )
-        # rename module
-        shutil.move(
-            os.path.join(dest_dir, "skeleton"), 
-            os.path.join(dest_dir, self.lab_name)
-        )
-        # remove .git folder
-        shutil.rmtree(os.path.join(dest_dir, ".git"))
-
-        # update settings.json
-        settings_file = os.path.join(dest_dir, "settings.json")
-        with open(settings_file, 'r') as f:
-            settings = json.load(f)
-            settings["name"]                = self.config["lab"].get("name", "main")
-            settings["uri"]                 = self.config["lab"].get("uri", "")
-            settings["token"]               = self.config["lab"].get("token", "")
-            settings["work_dir"]            = self.config["lab"].get("work_dir", "")
-            settings["host"]                = self.config["lab"].get("host", "0.0.0.0")
-            settings["virtual_host"]        = self.config["lab"].get("virtual_host", "lab.test.gencovery.io")
-
-            settings["owner"]                = {}
-            settings["owner"]["uri"]         = self.config["lab"]["owner"].get("uri", "")
-            settings["owner"]["email"]       = self.config["lab"]["owner"].get("email", "admin@gencovery.com")
-            settings["owner"]["first_name"]  = self.config["lab"]["owner"].get("first_name", "Owner")
-            settings["owner"]["last_name"]   = self.config["lab"]["owner"].get("last_name", "")
-            
-            settings["admin"]                = {}
-            settings["admin"]["uri"]         = self.config["lab"]["admin"].get("uri", "")
-            settings["admin"]["email"]       = self.config["lab"]["admin"].get("email", "admin@gencovery.com")
-            settings["admin"]["first_name"]  = self.config["lab"]["owner"].get("first_name", "Admin")
-            settings["admin"]["last_name"]   = self.config["lab"]["owner"].get("last_name", "")
-
-            settings["central"]             = {}
-            settings["central"]["api_key"]  = self.config.get("central",{}).get("api_key", "")
-            settings["central"]["api_url"]  = self.config.get("central",{}).get("api_url", "")
-
-            dep = {}
-            dep.update(self.config.get("dependencies",{}).get("core",{}))
-            dep.update(self.config.get("dependencies",{}).get("user",{}))
-            settings["dependencies"] = dep
-
-        with open(settings_file, 'w') as f:
-            json.dump(settings, f, indent=4)
-
-        #replace all words 'skeleton' in settings.json
-        with open(settings_file, 'r') as f:
-            text = f.read()
-            text = text.replace("skeleton", self.lab_name)
-
-        with open(settings_file, 'w') as f:
-            f.write(text)
-
-        #replace all words 'skeleton' in app.py
-        app_file = os.path.join(dest_dir, self.lab_name, "./app.py")
-        with open(app_file, 'r') as f:
-            text = f.read()
-            text = text.replace("skeleton", self.lab_name)
-
-        with open(app_file, 'w') as f:
-            f.write(text)
-
-    def read_repo_type(self, repo_dir="", repo_name=""):
-        if repo_dir != "":
-            settings_file = os.path.join(repo_dir, "./settings.json")
-        elif repo_name != "":
-            repo_dir = self.get_repo_dir(repo_name)
-            settings_file = os.path.join(repo_dir, "./settings.json")
+        was_in_brick_dir = os.path.exists(repo_dir)
+        if was_in_brick_dir:
+            self.git_pull(source_url, repo_dir, branch=branch, commit_sha=commit_sha) 
         else:
-            raise Exception("The repo_name or repo_dir is required")
+            extern_repo_dir = os.path.join(externs_dir, repo)
+            was_in_externs_dir = os.path.exists(extern_repo_dir)
+            if was_in_externs_dir:
+                self.git_pull(source_url, extern_repo_dir, branch=branch, commit_sha=commit_sha)
+                return
+            else:
+                self.git_clone(source_url, repo_dir, branch=branch, commit_sha=commit_sha)
 
-        if os.path.exists(settings_file):
-            with open(settings_file) as f:
-                try:
-                    settings = json.load(f)
-                    #is_lab = settings.get("type", None) == "lab"
-                    #if is_lab:
-                    #    return "lab"
-                    #else:
-                    if not settings.get("name", None) is None:
-                        return  "brick"
-                except:
-                    return "extern"
+        if not os.path.exists(repo_dir):
+            print(f"Git package {package} could not be installed.")
+            return
+
+        settings_file = os.path.join(repo_dir, "settings.json")
+        is_brick = os.path.exists(settings_file)
+        if is_brick:
+            print(f"Following dependendies of {package} ...")
+            gpm = GPM(settings_file_path=os.path.join(bricks_dir, repo, "settings.json"))
+            gpm.install()
         else:
-            return "extern"
+            print(f"Moving external library {package} to externs dir ... ", end="")
+            if not os.path.exists(externs_dir):
+                os.makedirs(externs_dir)
+            shutil.move(repo_dir, externs_dir)
+            print("Done!")
 
-    # -- L --
+    # -- P --
 
-    def load_key(self):
-        """
-        Load the previously generated key
-        """
-        return open(self.__public_key_file_path, "rb").read()
-
-    @property
-    def lab_name(self):
-        return self.config["lab"].get("name", "main")
+    def parse_git_package(self, string: str) -> str:
+        tab = re.findall(r"\[.+\]$", string)
+        if tab:
+            string = string.replace(tab[0], "")
+            commit_sha = re.match(r".*(c|commit)\s*=\s*([A-Za-z0-9]+).*", tab[0])[2]
+            branch = re.match(r".*(b|branch)\s*=\s*([A-Za-z0-9]+).*", tab[0])[2]
+            if commit_sha == "latest":
+                commit_sha = None
+            return string, commit_sha, branch
+        return string, None, None
 
     # -- R --
 
-    def _read_config(self):
-        with open( self.__config_file_path, 'r') as f:
+    @staticmethod
+    def run_proc(cmd, cwd=None) -> bool:
+        if cwd:
+            if not os.path.exists(cwd):
+                os.makedirs(cwd)
+        try:
+            subprocess.check_call(cmd, stdout=subprocess.DEVNULL, cwd=cwd)
+            return True
+        except:
+            return False
+
+    def read_env(self) -> dict:
+        with open(self.settings_file_path, 'r') as f:
             try:
-                self.config = json.load(f)
-                return
+                return json.load(f).get("environment")
             except Exception as err:
                 raise Exception("Cannot parse the config file. Please check file config file.") from err
         raise Exception("Cannot open the config file")
     
-    # -- P -- 
-
-    def get_core_bricks(self) -> dict:
-        return self.config["dependencies"].get("core",{})
-    
-    def get_user_bricks(self) -> dict:
-        return self.config["dependencies"].get("user", {})
-
-    def pull(self, workspace_dir, repos={}):
-        git_user = None
-        git_pwd = None
-
-        def _get_git_credentials():
-            if os.path.exists(self.__public_file):
-                with open(self.__public_file, 'r') as f:
-                    private = json.load(f)
-            else:
-                raise Exception(f"File {self.__public_file} not found")
-            git_user = private["git"]["login"]
-            git_pwd = private["git"]["credentials"]
-            if not git_pwd:
-                raise Exception("The invalid git password")
-            elif len(git_pwd) < 64:
-                git_pwd = self.encrypt_message(git_pwd)
-                private["git"]["credentials"] = git_pwd
-                with open(self.__public_file, 'w') as f:
-                    json.dump(private, f, indent=4)
-            else:
-                git_pwd = self.decrypt_message(git_pwd)
-            git_pwd = urllib.parse.quote(git_pwd)
-            return git_user, git_pwd
-        git_user, git_pwd = _get_git_credentials()
-
-        for repo_name in repos:
-            origin = repos[repo_name]
-            if origin == self.__default_git_origin_token:
-                origin = self.__default_git_origin.strip("/") + "/" + repo_name + ".git"
-                self._pull_repo(workspace_dir, repo_name, origin, user=git_user, pwd=git_pwd)
-            else:
-                self._pull_repo(workspace_dir, repo_name, origin)
-            
-            self.__is_pulled.append(repo_name)
-
-            # pull sub repos
-            repo_dir, _, _ = self.get_repo_dir(repo_name)
-            settings_file = os.path.join(repo_dir, "./settings.json")
-            if os.path.exists(settings_file):
-                with open(settings_file) as f:
-                    try:
-                        settings = json.load(f)
-                        deps = settings.get("dependencies",{})
-                        deps.update(settings.get("externs",{}))
-                        for name in deps:
-                            is_already_pulled = (name in self.__is_pulled)
-                            origin = deps[name]
-                            if not is_already_pulled:
-                                self.pull(workspace_dir, repos={name: origin})
-                    except:
-                        pass
-
-    def _pull_repo(self, workspace_dir, repo_name, origin, user=None, pwd=None):
-
-        if user:
-            url = origin.strip("/")
-            tab = url.split("://")
-            if pwd:
-                url = f"{tab[0]}://{user}:{pwd}@{tab[1]}"
-            else:
-                url = f"{tab[0]}://{user}@{tab[1]}"
-        else:
-            url = origin.strip("/")
-        
-        repo_dir, repo_type, _ = self.get_repo_dir(repo_name)
-        already_exists = not repo_dir is None
-        if already_exists:
-            print(f"Git update {repo_type} {repo_name} (in {repo_dir}) from {origin}")
-            git_repo = git.Repo(repo_dir)
-            o = git_repo.remotes.origin
-            saved_url = o.url
-            o.set_url(url)
-            o.pull()
-            o.set_url(saved_url)
-        else:
-            print(f"Git clone {repo_name} from {tab[0]}://{tab[1]}")
-            tmp_repo_dir = os.path.join(workspace_dir, "tmp", repo_name)
-            if self.config["git"]["shallow"]:
-                git_kwargs = {
-                    "depth": 1,
-                    "shallow_submodules": True
-                }
-            else:
-                git_kwargs = {}
-
-            git.Repo.clone_from(
-                url, 
-                tmp_repo_dir, 
-                **git_kwargs
-            )
-
-            repo_type = self.read_repo_type(repo_dir=tmp_repo_dir)
-            if repo_type == "brick":
-                repo_dir = os.path.join(workspace_dir, "bricks", repo_name)
-            elif repo_type == "lab":
-                repo_dir = os.path.join(workspace_dir, "main", repo_name)
-            else:
-                repo_dir = os.path.join(workspace_dir, "externs", repo_name)
-
-            shutil.move(tmp_repo_dir, repo_dir)
-            git_repo = git.Repo(repo_dir)
-
-            # SECURITY - remove user:pwd from repo url
-            try:
-                o = git_repo.remotes.origin
-                url = re.sub(r"(.*\:\/\/)((.*)?\:?(.*)?@)?(.+)", r"\1\5", o.url)
-                o.set_url(url)
-            except:
-                pass
-        try:
-            #set submodules pwd
-            for sub in git_repo.submodules:
-                sub_url = sub.config_reader().get_value("url")
-                tab = re.split("://(.+@)?", sub_url)                
-                sub_url = f"{tab[0]}://{user}:{pwd}@{tab[2]}" #tab[1] contains hypothetical "login"
-                sub.config_writer().set_value("url", sub_url).release()
-                print(f"Getting submodule {tab[0]}://{tab[2]}")
-
-            #pull submodules
-            git_repo.submodule_update(recursive=True)
-
-            #restore submodule urls
-            for sub in git_repo.submodules:
-                sub_url = sub.config_reader().get_value("url")
-                tab = re.split("://(.+@)?", sub_url)
-                sub_url = f"{tab[0]}://{tab[2]}"   #tab[1] containt hypothetical "login"
-                sub.config_writer().set_value("url", sub_url).release()
-        except:
-            pass
-
-    # -- R --
-
-    def repo_exists(self, repo_name):
-        _repo_dir, _, _ = self.get_repo_dir(repo_name)
-        return not _repo_dir is None
-
-    # -- S --
-
-    # -- U --
-
-    # -- W --
-
-    __is_pulled = []
-    __config_file_path = "/app/conf/config.json"
-    __public_key_file_path = os.path.join(__cdir__,".key.pub")
-    __public_file = os.path.join(__cdir__,".public.json")
-    __default_git_origin = "https://gitlab.com/gencovery/"
-    __default_git_origin_token = "DEFAULT_ORIGIN"
-    __structure = ["./bricks", "./main", "./externs", "./notebooks", "./tmp"]
+@click.command(context_settings=dict(
+    ignore_unknown_options=True,
+    allow_extra_args=True
+))
+@click.pass_context
+@click.option('--test', is_flag=True, help='Test gmp')
+@click.option('--rm', is_flag=True, help='Remove files after testing')
+def install(ctx, test=False, rm=False):
+    if test:
+        GPM.USER_WORKSPACE_DIR = os.path.join(__cdir__, "./tests/build")
+        GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "./tests/config.json")
+        gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH)
+        gpm.install()
+        if rm:
+            shutil.rmtree(GPM.USER_WORKSPACE_DIR)
+    else:
+        gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH)
+        gpm.install()
 
 if __name__ == "__main__":
-    g = GPM(
-        core_workspace="/lab/.core",
-        user_workspace="/lab/user",
-        shallow=True
-    )
-    
-    if g.is_ready():
-        g.install_core()
-        g.install_user()
+    install()

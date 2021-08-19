@@ -20,11 +20,8 @@ done
 touch "/lab/LAB_UPGRADE_IN_PROGRESS"
 
 # pull all git repo
-if [ -f "/gpm/gpm.py" ]; then
-    python3 "/gpm/gpm.py"
-elif [ -f "gpm.py" ]; then
-    python3 gpm.py
-fi
+#GWS_GIT_LOGIN=astroboygencovery && GWS_GIT_PWD=IamTheSuperRobotAtGencoverySince2020 && python3 /gpm/gpm.py
+python3 /gpm/gpm.py
 
 rm "/lab/LAB_UPGRADE_IN_PROGRESS"
 

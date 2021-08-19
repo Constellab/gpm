@@ -18,7 +18,7 @@ def activate( brick = "main" ):
                     sys.path.append(abs_gws_path)
                     return True
 
-        is_set =  set_path("./.core/bricks/gws") or set_path("./core/bricks/gws")
+        is_set =  set_path("./user/bricks/gws") or set_path("./core/bricks/gws")
         if not is_set:
             raise Exception("Cannot find the base gws brick")
     
