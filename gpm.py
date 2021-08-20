@@ -15,8 +15,6 @@ import time
 import gpm_credentials # @ToDo: remove gpm_credentials later
 import click
 
-__cdir__ = os.path.dirname(os.path.abspath(__file__))
-
 # ####################################################################
 #
 # GPM class
@@ -27,6 +25,7 @@ class GPM():
     """
     Package manager
     """
+    LAB_WORKSPACE_DIR = "/lab/"
     USER_WORKSPACE_DIR = "/lab/user/"
     CONFIG_FILE_PATH = "/conf/config.json"
 
@@ -160,7 +159,7 @@ class GPM():
         
     def install_through_git(self, package, source_url):
         bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks")
-        externs_dir = os.path.join(self.USER_WORKSPACE_DIR, "externs")
+        externs_dir = os.path.join(self.LAB_WORKSPACE_DIR, ".externs")
         repo, commit_sha, branch = self.parse_git_package(package)
         repo_dir = os.path.join(bricks_dir, repo)
         source_url = f"{source_url}/{repo}.git"
@@ -230,17 +229,19 @@ class GPM():
     allow_extra_args=True
 ))
 @click.pass_context
-@click.option('--test', is_flag=True, help='Test gmp')
+@click.option('--test', is_flag=True, help='Run tests')
 @click.option('--rm', is_flag=True, help='Remove files after testing')
 def install(ctx, test=False, rm=False):
     if test:
-        GPM.USER_WORKSPACE_DIR = os.path.join(__cdir__, "./tests/build")
+        __cdir__ = os.path.dirname(os.path.abspath(__file__))
+        GPM.LAB_WORKSPACE_DIR = os.path.join(__cdir__, "./tests/build/lab")
+        GPM.USER_WORKSPACE_DIR = os.path.join(__cdir__, "./tests/build/lab/user")
         GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "./tests/config.json")
         gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH)
         gpm.install()
         gpm.install_main()
         if rm:
-            shutil.rmtree(GPM.USER_WORKSPACE_DIR)
+            shutil.rmtree(GPM.LAB_WORKSPACE_DIR)
     else:
         gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH)
         gpm.install()
