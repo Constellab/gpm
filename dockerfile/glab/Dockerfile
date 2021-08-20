@@ -60,6 +60,7 @@ RUN python3 -m pip install twine && \
     python3 -m pip install GitPython && \
     python3 -m pip install psutil && \
     python3 -m pip install pymysql mysql-connector
+    #&& python3 -m pip install python-swiftclient
 
 # install biota dependencies
 RUN python3 -m pip install biopython
