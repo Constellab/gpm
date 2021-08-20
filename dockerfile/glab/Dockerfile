@@ -49,18 +49,17 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}
     
 # install gws dependencies
 RUN python3 -m pip install twine && \
-    python3 -m pip install peewee fastapi uvicorn starlette-context && \
+    python3 -m pip install peewee fastapi uvicorn starlette-context itsdangerous && \
     python3 -m pip install sphinx sphinx-rtd-theme rinohtype && \
     python3 -m pip install passlib && \
     python3 -m pip install python-multipart && \
     python3 -m pip install aiofiles && \
     python3 -m pip install pyjwt && \
-    python3 -m pip install itsdangerous && \
     python3 -m pip install awesome-slugify && \
-    python3 -m pip install click && \
+    python3 -m pip install click requests cryptography && \
+    python3 -m pip install GitPython && \
     python3 -m pip install psutil && \
     python3 -m pip install pymysql mysql-connector && \
-    python3 -m pip install pylint mypy 
     #&& \
     #python3 -m pip install python-swiftclient
 
@@ -70,9 +69,7 @@ RUN python3 -m pip install biopython
 # install gaia dependencies
 RUN python3 -m pip install tensorflow && \
     python3 -m pip install torch torchvision torchaudio && \
-    python3 -m pip install numpy && \
-    python3 -m pip install pandas && \
-    python3 -m pip install matplotlib && \
+    python3 -m pip install numpy pandas matplotlib && \
     python3 -m pip install scipy>=1.7.0 && \
     python3 -m pip install scikit-learn && \
     python3 -m pip install xlrd>=1.0.0 && \

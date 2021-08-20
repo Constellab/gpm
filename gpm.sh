@@ -1,10 +1,5 @@
 #!/bin/bash
 
-python3 -m pip install GitPython 
-python3 -m pip install requests 
-python3 -m pip install click 
-python3 -m pip install cryptography 
-
 # pull all git repo
 #GWS_GIT_LOGIN=astroboygencovery && GWS_GIT_PWD=IamTheSuperRobotAtGencoverySince2020 && python3 /gpm/gpm.py
 python3 /gpm/gpm.py
