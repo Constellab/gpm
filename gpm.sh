@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # pull all git repo
-#GWS_GIT_LOGIN=astroboygencovery && GWS_GIT_PWD=IamTheSuperRobotAtGencoverySince2020 && python3 /gpm/gpm.py
+#GWS_GIT_LOGIN=xxx && GWS_GIT_PWD=xxx && python3 /gpm/gpm.py
 python3 /gpm/gpm.py
 
 # install ubuntu packages
