@@ -5,25 +5,10 @@ python3 -m pip install requests
 python3 -m pip install click 
 python3 -m pip install cryptography 
 
-if [ "$LAB_IS_MASTER" == "0" ]; then 
-    # sleep 10 secs to let the piority to another process
-    sleep 10
-fi
-
-n=1
-while [ -f "/lab/LAB_UPGRADE_IN_PROGRESS" ] && [ $n -le 30 ]; do
-    echo "$n/30 - A lab upgrade is already in progress. Sleep 10 secs ..."
-    sleep 10
-    n=$(( $n + 1 ))
-done
-
-touch "/lab/LAB_UPGRADE_IN_PROGRESS"
 
 # pull all git repo
 #GWS_GIT_LOGIN=astroboygencovery && GWS_GIT_PWD=IamTheSuperRobotAtGencoverySince2020 && python3 /gpm/gpm.py
 python3 /gpm/gpm.py
-
-rm "/lab/LAB_UPGRADE_IN_PROGRESS"
 
 # install ubuntu packages
 for wks in ".core" "user"; do

@@ -38,7 +38,6 @@ RUN code-server --install-extension ms-toolsai.jupyter && \
     code-server --install-extension ./ms-python-release.vsix || true && \
     code-server --install-extension mhutchie.git-graph
 
-
 EXPOSE 8080
 
 COPY ./entrypoint.sh /entrypoint.sh

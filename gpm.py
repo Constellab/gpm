@@ -141,12 +141,6 @@ class GPM():
             settings["environment"]     = self.config["environment"]
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=4)
-        # replace all words 'skeleton' in settings.json
-        with open(settings_file, 'r') as f:
-            text = f.read()
-            text = text.replace("skeleton", self.config["name"])
-        with open(settings_file, 'w') as f:
-            f.write(text)
         # replace all words 'skeleton' in app.py
         app_file = os.path.join(dest_dir, "src", self.config["name"], "./app.py")
         with open(app_file, 'r') as f:

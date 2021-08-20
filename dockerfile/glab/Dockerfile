@@ -60,8 +60,9 @@ RUN python3 -m pip install twine && \
     python3 -m pip install click && \
     python3 -m pip install psutil && \
     python3 -m pip install pymysql mysql-connector && \
-    python3 -m pip install pylint mypy && \
-    python3 -m pip install python-swiftclient
+    python3 -m pip install pylint mypy 
+    #&& \
+    #python3 -m pip install python-swiftclient
 
 # install biota dependencies
 RUN python3 -m pip install biopython
@@ -79,8 +80,7 @@ RUN python3 -m pip install tensorflow && \
     python3 -m pip install cvxpy
 
 # other installs (R, mariadb-client, etc.)
-RUN apt-get -y install r-base && \
-    apt-get -y install mariadb-client
+RUN apt-get -y install mariadb-client
 
 EXPOSE 3000
 

@@ -5,7 +5,7 @@
     "app_dir": "/app",
     "virtual_host": "test.gencovery.io",
     "uri": "91620768-2cdd-11eb-adc1-0242ac120002",
-    "token": "Tf5R6MCrJy8cD66b4D9kr2Bfod5E5XAT4ia4r5HU56eER4NPPeLDMVqjL7Qqi6XMDHY8uqGSMcDDXKcLX3b65kPUkdKsXg5T6",
+    "token": "JSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq24",
     "variables": {
         "gws_biota:sqlite3db_url": "https://share.gencovery.com/s/Eo34Y8sxgqSdSMz/download",
         "gws_biota:mariadb_url": "",
