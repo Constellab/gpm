@@ -80,15 +80,14 @@ class GPM():
         else:
             return True
 
-    def git_pull(self, url, dest_dir, branch=None, commit_sha=None):
-        print(f"Pulling git repository {url} ... ", end="")
-        url = self.format_url(url)
+    def git_pull(self, dest_dir, branch=None, commit_sha=None):
+        print(f"Pulling git repository {dest_dir} ... ")
         if branch:
             cmd = ["git", "checkout", branch]
             if commit_sha:
                 cmd = [*cmd, commit_sha]
             GPM.run_proc(cmd, cwd=dest_dir)
-        cmd = ["git", "pull", url]
+        cmd = ["git", "pull"]
         OK = GPM.run_proc(cmd, cwd=dest_dir)
         print("Done!")
         return OK
@@ -162,17 +161,17 @@ class GPM():
         externs_dir = os.path.join(self.LAB_WORKSPACE_DIR, ".externs")
         repo, commit_sha, branch = self.parse_git_package(package)
         repo_dir = os.path.join(bricks_dir, repo)
-        source_url = f"{source_url}/{repo}.git"
         was_in_brick_dir = os.path.exists(repo_dir)
         if was_in_brick_dir:
-            self.git_pull(source_url, repo_dir, branch=branch, commit_sha=commit_sha) 
+            self.git_pull(repo_dir, branch=branch, commit_sha=commit_sha) 
         else:
             extern_repo_dir = os.path.join(externs_dir, repo)
             was_in_externs_dir = os.path.exists(extern_repo_dir)
             if was_in_externs_dir:
-                self.git_pull(source_url, extern_repo_dir, branch=branch, commit_sha=commit_sha)
+                self.git_pull(extern_repo_dir, branch=branch, commit_sha=commit_sha)
                 return
             else:
+                source_url = f"{source_url}/{repo}.git"
                 self.git_clone(source_url, repo_dir, branch=branch, commit_sha=commit_sha)
         if not os.path.exists(repo_dir):
             print(f"Git package {package} could not be installed.")
