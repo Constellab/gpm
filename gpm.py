@@ -140,11 +140,19 @@ class GPM():
         with open(settings_file, 'w') as f:
             json.dump(settings, f, indent=4)
         # replace all words 'skeleton' in app.py
-        app_file = os.path.join(dest_dir, "src", self.config["name"], "./app.py")
-        with open(app_file, 'r') as f:
+        file_path = os.path.join(dest_dir, "src", self.config["name"], "./app.py")
+        with open(file_path, 'r') as f:
             text = f.read()
             text = text.replace("skeleton", self.config["name"])
-        with open(app_file, 'w') as f:
+        with open(file_path, 'w') as f:
+            f.write(text)
+        # replace all words 'skeleton' in README.md
+        file_path = os.path.join(dest_dir, "./README.md")
+        with open(file_path, 'r') as f:
+            text = f.read()
+            text = text.replace("skeleton", self.config["name"])
+            text = text.replace("Skeleton", self.config["name"].title())
+        with open(file_path, 'w') as f:
             f.write(text)
     
     def install_through_pip(self, packages: list, source_url=None):
