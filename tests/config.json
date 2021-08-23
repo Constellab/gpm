@@ -25,7 +25,7 @@
         ],
         "git":[
             {
-                "source": "https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/",
+                "source": "https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core",
                 "packages":[
                     "gws_gena[commit=latest, branch=djo]",
                     "skeleton[commit=latest, branch=master]"
