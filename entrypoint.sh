@@ -6,7 +6,7 @@ if [ "$1" == "--run-glab" ]; then
     # gws lab
     # default port=3000, ip=0.0.0.0
     bash "/gpm/gpm.sh" 
-    exec python3 "/lab/user/main/manage.py" --uri $LAB_URI --token $LAB_TOKEN --runserver --runmode $LAB_MODE
+    exec python3 "/lab/.sys/app/manage.py" --uri $LAB_URI --token $LAB_TOKEN --runserver --runmode $LAB_MODE
 elif [ "$1" == "--run-jlab" ]; then
     # jupyter lab
     bash "/gpm/gpm.sh"

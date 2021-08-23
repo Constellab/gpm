@@ -26,12 +26,13 @@ class GPM():
     Package manager
     """
     LAB_WORKSPACE_DIR = "/lab/"
-    USER_WORKSPACE_DIR = "/lab/user/"
     CONFIG_FILE_PATH = "/conf/config.json"
 
     def __init__(self, settings_file_path):
         self.settings_file_path = settings_file_path
         self.config = self.read_config()
+        self.SYS_WORKSPACE_DIR = os.path.join(self.LAB_WORKSPACE_DIR, ".sys")
+        self.USER_WORKSPACE_DIR = os.path.join(self.LAB_WORKSPACE_DIR, "user")
 
     # -- F --
 
@@ -42,15 +43,18 @@ class GPM():
         tab = re.findall(r"\$[A-Za-z_]*", string)
         for token in tab:
             token = token[1:]
-            value = os.getenv(token)
+            # search for values in local variable first
+            value = variables.get(token)
             if not value:
-                value = variables.get(token)
-                # @ToDo: remove gpm_credentials later
+                # search for values in global environment
+                value = os.getenv(token)
+                # special case (git crendetials encrypted here!)
                 if not value:
                     if token == "GWS_GIT_LOGIN":
                         value = gpm_credentials.CREDENTIALS.get_git_credentials()[0]
                     if token == "GWS_GIT_PWD":
                         value = gpm_credentials.CREDENTIALS.get_git_credentials()[1]
+
             if value:
                 string = string.replace("$"+token, value)        
         return string
@@ -110,8 +114,8 @@ class GPM():
             for package in channel.get("packages"):
                 self.install_through_git(package, source_url)
 
-    def install_main(self):
-        dest_dir = os.path.join(self.USER_WORKSPACE_DIR, "main")
+    def install_app_entrypoint(self):
+        dest_dir = os.path.join(self.SYS_WORKSPACE_DIR, "app")
         skeleton_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks", "skeleton")
         if not os.path.exists(skeleton_dir):
             raise Exception("The skeleton is not found")
@@ -166,7 +170,7 @@ class GPM():
         
     def install_through_git(self, package, source_url):
         bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks")
-        externs_dir = os.path.join(self.LAB_WORKSPACE_DIR, ".externs")
+        externs_dir = os.path.join(self.SYS_WORKSPACE_DIR, "lib")
         repo, commit_sha, branch = self.parse_git_package(package)
         repo_dir = os.path.join(bricks_dir, repo)
         was_in_brick_dir = os.path.exists(repo_dir)
@@ -242,17 +246,16 @@ def install(ctx, test=False, rm=False):
     if test:
         __cdir__ = os.path.dirname(os.path.abspath(__file__))
         GPM.LAB_WORKSPACE_DIR = os.path.join(__cdir__, "./tests/build/lab")
-        GPM.USER_WORKSPACE_DIR = os.path.join(__cdir__, "./tests/build/lab/user")
         GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "./tests/config.json")
         gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH)
         gpm.install()
-        gpm.install_main()
+        gpm.install_app_entrypoint()
         if rm:
             shutil.rmtree(GPM.LAB_WORKSPACE_DIR)
     else:
         gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH)
         gpm.install()
-        gpm.install_main()
+        gpm.install_app_entrypoint()
 
 if __name__ == "__main__":
     install()
