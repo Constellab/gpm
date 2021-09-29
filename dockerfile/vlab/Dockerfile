@@ -18,25 +18,22 @@ RUN python3 -m pip install jupyterlab && \
     python3 -m pip install pylint
 
 # install code-server for remote vscode
-RUN curl -fsSL https://code-server.dev/install.sh | sh && \
+RUN curl -fsSL https://code-server.dev/install.sh | sh -s -- --version=3.11.1 && \
     mkdir -p ${USER}/.local/share/code-server/ && mkdir -p ${USER}/.local/share/code-server/User
 
 # Add config for vs code
 COPY ./.vs-code-server-config/settings.json /root/.local/share/code-server/User/settings.json 
 COPY ./.vs-code-server-config/keybindings.json /root/.local/share/code-server/User/keybindings.json 
 
-# install VS code extensions : jupyter, python, git graph
-# RUN code-server --install-extension ms-toolsai.jupyter && \
-#     code-server --install-extension ms-python.python && \
-#     code-server --install-extension mhutchie.git-graph
-
-# install code-server, jupyter, python, git graph extension
-# install manually python extension version 2020.10.332292344 because higher verison have problem with code-server
-# https://github.com/cdr/code-server/issues/2341
+# install VS code extensions : jupyter v2021.6.999660014, python v 2021.8.1159798656, git graph
+# Compatible version https://github.com/cdr/code-server/issues/3874#issuecomment-923383398
 RUN code-server --install-extension ms-toolsai.jupyter && \
-    wget https://github.com/microsoft/vscode-python/releases/download/2020.10.332292344/ms-python-release.vsix && \
-    code-server --install-extension ./ms-python-release.vsix || true && \
+    wget https://storage.sbg.cloud.ovh.net/v1/AUTH_a0286631d7b24afba3f3cdebed2992aa/public/ms-toolsai-jupyter-2021.6.999660014.vsix && \
+    code-server --install-extension ./ms-toolsai-jupyter-2021.6.999660014.vsix || true && \
+    wget https://open-vsx.org/api/ms-python/python/2021.8.1159798656/file/ms-python.python-2021.8.1159798656.vsix && \
+    code-server --install-extension ./ms-python.python-2021.8.1159798656.vsix || true && \
     code-server --install-extension mhutchie.git-graph
+
 
 EXPOSE 8080
 

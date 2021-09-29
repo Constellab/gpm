@@ -7,3 +7,5 @@ utils/
 env.sh
 run.sh
 README.sh
+
+.git/
