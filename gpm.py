@@ -98,21 +98,21 @@ class GPM():
 
     # -- I --
 
-    def install(self):
+    def install_pip_and_git_packages(self):
         env = self.config.get("environment")
         # install pip packages
         print(f"Installing Pip packages ...")
         for channel in env.get("pip",[]):
             source_url = channel.get("source")
             packages = channel.get("packages")
-            self.install_through_pip(packages, source_url=source_url)
+            self._install_pip_packages(packages, source_url=source_url)
         # install git packages
         print(f"Installing Git packages ...")
         for channel in env.get("git",[]):
             source_url = channel.get("source").strip("/")
             packages = channel.get("packages")
             for package in channel.get("packages"):
-                self.install_through_git(package, source_url)
+                self._install_git_packages(package, source_url)
 
     def install_app_entrypoint(self):
         dest_dir = os.path.join(self.SYS_WORKSPACE_DIR, "app")
@@ -159,7 +159,22 @@ class GPM():
         with open(file_path, 'w') as f:
             f.write(text)
     
-    def install_through_pip(self, packages: list, source_url=None):
+    def install_notebook_entrypoint(self):
+        notebook_dir = os.path.join(self.LAB_WORKSPACE_DIR, "notebooks")
+        if os.path.exists(notebook_dir):
+            os.makedirs(notebook_dir)
+        
+        tempalate_dir = os.path.join(notebook_dir, "template")
+        if os.path.exists(tempalate_dir):
+            return
+        
+        __cdir__ = os.path.dirname(os.path.abspath(__file__))
+        shutil.copytree(
+            os.path.join(__cdir__, "notebook_template"),
+            tempalate_dir
+        )
+
+    def _install_pip_packages(self, packages: list, source_url=None):
         if not packages:
             return
         source_url = self.format_url(source_url)
@@ -168,7 +183,7 @@ class GPM():
             cmd = [*cmd, "--extra-index-url", source_url]
         GPM.run_proc(cmd)
         
-    def install_through_git(self, package, source_url):
+    def _install_git_packages(self, package, source_url):
         bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks")
         externs_dir = os.path.join(self.SYS_WORKSPACE_DIR, "lib")
         repo, commit_sha, branch = self.parse_git_package(package)
@@ -193,7 +208,7 @@ class GPM():
         if is_brick:
             print(f"Following dependendies of {package} ...")
             gpm = GPM(settings_file_path=os.path.join(bricks_dir, repo, "settings.json"))
-            gpm.install()
+            gpm.install_pip_and_git_packages()
         else:
             print(f"Moving external library {package} to externs dir ... ", end="")
             if not os.path.exists(externs_dir):
@@ -248,14 +263,16 @@ def install(ctx, test=False, rm=False):
         GPM.LAB_WORKSPACE_DIR = os.path.join(__cdir__, "./tests/build/lab")
         GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "./tests/config.json")
         gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH)
-        gpm.install()
+        gpm.install_pip_and_git_packages()
         gpm.install_app_entrypoint()
+        gpm.install_notebook_entrypoint()
         if rm:
             shutil.rmtree(GPM.LAB_WORKSPACE_DIR)
     else:
         gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH)
-        gpm.install()
+        gpm.install_pip_and_git_packages()
         gpm.install_app_entrypoint()
+        gpm.install_notebook_entrypoint()
 
 if __name__ == "__main__":
     install()

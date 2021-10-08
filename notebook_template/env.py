@@ -15,6 +15,9 @@ def activate( brick = "app" ):
             raise Exception("Cannot find the core brick")
 
     from gws_core import runner, manage
-    if __name__ == "__main__":
-        manage.load_settings("/lab/.sys/app")
-        runner.run()
+    manage.load_settings("/lab/.sys/app")
+    runner._run(
+        None,
+        log_level="INFO", 
+        show_sql=False
+    )
