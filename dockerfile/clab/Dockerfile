@@ -43,4 +43,4 @@ RUN sed -i -e 's/\r$//' /entrypoint.sh
 RUN sed -i -e 's/\r$//' /gpm/gpm.sh
 RUN chmod +x /entrypoint.sh
 ENTRYPOINT [ "/entrypoint.sh" ]
-CMD [ "--run-vlab" ]
+CMD [ "--run-clab" ]

@@ -7,12 +7,7 @@ if [ "$1" == "--run-glab" ]; then
     # default port=3000, ip=0.0.0.0
     bash "/gpm/gpm.sh" 
     exec python3 "/lab/.sys/app/manage.py" --uri $LAB_URI --token $LAB_TOKEN --runserver --runmode $LAB_MODE
-elif [ "$1" == "--run-jlab" ]; then
-    # jupyter lab
-    bash "/gpm/gpm.sh"
-    export SHELL=/bin/bash
-    exec jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --NotebookApp.iopub_data_rate_limit=1.0e10 --notebook-dir=/lab --allow-root --NotebookApp.token=$LAB_TOKEN --NotebookApp.password=
-elif [ "$1" == "--run-vlab" ]; then
+elif [ "$1" == "--run-clab" ]; then
     # vscode lab
     bash "/gpm/gpm.sh"
     export PASSWORD=${LAB_TOKEN}
