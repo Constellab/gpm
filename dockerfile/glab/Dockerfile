@@ -49,7 +49,7 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}
     #echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
 
 # install jdk
-RUN apt install default-jdk
+RUN apt -y install default-jdk
 
 # install gws dependencies
 RUN python3 -m pip install twine && \
