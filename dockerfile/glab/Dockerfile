@@ -47,11 +47,13 @@ RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}
     rm miniconda.sh 
     #&& \
     #echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
-    
+
+# install jdk
+RUN apt install default-jdk
+
 # install gws dependencies
 RUN python3 -m pip install twine && \
     python3 -m pip install peewee fastapi uvicorn starlette-context itsdangerous && \
-    python3 -m pip install sphinx sphinx-rtd-theme rinohtype && \
     python3 -m pip install passlib && \
     python3 -m pip install python-multipart && \
     python3 -m pip install aiofiles && \
@@ -72,7 +74,6 @@ RUN python3 -m pip install tensorflow && \
     python3 -m pip install numpy pandas matplotlib && \
     python3 -m pip install scipy>=1.7.0 && \
     python3 -m pip install scikit-learn && \
-    python3 -m pip install xlrd>=1.0.0 && \
     python3 -m pip install dill && \
     python3 -m pip install cvxpy
 

@@ -1,25 +1,10 @@
 #!/bin/bash
 
-# pull all git repo
+# install bricks & related packages
 #GWS_GIT_LOGIN=xxx && GWS_GIT_PWD=xxx && python3 /gpm/gpm.py
 python3 /gpm/gpm.py
 
-# install ubuntu packages
-for path in `find /lab/user -mindepth 1 -maxdepth 4 -name 'requirements-apt.txt'`; do
-    cat $path | xargs apt-get install -y
-done
-
-# install python dependencies
-for path in `find /lab/user -mindepth 1 -maxdepth 4 -name 'requirements-pip.txt'`; do
-    python3 -m pip install -r $path
-done
-
-# post-installation hooks
-if [ -f /opt/conda/etc/profile.d/conda.sh ]; then
-    bash /opt/conda/etc/profile.d/conda.sh
-fi
-
-# call custom brick install
+# call brick hooks
 for brick in `find /lab/user/bricks -mindepth 1 -maxdepth 1 -type d`; do
     if [ -f "$brick/.hooks/pre-install.py" ]; then
         python3 "$brick/.hooks/pre-install.py"
