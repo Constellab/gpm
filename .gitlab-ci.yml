@@ -8,51 +8,62 @@ variables:
   CPU: cpu
   GPU: gpu
   GLAB: glab
-  CLAB: clab
+  CODELAB: codelab
+  NOTELAB: notelab
 
 stages:
   - build-cpu
   - build-gpu
 
-#  Build the glab, clab cpu images and push them to the registry
+#  Build the glab, codelab cpu images and push them to the registry
 build-cpu:
   stage: build-cpu
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     # Build the gws (GLAB) image with a latest tag and a tag for the commit
-    - docker build --build-arg IMAGE="ubuntu:20.04" --cache-from $CI_REGISTRY_IMAGE/$GLAB-$CPU:latest --tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:latest . -f dockerfile/glab/Dockerfile
+    - docker build --build-arg IMAGE="ubuntu:20.04" --cache-from $CI_REGISTRY_IMAGE/$GLAB-$CPU:latest --tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:latest . -f dockerfile/$GLAB/Dockerfile
     # Push both image in the registry
     - docker push $CI_REGISTRY_IMAGE/$GLAB-$CPU:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE/$GLAB-$CPU:latest
 
-    # Build the code server (CLAB) image from the GLAB Image with a latest tag and a tag for the commit
-    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$CPU:latest" --cache-from $CI_REGISTRY_IMAGE/$CLAB-$CPU:latest --tag $CI_REGISTRY_IMAGE/$CLAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$CLAB-$CPU:latest . -f dockerfile/clab/Dockerfile
+    # Build the code server (CODELAB) image from the GLAB Image with a latest tag and a tag for the commit
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$CPU:latest" --cache-from $CI_REGISTRY_IMAGE/$CODELAB-$CPU:latest --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:latest . -f dockerfile/$CODELAB/Dockerfile
     # Push both image in the registry
-    - docker push $CI_REGISTRY_IMAGE/$CLAB-$CPU:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$CLAB-$CPU:latest
+    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$CPU:latest
+
+    # Build the code server (NOTELAB) image from the GLAB Image with a latest tag and a tag for the commit
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$CPU:latest" --cache-from $CI_REGISTRY_IMAGE/$NOTELAB-$CPU:latest --tag $CI_REGISTRY_IMAGE/$NOTELAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$NOTELAB-$CPU:latest . -f dockerfile/$NOTELAB/Dockerfile
+    - docker push $CI_REGISTRY_IMAGE/$NOTELAB-$CPU:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$NOTELAB-$CPU:latest
   only:
     - master
   when: manual
 
 
-#  Build the glab, clab gpu images and push them to the registry
+#  Build the glab, codelab gpu images and push them to the registry
 build-gpu:
   stage: build-gpu
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
     # Build the gws (GLAB) image with a latest tag and a tag for the commit
-    - docker build --build-arg IMAGE="nvidia/cuda:11.2.1-runtime-ubuntu20.04" --cache-from $CI_REGISTRY_IMAGE/$GLAB-$GPU:latest --tag $CI_REGISTRY_IMAGE/$GLAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$GLAB-$GPU:latest . -f dockerfile/glab/Dockerfile
+    - docker build --build-arg IMAGE="nvidia/cuda:11.2.1-runtime-ubuntu20.04" --cache-from $CI_REGISTRY_IMAGE/$GLAB-$GPU:latest --tag $CI_REGISTRY_IMAGE/$GLAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$GLAB-$GPU:latest . -f dockerfile/$GLAB/Dockerfile
     # Push both image in the registry
     - docker push $CI_REGISTRY_IMAGE/$GLAB-$GPU:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE/$GLAB-$GPU:latest
 
-    # Build the code server (CLAB) image with a latest tag and a tag for the commit
-    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$GPU:latest" --cache-from $CI_REGISTRY_IMAGE/$CLAB-$GPU:latest --tag $CI_REGISTRY_IMAGE/$CLAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$CLAB-$GPU:latest . -f dockerfile/clab/Dockerfile
+    # Build the code server (CODELAB) image with a latest tag and a tag for the commit
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$GPU:latest" --cache-from $CI_REGISTRY_IMAGE/$CODELAB-$GPU:latest --tag $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$CODELAB-$GPU:latest . -f dockerfile/$CODELAB/Dockerfile
     # Push both image in the registry
-    - docker push $CI_REGISTRY_IMAGE/$CLAB-$GPU:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$CLAB-$GPU:latest
+    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:latest
+
+    # Build the code server (NOTELAB) image from the GLAB Image with a latest tag and a tag for the commit
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$GPU:latest" --cache-from $CI_REGISTRY_IMAGE/$NOTELAB-$GPU:latest --tag $CI_REGISTRY_IMAGE/$NOTELAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$NOTELAB-$GPU:latest . -f dockerfile/$NOTELAB/Dockerfile
+    - docker push $CI_REGISTRY_IMAGE/$NOTELAB-$GPU:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$NOTELAB-$GPU:latest
   only:
     - master
   when: manual
