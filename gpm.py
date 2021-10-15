@@ -137,7 +137,6 @@ class GPM():
         with open(settings_file, 'r') as f:
             settings                    = json.load(f)
             settings["name"]            = self.config["name"]
-            settings["token"]           = self.config["token"]
             settings["virtual_host"]    = self.config["virtual_host"]
             settings["variables"]       = self.config["variables"]
             settings["environment"]     = self.config["environment"]
@@ -161,7 +160,7 @@ class GPM():
     
     def install_notebook_entrypoint(self):
         notebook_dir = os.path.join(self.LAB_WORKSPACE_DIR, "notebooks")
-        if os.path.exists(notebook_dir):
+        if not os.path.exists(notebook_dir):
             os.makedirs(notebook_dir)
         
         tempalate_dir = os.path.join(notebook_dir, "template")

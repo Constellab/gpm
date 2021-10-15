@@ -5,12 +5,9 @@
     "app_dir": "/app",
     "virtual_host": "test.gencovery.io",
     "uri": "91620768-2cdd-11eb-adc1-0242ac120002",
-    "token": "JSLaMCrFtncD66b4D9kr2Bfod5E5XAT4iaVgtHE3KeER4NPPeLDMVqjL7Qqi6XMDZR7uqGSMcDDXKcLX3b65kPUkdKsXXq24",
     "variables": {
         "gws_biota:sqlite3db_url": "https://share.gencovery.com/s/Eo34Y8sxgqSdSMz/download",
-        "gws_biota:mariadb_url": "",
-        "central_api_key": "123456",
-        "central_api_url": "https://pre-prod-back.gws.gencovery.com/"
+        "gws_biota:mariadb_url": ""
     },
     "environment":{
         "pip":[
