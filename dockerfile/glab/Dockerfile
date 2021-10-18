@@ -44,9 +44,8 @@ RUN apt-get -y install g++ unzip zip && \
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O miniconda.sh && \
     mkdir -p /opt && \
     sh miniconda.sh -b -p /opt/conda && \
-    rm miniconda.sh 
-    #&& \
-    #echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
+    rm miniconda.sh && \
+    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
 
 # install jdk
 RUN apt -y install default-jdk
