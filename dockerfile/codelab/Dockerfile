@@ -10,6 +10,8 @@ ENV CONDA_VERSION latest
 ADD ./ ${WORKDIR_DIR}
 WORKDIR ${WORKDIR_DIR}
 
+RUN apt-get -y install htop
+
 # install jupyter lab, autopep8, mypy, pylint (dependencies for dev)
 RUN python3 -m pip install jupyterlab && \
     python3 -m pip install ipywidgets && \
