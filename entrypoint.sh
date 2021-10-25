@@ -9,7 +9,13 @@ if [ "$1" == "--run-glab" ]; then
     exec python3 "/lab/.sys/app/manage.py" --uri $LAB_URI --token $LAB_TOKEN --runserver --runmode $LAB_MODE
 elif [ "$1" == "--run-notelab" ]; then
     # notelab (jupyter)
-    # bash "/gpm/gpm.sh" /!\ Do not reinstall packages
+    while [[ ! -f "/lab/.sys/.CODELAB_INSTALLED" ]]; do
+        echo "Waiting codelab install ..." 
+        sleep 10
+    done
+    bash "/gpm/gpm.sh"
+    rm -rf "/lab/.sys/.CODELAB_INSTALLED"
+
     if [[ ! -n $JLAB_TYPE ]]; then
         export JLAB_TYPE="notebook"
     fi
@@ -18,6 +24,8 @@ elif [ "$1" == "--run-notelab" ]; then
 elif [ "$1" == "--run-codelab" ]; then
     # codelab
     bash "/gpm/gpm.sh"
+    touch "/lab/.sys/.CODELAB_INSTALLED"
+
     export PASSWORD=${LAB_TOKEN}
     exec code-server --auth password --bind-addr 0.0.0.0:8080
 else
