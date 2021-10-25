@@ -159,7 +159,7 @@ class GPM():
             f.write(text)
     
     def install_notebook_entrypoint(self):
-        notebook_dir = os.path.join(self.LAB_WORKSPACE_DIR, "notebooks")
+        notebook_dir = os.path.join(self.LAB_WORKSPACE_DIR, "user", "notebooks")
         if not os.path.exists(notebook_dir):
             os.makedirs(notebook_dir)
         
