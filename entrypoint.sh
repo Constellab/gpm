@@ -28,6 +28,10 @@ elif [ "$1" == "--run-codelab" ]; then
 
     export PASSWORD=${LAB_TOKEN}
     exec code-server --auth password --bind-addr 0.0.0.0:8080
+elif [ "$1" == "--run-local" ]; then
+    bash "/gpm/gpm.sh"
+    # Prevent docker to stop 
+    tail -f /dev/null
 else
     exec "$@"
 fi

@@ -5,5 +5,7 @@
     "git.ignoreMissingGitWarning": true,
     "diffEditor.ignoreTrimWhitespace": false,
     "workbench.editor.revealIfOpen": true,
-    "editor.minimap.enabled": false
+    "editor.minimap.enabled": false,
+    // use to enable git graph when working on a higher folder
+    "git-graph.maxDepthOfRepoSearch": 1
 }
