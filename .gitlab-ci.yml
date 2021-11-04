@@ -15,9 +15,9 @@ stages:
   - build-cpu-glab
   - build-gpu-glab
   - build-cpu-codelab
-  - build-bpu-codelab
-  - build-cpu-nodelab
-  - build-gpu-nodelab
+  - build-gpu-codelab
+  - build-cpu-notelab
+  - build-gpu-notelab
 
 #  Build the glab cpu images and push them to the registry
 build-cpu-glab:
