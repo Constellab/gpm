@@ -24,10 +24,23 @@ elif [ "$1" == "--run-notelab" ]; then
 elif [ "$1" == "--run-codelab" ]; then
     # codelab
     bash "/gpm/gpm.sh"
-    touch "/lab/.sys/.CODELAB_INSTALLED"
 
-    export PASSWORD=${LAB_TOKEN}
-    exec code-server --auth password --bind-addr 0.0.0.0:8080
+    # add the vscode configs
+    if [ ! -d /lab/user/.openvscode-server/Machine ]; then
+      mkdir -p /lab/user/.openvscode-server/Machine
+      cp /.vs-code-server-config/settings.json /lab/user/.openvscode-server/Machine/settings.json
+    fi
+    
+    if [ ! -d /lab/user/.vscode ]; then
+      mkdir /lab/user/.vscode 
+      cp /.vs-code-server-config/launch.json /lab/user/.vscode/launch.json
+      cp /.vs-code-server-config/extensions.json /lab/user/.vscode/extensions.json
+    fi
+
+    cd /lab/user
+
+    bash "${OPENVSCODE_SERVER_ROOT}/server.sh" --port 8080
+
 elif [ "$1" == "--run-local" ]; then
     bash "/gpm/gpm.sh"
     # Prevent docker to stop 
