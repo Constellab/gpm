@@ -37,8 +37,6 @@ elif [ "$1" == "--run-codelab" ]; then
       cp /.vs-code-server-config/extensions.json /lab/user/.vscode/extensions.json
     fi
 
-    cd /lab/user
-
     bash "${OPENVSCODE_SERVER_ROOT}/server.sh" --port 8080
 
 elif [ "$1" == "--run-local" ]; then
