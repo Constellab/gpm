@@ -9,15 +9,12 @@ variables:
   GPU: gpu
   GLAB: glab
   CODELAB: codelab
-  NOTELAB: notelab
 
 stages:
   - build-cpu-glab
   - build-gpu-glab
   - build-cpu-codelab
   - build-gpu-codelab
-  - build-cpu-notelab
-  - build-gpu-notelab
 
 #  Build the glab cpu images and push them to the registry
 build-cpu-glab:
@@ -81,35 +78,3 @@ build-gpu-codelab:
   only:
     - master
   when: manual
-
-
-#  Build the cpu notelab images and push them to the registry
-build-cpu-notelab:
-  stage: build-cpu-notelab
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    # Build the code server (NOTELAB) image from the GLAB Image with a latest tag and a tag for the commit
-    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$CPU:latest" --cache-from $CI_REGISTRY_IMAGE/$NOTELAB-$CPU:latest --tag $CI_REGISTRY_IMAGE/$NOTELAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$NOTELAB-$CPU:latest . -f dockerfile/$NOTELAB/Dockerfile
-    - docker push $CI_REGISTRY_IMAGE/$NOTELAB-$CPU:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$NOTELAB-$CPU:latest
-
-  only:
-    - master
-  when: manual
-
-
-#  Build the gpu notelab images and push them to the registry
-build-gpu-notelab:
-  stage: build-gpu-notelab
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    # Build the code server (NOTELAB) image from the GLAB Image with a latest tag and a tag for the commit
-    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$GPU:latest" --cache-from $CI_REGISTRY_IMAGE/$NOTELAB-$GPU:latest --tag $CI_REGISTRY_IMAGE/$NOTELAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$NOTELAB-$GPU:latest . -f dockerfile/$NOTELAB/Dockerfile
-    - docker push $CI_REGISTRY_IMAGE/$NOTELAB-$GPU:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$NOTELAB-$GPU:latest
-  only:
-    - master
-  when: manual
-
