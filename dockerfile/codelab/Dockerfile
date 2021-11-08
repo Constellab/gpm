@@ -16,7 +16,7 @@ RUN wget https://github.com/gitpod-io/openvscode-server/releases/download/${RELE
     rm -f ${RELEASE_TAG}-linux-x64.tar.gz
 
 
-RUN pip install mypy pylint
+RUN pip install mypy pylint autopep8
 
 WORKDIR /lab/user/
 
