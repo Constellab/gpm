@@ -24,7 +24,6 @@ COPY ./.vs-code-server-config/ /.vs-code-server-config/
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
-ENV HOME=/lab/user/
 ENV EDITOR=code
 ENV VISUAL=code
 ENV GIT_EDITOR="code --wait"

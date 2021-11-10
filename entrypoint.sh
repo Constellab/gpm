@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+export SHELL="/bin/bash"
+
 # start labs
 if [ "$1" == "--run-glab" ]; then
     # glab
