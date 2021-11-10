@@ -1,11 +1,13 @@
 ARG IMAGE="glab:latest"
 FROM $IMAGE
 
+LABEL maintainer="Admin <admin@gencovery.com>"
+
 # Dockerfile from https://github.com/gitpod-io/openvscode-releases/blob/main/Dockerfile
 ARG RELEASE_TAG=openvscode-server-v1.61.0
 
 RUN apt update && \
-    apt install -y git wget sudo && \
+    apt install -y git wget && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /home

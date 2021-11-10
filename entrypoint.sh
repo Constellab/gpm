@@ -1,14 +1,14 @@
 #!/bin/bash
 set -e
 
-export SHELL="/bin/bash"
+#export SHELL="/bin/bash"
 
 # start labs
 if [ "$1" == "--run-glab" ]; then
     # glab
     # default port=3000, ip=0.0.0.0 
     bash "/gpm/gpm.sh" 
-    exec python3 "/lab/.sys/app/manage.py" --uri $LAB_URI --token $LAB_TOKEN --runserver --runmode $LAB_MODE
+    exec bash -c "source /opt/conda/etc/profile.d/conda.sh" && python3 "/lab/.sys/app/manage.py" --uri $LAB_URI --token $LAB_TOKEN --runserver --runmode $LAB_MODE
 elif [ "$1" == "--run-codelab" ]; then
     # codelab
     bash "/gpm/gpm.sh"
