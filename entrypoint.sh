@@ -7,11 +7,15 @@ set -e
 if [ "$1" == "--run-glab" ]; then
     # glab
     # default port=3000, ip=0.0.0.0 
-    bash "/gpm/gpm.sh" 
+    if [ "${UPDATE_BRICKS}" == "1" ]; then
+      bash "/gpm/gpm.sh" 
+    fi
     exec bash -c "source /opt/conda/etc/profile.d/conda.sh && python3 /lab/.sys/app/manage.py --uri $LAB_URI --token $LAB_TOKEN --runserver --runmode $LAB_MODE"
 elif [ "$1" == "--run-codelab" ]; then
     # codelab
-    bash "/gpm/gpm.sh"
+    if [ "${UPDATE_BRICKS}" == "1" ]; then
+      bash "/gpm/gpm.sh"
+    fi
 
     # add the vscode configs
     if [ ! -d /lab/user/.openvscode-server/Machine ]; then
@@ -26,9 +30,10 @@ elif [ "$1" == "--run-codelab" ]; then
     fi
 
     bash "${OPENVSCODE_SERVER_ROOT}/server.sh" --port 8080
-
 elif [ "$1" == "--run-local" ]; then
-    bash "/gpm/gpm.sh"
+    if [ "${UPDATE_BRICKS}" == "1" ]; then
+      bash "/gpm/gpm.sh"
+    fi
     # Prevent docker to stop 
     tail -f /dev/null
 else
