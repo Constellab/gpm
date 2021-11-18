@@ -8,7 +8,6 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 ENV LAB_NAME app
 ENV WORKDIR_DIR /gpm
 ENV CONDA_VERSION latest
-ENV HOME /lab/user
 
 ADD ./ ${WORKDIR_DIR}
 WORKDIR ${WORKDIR_DIR}
