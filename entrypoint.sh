@@ -1,8 +1,6 @@
 #!/bin/bash
 set -e
 
-#export SHELL="/bin/bash"
-
 # start labs
 if [ "$1" == "--run-glab" ]; then
     # glab
@@ -10,7 +8,7 @@ if [ "$1" == "--run-glab" ]; then
     if [ "${UPDATE_BRICKS}" == "1" ]; then
       bash "/gpm/gpm.sh" 
     fi
-    exec bash -c "source /opt/conda/etc/profile.d/conda.sh && python3 /lab/.sys/app/manage.py --uri $LAB_URI --token $LAB_TOKEN --runserver --runmode $LAB_MODE"
+    exec bash -c "source /opt/conda/etc/profile.d/conda.sh && python3 /lab/.sys/app/manage.py --runserver --runmode $LAB_MODE"
 elif [ "$1" == "--run-codelab" ]; then
     # codelab
     if [ "${UPDATE_BRICKS}" == "1" ]; then

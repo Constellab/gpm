@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # install bricks & related packages
-#GWS_GIT_LOGIN=xxx && GWS_GIT_PWD=xxx && python3 /gpm/gpm.py
 python3 /gpm/gpm.py
 
 # call brick hooks
