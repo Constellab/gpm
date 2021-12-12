@@ -6,7 +6,7 @@
     "configurations": [
         // configuration to start the gws
         {
-            "args": ["--runserver", "main"],
+            "args": ["--runserver"],
             "name": "Run GWS",
             "type": "python",
             "request": "launch",
