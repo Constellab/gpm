@@ -13,3 +13,6 @@ for brick in `find /lab/user/bricks -mindepth 1 -maxdepth 1 -type d`; do
         bash "$brick/.hooks/pre-install.sh"
     fi
 done
+
+# clean install files
+rm -rf "/gpm"

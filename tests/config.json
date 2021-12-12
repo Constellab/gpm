@@ -24,7 +24,7 @@
             {
                 "source": "https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core",
                 "packages":[
-                    "gws_biota[commit=latest, branch=djo]",
+                    "gws_biota[commit=latest, branch=develop]",
                     "skeleton[commit=latest, branch=master]"
                 ]
             }

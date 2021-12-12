@@ -1,15 +1,16 @@
 # LICENSE
-# This software is the exclusive property of Gencovery SAS. 
+# This software is the exclusive property of Gencovery SAS.
 # The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
 # About us: https://gencovery.com
 
-import os
-import re
 import json
+import os
 import urllib
+
 from cryptography.fernet import Fernet
 
 __cdir__ = os.path.dirname(os.path.abspath(__file__))
+
 
 class CREDENTIALS():
     PUBLIC_FILE = os.path.join(__cdir__, "./.public.json")
@@ -34,7 +35,7 @@ class CREDENTIALS():
         """
         Encrypts a message
         """
-        if not os.path.exists(cls.PUBLIC_FILE):
+        if not os.path.exists(cls.KEY_FILE):
             cls.generate_key()
 
         key = cls.load_key()
@@ -51,13 +52,13 @@ class CREDENTIALS():
         Generates a key and save it into a file
         """
         key = Fernet.generate_key()
-        with open(cls.PUBLIC_FILE, "wb") as f:
+        with open(cls.KEY_FILE, "wb") as f:
             f.write(key)
 
     @classmethod
     def get_git_credentials(cls):
         if os.path.exists(cls.PUBLIC_FILE):
-            with open(cls.PUBLIC_FILE, 'r') as f:
+            with open(cls.PUBLIC_FILE, 'r', encoding="utf-8") as f:
                 private = json.load(f)
         else:
             raise Exception(f"File {cls.PUBLIC_FILE} not found")
@@ -68,13 +69,13 @@ class CREDENTIALS():
         elif len(git_pwd) < 64:
             git_pwd = cls.encrypt_message(git_pwd)
             private["git"]["credentials"] = git_pwd
-            with open(cls.PUBLIC_FILE, 'w') as f:
+            with open(cls.PUBLIC_FILE, 'w', encoding="utf-8") as f:
                 json.dump(private, f, indent=4)
         else:
             git_pwd = cls.decrypt_message(git_pwd)
         git_pwd = urllib.parse.quote(git_pwd)
         return git_user, git_pwd
-        
+
     # -- L --
 
     @classmethod

@@ -15,7 +15,7 @@
         },
         // configuration to start the gws
         {
-            "args": ["--runserver", "--log_level=DEBUG",  "main"],
+            "args": ["--runserver", "--log_level=DEBUG"],
             "name": "Run GWS DEBUG log",
             "type": "python",
             "request": "launch",
@@ -38,7 +38,7 @@
             "type": "python",
             "request": "launch",
             "program": "/lab/.sys/app/manage.py",
-            "console": "integratedTerminal",
+            "console": "integratedTerminal"
         }
     ],
 
@@ -46,7 +46,7 @@
         {
             "id": "testFileName",
             "type": "promptString",
-            "description": "Name of the test files to run (separated with space)",
+            "description": "Name of the test files to run (separated with space)"
         }
     ]
 }
