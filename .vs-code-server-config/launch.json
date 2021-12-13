@@ -7,7 +7,7 @@
         // configuration to start the gws
         {
             "args": ["--runserver"],
-            "name": "Run GWS",
+            "name": "Start dev server",
             "type": "python",
             "request": "launch",
             "program": "/lab/.sys/app/manage.py",
@@ -16,7 +16,7 @@
         // configuration to start the gws
         {
             "args": ["--runserver", "--log_level=DEBUG"],
-            "name": "Run GWS DEBUG log",
+            "name": "Start dev server - DEBUG log",
             "type": "python",
             "request": "launch",
             "program": "/lab/.sys/app/manage.py",
@@ -25,7 +25,7 @@
         // config to run test on GWS
         {
             "args": ["--test", "all"],
-            "name": "Test all",
+            "name": "Test all files",
             "type": "python",
             "request": "launch",
             "program": "/lab/.sys/app/manage.py",
@@ -34,7 +34,7 @@
         // config to run test on GWS
         {
             "args": ["--test", "${input:testFileName}"],
-            "name": "Test single",
+            "name": "Test a single file",
             "type": "python",
             "request": "launch",
             "program": "/lab/.sys/app/manage.py",
