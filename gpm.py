@@ -126,14 +126,13 @@ class GPM():
             packages = channel.get("packages")
             self._install_pip_packages(packages, source_url=source_url)
 
-        if self.is_test or UPDATE_GIT_BRICKS == "1":
-            # install git packages
-            print("Installing Git packages ...")
-            for channel in env.get("git", []):
-                source_url = channel.get("source").strip("/")
-                packages = channel.get("packages")
-                for package in channel.get("packages"):
-                    self._install_git_packages(package, source_url)
+        # install git packages
+        print("Installing Git packages ...")
+        for channel in env.get("git", []):
+            source_url = channel.get("source").strip("/")
+            packages = channel.get("packages")
+            for package in channel.get("packages"):
+                self._install_git_packages(package, source_url)
 
     def install_app_entrypoint(self):
         dest_dir = os.path.join(self.SYS_WORKSPACE_DIR, "app")
@@ -212,30 +211,35 @@ class GPM():
         source_url = f"{source_url}/{repo}.git"
 
         if was_in_brick_dir:
-            self.git_pull(source_url, repo_dir, branch=branch, commit_sha=commit_sha)
+            if self.is_test or UPDATE_GIT_BRICKS == "1":
+                self.git_pull(source_url, repo_dir, branch=branch, commit_sha=commit_sha)
         else:
             extern_repo_dir = os.path.join(externs_dir, repo)
             was_in_externs_dir = os.path.exists(extern_repo_dir)
             if was_in_externs_dir:
-                self.git_pull(source_url, extern_repo_dir, branch=branch, commit_sha=commit_sha)
+                if self.is_test or UPDATE_GIT_BRICKS == "1":
+                    self.git_pull(source_url, extern_repo_dir, branch=branch, commit_sha=commit_sha)
                 return
             else:
                 self.git_clone(source_url, repo_dir, branch=branch, commit_sha=commit_sha)
         if not os.path.exists(repo_dir):
-            print(f"Git package {package} could not be installed.")
+            print(f"Git package {package} could not be (or has not been) installed.")
             return
+
         settings_file = os.path.join(repo_dir, "settings.json")
         is_brick = os.path.exists(settings_file)
+
         if is_brick:
             print(f"Following dependendies of {package} ...")
             gpm = GPM(settings_file_path=os.path.join(bricks_dir, repo, "settings.json"))
             gpm.install_pip_and_git_packages()
         else:
-            print(f"Moving external library {package} to externs dir ... ", end="")
-            if not os.path.exists(externs_dir):
-                os.makedirs(externs_dir)
-            shutil.move(repo_dir, externs_dir)
-            print("Done!")
+            if self.is_test or UPDATE_GIT_BRICKS == "1":
+                print(f"Moving external library {package} to externs dir ... ", end="")
+                if not os.path.exists(externs_dir):
+                    os.makedirs(externs_dir)
+                shutil.move(repo_dir, externs_dir)
+                print("Done!")
 
     # -- P --
 
