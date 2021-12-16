@@ -3,19 +3,16 @@
 # The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
 # About us: https://gencovery.com
 
-import glob
 import json
 import os
 import re
 import shutil
 import subprocess
 import time
-import urllib
 
 import click
-import git
 
-import gpm_credentials  # @ToDo: remove gpm_credentials later
+import gpm_credentials
 
 # ####################################################################
 #
@@ -23,7 +20,11 @@ import gpm_credentials  # @ToDo: remove gpm_credentials later
 #
 # ####################################################################
 
-UPDATE_GIT_BRICKS = os.getenv("UPDATE_GIT_BRICKS", None)
+UPDATE_GIT_BRICKS = os.getenv("UPDATE_GIT_BRICKS", None) in ["1", 1]
+SKELETON_GIT_ENVIRONMENT = {
+    "source": "https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core",
+    "packages": ["skeleton[commit=latest, branch=master]"]
+}
 
 
 class GPM():
@@ -33,6 +34,8 @@ class GPM():
     LAB_WORKSPACE_DIR = "/lab/"
     CONFIG_FILE_PATH = "/conf/config.json"
     is_test = False
+    _installed_pip_packages = []
+    _installed_git_packages = []
 
     def __init__(self, settings_file_path):
         self.settings_file_path = settings_file_path
@@ -194,6 +197,7 @@ class GPM():
         )
 
     def _install_pip_packages(self, packages: list, source_url=None):
+        packages = [x for x in packages if x not in GPM._installed_pip_packages]
         if not packages:
             return
         source_url = self.format_url(source_url)
@@ -202,22 +206,27 @@ class GPM():
             cmd = [*cmd, "--extra-index-url", source_url]
         GPM.run_proc(cmd)
 
+        GPM._installed_pip_packages.extend(packages)
+        GPM._installed_pip_packages = list(set(GPM._installed_pip_packages))
+
     def _install_git_packages(self, package, source_url):
         bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks")
         externs_dir = os.path.join(self.SYS_WORKSPACE_DIR, "lib")
         repo, commit_sha, branch = self.parse_git_package(package)
+        if repo in self._installed_git_packages:
+            return
         repo_dir = os.path.join(bricks_dir, repo)
-        was_in_brick_dir = os.path.exists(repo_dir)
+        already_exists_in_brick_dir = os.path.exists(repo_dir)
         source_url = f"{source_url}/{repo}.git"
 
-        if was_in_brick_dir:
-            if self.is_test or UPDATE_GIT_BRICKS == "1":
+        if already_exists_in_brick_dir:
+            if self.is_test or UPDATE_GIT_BRICKS:
                 self.git_pull(source_url, repo_dir, branch=branch, commit_sha=commit_sha)
         else:
             extern_repo_dir = os.path.join(externs_dir, repo)
-            was_in_externs_dir = os.path.exists(extern_repo_dir)
-            if was_in_externs_dir:
-                if self.is_test or UPDATE_GIT_BRICKS == "1":
+            already_exists_in_externs_dir = os.path.exists(extern_repo_dir)
+            if already_exists_in_externs_dir:
+                if self.is_test or UPDATE_GIT_BRICKS:
                     self.git_pull(source_url, extern_repo_dir, branch=branch, commit_sha=commit_sha)
                 return
             else:
@@ -225,6 +234,8 @@ class GPM():
         if not os.path.exists(repo_dir):
             print(f"Git package {package} could not be (or has not been) installed.")
             return
+
+        self._installed_git_packages.append(repo)
 
         settings_file = os.path.join(repo_dir, "settings.json")
         is_brick = os.path.exists(settings_file)
@@ -234,7 +245,7 @@ class GPM():
             gpm = GPM(settings_file_path=os.path.join(bricks_dir, repo, "settings.json"))
             gpm.install_pip_and_git_packages()
         else:
-            if self.is_test or UPDATE_GIT_BRICKS == "1":
+            if self.is_test or UPDATE_GIT_BRICKS:
                 print(f"Moving external library {package} to externs dir ... ", end="")
                 if not os.path.exists(externs_dir):
                     os.makedirs(externs_dir)
@@ -270,25 +281,44 @@ class GPM():
     def read_config(self) -> dict:
         with open(self.settings_file_path, 'r', encoding="utf-8") as f:
             try:
-                return json.load(f)
+                config = json.load(f)
+                if not config.get("environment"):
+                    config["environment"] = {}
+                if not config["environment"].get("git"):
+                    config["environment"]["git"] = []
+
+                for g in config["environment"]["git"]:
+                    if g["source"] == SKELETON_GIT_ENVIRONMENT["source"]:
+                        for p in g["packages"]:
+                            if p in SKELETON_GIT_ENVIRONMENT["packages"]:
+                                return config
+
+                # skeleton brick does not exists
+                config["environment"]["git"].append(SKELETON_GIT_ENVIRONMENT)
+                return config
+
             except Exception as err:
                 raise Exception("Cannot parse the config file. Please check file config file.") from err
         raise Exception("Cannot open the config file")
 
 
-@click.command(context_settings=dict(
+@ click.command(context_settings=dict(
     ignore_unknown_options=True,
     allow_extra_args=True
 ))
-@click.pass_context
-@click.option('--test', is_flag=True, help='Run tests')
-@click.option('--rm', is_flag=True, help='Remove files after testing')
+@ click.pass_context
+@ click.option('--test', is_flag=True, help='Run tests')
+@ click.option('--rm', is_flag=True, help='Remove files after testing')
 def install(ctx, test=False, rm=False):
     if test:
         __cdir__ = os.path.dirname(os.path.abspath(__file__))
         GPM.LAB_WORKSPACE_DIR = os.path.join(__cdir__, "./tests/build/lab")
         GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "./tests/config.json")
         gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH)
+
+        # print(gpm.config)
+        # return
+
         gpm.is_test = True
         gpm.install_pip_and_git_packages()
         gpm.install_app_entrypoint()
@@ -300,6 +330,9 @@ def install(ctx, test=False, rm=False):
         gpm.install_pip_and_git_packages()
         gpm.install_app_entrypoint()
         gpm.install_notebook_entrypoint()
+
+    print(f"\nInstalled pip packages:\n{GPM._installed_pip_packages}")
+    print(f"Installed git packages:\n{GPM._installed_git_packages}")
 
 
 if __name__ == "__main__":
