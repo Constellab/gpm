@@ -17,7 +17,7 @@ elif [ "$1" == "--run-codelab" ]; then
     fi
     
     if [ ! -d /lab/user/.vscode ]; then
-      mkdir /lab/user/.vscode 
+      mkdir /lab/user/.vscode
       cp /.vs-code-server-config/launch.json /lab/user/.vscode/launch.json
       cp /.vs-code-server-config/extensions.json /lab/user/.vscode/extensions.json
     fi

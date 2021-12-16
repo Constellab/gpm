@@ -22,6 +22,15 @@
             "program": "/lab/.sys/app/manage.py",
             "console": "integratedTerminal"
         },
+        // configuration to start the gws
+        {
+            "args": ["--reset_env"],
+            "name": "Reset dev environment",
+            "type": "python",
+            "request": "launch",
+            "program": "/lab/.sys/app/manage.py",
+            "console": "integratedTerminal"
+        },
         // config to run test on GWS
         {
             "args": ["--test", "all"],
