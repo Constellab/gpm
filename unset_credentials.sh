@@ -1,0 +1,3 @@
+unset GWS_GIT_LOGIN
+unset GWS_GIT_PWD
+unset GWS_GIT_KEY

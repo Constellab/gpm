@@ -12,8 +12,6 @@ import time
 
 import click
 
-import gpm_credentials
-
 # ####################################################################
 #
 # GPM class
@@ -33,6 +31,8 @@ class GPM():
     """
     LAB_WORKSPACE_DIR = "/lab/"
     CONFIG_FILE_PATH = "/conf/config.json"
+    SYS_WORKSPACE_DIR: str
+    USER_WORKSPACE_DIR: str
     is_test = False
     _installed_pip_packages = []
     _installed_git_packages = []
@@ -56,12 +56,8 @@ class GPM():
             if not value:
                 # search for values in global environment
                 value = os.getenv(token)
-                # special case (git crendetials encrypted here!)
                 if not value:
-                    if token == "GWS_GIT_LOGIN":
-                        value = gpm_credentials.CREDENTIALS.get_git_credentials()[0]
-                    if token == "GWS_GIT_PWD":
-                        value = gpm_credentials.CREDENTIALS.get_git_credentials()[1]
+                    raise Exception(f"No environment variable {token} found")
 
             if value:
                 string = re.sub(r"\$\{?"+token+r"\}?", value, string)
