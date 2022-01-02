@@ -1,23 +1,26 @@
 # LICENSE
-# This software is the exclusive property of Gencovery SAS. 
+# This software is the exclusive property of Gencovery SAS.
 # The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
 # About us: https://gencovery.com
 
-import sys
 import os
+import sys
 
-def activate( brick = "app" ):    
+
+def activate():
+
     if 'gws_core' not in sys.modules:
-        CORE_LIB_PATH = "/lab/user/bricks/gws_core/src"
-        if os.path.exists(CORE_LIB_PATH):
-            sys.path.insert(0, CORE_LIB_PATH)
-        else:
-            raise Exception("Cannot find the core brick")
+        core_lib_path = "/lab/user/bricks/gws_core/src"
+        if not os.path.exists(core_lib_path):
+            core_lib_path = "/lab/user/bricks/.lib/gws_core/src"
+            if not os.path.exists(core_lib_path):
+                raise Exception("Cannot find gws_core brick")
+        sys.path.insert(0, core_lib_path)
 
-    from gws_core import runner, manage
+    from gws_core import manage, runner
     manage.load_settings("/lab/.sys/app")
     runner._run(
         None,
-        log_level="INFO", 
+        log_level="INFO",
         show_sql=False
     )

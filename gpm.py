@@ -3,12 +3,14 @@
 # The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
 # About us: https://gencovery.com
 
+import copy
 import json
 import os
 import re
 import shutil
 import subprocess
 import time
+from typing import List
 
 import click
 
@@ -21,7 +23,9 @@ import click
 UPDATE_GIT_BRICKS = os.getenv("UPDATE_GIT_BRICKS", None) in ["1", 1]
 SKELETON_GIT_ENVIRONMENT = {
     "source": "https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core",
-    "packages": ["skeleton[commit=latest, branch=master]"]
+    "packages": [
+        {"name": "skeleton", "branch": "master", "commit": "latest", "is_brick": True, "is_hidden": False}
+    ]
 }
 
 
@@ -29,35 +33,46 @@ class GPM():
     """
     Package manager
     """
-    LAB_WORKSPACE_DIR = "/lab/"
-    CONFIG_FILE_PATH = "/conf/config.json"
-    SYS_WORKSPACE_DIR: str
-    USER_WORKSPACE_DIR: str
-    is_test = False
-    _installed_pip_packages = []
-    _installed_git_packages = []
+    LAB_WORKSPACE_DIR: str = "/lab/"
+    CONFIG_FILE_PATH: str = "/conf/config.json"
+    SYS_WORKSPACE_DIR: str = None
+    USER_WORKSPACE_DIR: str = None
+    GLOBAL_CONFIG: list = []
+
+    is_test: bool = False
+    config: dict = None
+    _installed_pip_packages: list = []
+    _installed_git_packages: list = []
 
     def __init__(self, settings_file_path):
         self.settings_file_path = settings_file_path
         self.config = self.read_config()
-        self.SYS_WORKSPACE_DIR = os.path.join(self.LAB_WORKSPACE_DIR, ".sys")
-        self.USER_WORKSPACE_DIR = os.path.join(self.LAB_WORKSPACE_DIR, "user")
+        if not GPM.GLOBAL_CONFIG:
+            GPM.GLOBAL_CONFIG = copy.deepcopy(self.config)
+
+        GPM.SYS_WORKSPACE_DIR = os.path.join(GPM.LAB_WORKSPACE_DIR, ".sys")
+        GPM.USER_WORKSPACE_DIR = os.path.join(GPM.LAB_WORKSPACE_DIR, "user")
 
     # -- F --
 
     def format_url(self, string: str) -> str:
         if not string:
             return string
-        variables = self.config.get("environment", {}).get("variables", {})
+        local_config_vars = self.config.get("environment", {}).get("variables", {})
+        global_config_vars = GPM.GLOBAL_CONFIG.get("environment", {}).get("variables", {})
+
         tab = re.findall(r"\$\{?([A-Z_]*)\}?", string)  # re.findall(r"\${?[A-Z_]}?*", string)
         for token in tab:
             # search for values in local variable first
-            value = variables.get(token)
+            value = local_config_vars.get(token)
             if not value:
-                # search for values in global environment
+                # search for values in os environment
                 value = os.getenv(token)
                 if not value:
-                    raise Exception(f"No environment variable {token} found")
+                    # search for values in global environment (given by the main config file)
+                    value = global_config_vars.get(token)
+                    if not value:
+                        raise Exception(f"No environment variable {token} found")
 
             if value:
                 string = re.sub(r"\$\{?"+token+r"\}?", value, string)
@@ -65,7 +80,7 @@ class GPM():
 
     # -- G --
 
-    def git_clone(self, url, dest_dir, branch=None, commit_sha=None):
+    def git_clone(self, url, dest_dir, branch=None, commit=None):
         print(f"Cloning git repository {url} ... ")
         url = self.format_url(url)
         cmd = ["git", "clone", "--depth", "1", "--no-single-branch", url, dest_dir]
@@ -82,26 +97,25 @@ class GPM():
         self._remove_git_credentials_from_config(dest_dir)
         if branch:
             cmd = ["git", "checkout", branch]
-            if commit_sha:
-                cmd = [*cmd, commit_sha]
-            return GPM.run_proc(cmd, cwd=dest_dir)
+            OK = GPM.run_proc(cmd, cwd=dest_dir)
+            if OK and commit:
+                cmd = ["git", "checkout", commit]
+                return GPM.run_proc(cmd, cwd=dest_dir)
         else:
             return True
 
-    def git_pull(self, url, dest_dir, branch=None, commit_sha=None):
+    def git_pull(self, url, dest_dir, branch=None, commit=None):
         print(f"Pulling git repository {dest_dir} ... ")
         url = self.format_url(url)
-        pull_cmd = ["git", "pull", url]
+        cmd = ["git", "pull", url]
+        OK = GPM.run_proc(cmd, cwd=dest_dir)
+        if OK and branch:
+            cmd = ["git", "checkout", branch]
+            OK = GPM.run_proc(cmd, cwd=dest_dir)
+            if OK and commit:
+                cmd = ["git", "checkout", commit]
+                GPM.run_proc(cmd, cwd=dest_dir)
 
-        if branch:
-            pull_cmd = [*pull_cmd, branch]
-            switch_cmd = ["git", "checkout", branch]
-            if commit_sha:
-                switch_cmd = [*switch_cmd, commit_sha]
-
-        OK = GPM.run_proc(pull_cmd, cwd=dest_dir)
-        if branch:
-            GPM.run_proc(switch_cmd, cwd=dest_dir)
         self._remove_git_credentials_from_config(dest_dir)
         print("Done!")
         return OK
@@ -116,7 +130,7 @@ class GPM():
                 fp.write(cleaned_text)
     # -- I --
 
-    def install_pip_and_git_packages(self):
+    def install_pip_and_git_packages(self, default_branch=None, default_commit="latest"):
         env = self.config.get("environment", {})
         # install pip packages
         print("Installing Pip packages ...")
@@ -130,14 +144,22 @@ class GPM():
         for channel in env.get("git", []):
             source_url = channel.get("source").strip("/")
             packages = channel.get("packages")
-            for package in channel.get("packages"):
-                self._install_git_packages(package, source_url)
+            default_branch = channel.get("default_branch") or default_branch
+            for package in packages:
+                self._install_git_packages(
+                    package, source_url,
+                    default_branch=default_branch,
+                    default_commit=default_commit
+                )
 
     def install_app_entrypoint(self):
         dest_dir = os.path.join(self.SYS_WORKSPACE_DIR, "app")
         skeleton_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks", "skeleton")
         if not os.path.exists(skeleton_dir):
-            raise Exception("The skeleton is not found")
+            skeleton_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks", ".lib", "skeleton")
+            if not os.path.exists(skeleton_dir):
+                raise Exception("The skeleton is not found")
+
         if os.path.exists(dest_dir):
             shutil.rmtree(dest_dir, ignore_errors=True)
         shutil.copytree(
@@ -193,77 +215,86 @@ class GPM():
         )
 
     def _install_pip_packages(self, packages: list, source_url=None):
-        packages = [x for x in packages if x not in GPM._installed_pip_packages]
-        if not packages:
+        _packages: List[str] = []
+        _repos: List[str] = []
+        for pkg in packages:
+            if pkg in GPM._installed_pip_packages:
+                continue
+            name = pkg['name']
+            version = pkg.get('version', '')
+            if version:
+                if version[0] not in [">", "<", "="]:
+                    version = "==" + version
+            _packages.append(f"{name}{version}")
+            _repos.append(name)
+
+        if not _packages:
             return
+
         source_url = self.format_url(source_url)
-        cmd = ["python3", "-m", "pip", "install", *packages]
+        cmd = ["python3", "-m", "pip", "install", *_packages]
         if source_url:
             cmd = [*cmd, "--extra-index-url", source_url]
         GPM.run_proc(cmd)
 
-        GPM._installed_pip_packages.extend(packages)
+        GPM._installed_pip_packages.extend(_repos)
         GPM._installed_pip_packages = list(set(GPM._installed_pip_packages))
 
-    def _install_git_packages(self, package, source_url):
-        bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks")
-        externs_dir = os.path.join(self.SYS_WORKSPACE_DIR, "lib")
-        repo, commit_sha, branch = self.parse_git_package(package)
+    def _install_git_packages(self, package, source_url, default_branch=None, default_commit=None,):
+        user_bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks")
+        user_hidden_bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks", ".lib")
+        extern_lib_dir = os.path.join(self.SYS_WORKSPACE_DIR, "lib")
+
+        if not os.path.exists(user_bricks_dir):
+            os.makedirs(user_bricks_dir)
+        if not os.path.exists(user_hidden_bricks_dir):
+            os.makedirs(user_hidden_bricks_dir)
+        if not os.path.exists(extern_lib_dir):
+            os.makedirs(extern_lib_dir)
+
+        repo = package["name"]
+        commit = package.get("commit") or default_commit
+        branch = package.get("branch") or default_branch
+        is_brick = package.get("is_brick", False)
+        hidden = package.get("is_hidden", True)
+
         if repo in self._installed_git_packages:
             return
-        repo_dir = os.path.join(bricks_dir, repo)
-        already_exists_in_brick_dir = os.path.exists(repo_dir)
+
+        if is_brick:
+            if hidden:
+                repo_dir = os.path.join(user_hidden_bricks_dir, repo)
+            else:
+                repo_dir = os.path.join(user_bricks_dir, repo)
+        else:
+            repo_dir = os.path.join(extern_lib_dir, repo)
+
         source_url = f"{source_url}/{repo}.git"
 
-        if already_exists_in_brick_dir:
+        already_exists = os.path.exists(repo_dir)
+        if already_exists:
             if self.is_test or UPDATE_GIT_BRICKS:
-                self.git_pull(source_url, repo_dir, branch=branch, commit_sha=commit_sha)
+                self.git_pull(source_url, repo_dir, branch=branch, commit=commit)
         else:
-            extern_repo_dir = os.path.join(externs_dir, repo)
-            already_exists_in_externs_dir = os.path.exists(extern_repo_dir)
-            if already_exists_in_externs_dir:
-                if self.is_test or UPDATE_GIT_BRICKS:
-                    self.git_pull(source_url, extern_repo_dir, branch=branch, commit_sha=commit_sha)
-                return
-            else:
-                self.git_clone(source_url, repo_dir, branch=branch, commit_sha=commit_sha)
+            self.git_clone(source_url, repo_dir, branch=branch, commit=commit)
+
         if not os.path.exists(repo_dir):
-            print(f"Git package {package} could not be (or has not been) installed.")
+            print(f"ERROR: Git package {package} could not be installed.")
             return
 
         self._installed_git_packages.append(repo)
 
-        settings_file = os.path.join(repo_dir, "settings.json")
-        is_brick = os.path.exists(settings_file)
-
         if is_brick:
-            print(f"Following dependendies of {package} ...")
-            gpm = GPM(settings_file_path=os.path.join(bricks_dir, repo, "settings.json"))
-            gpm.install_pip_and_git_packages()
-        else:
-            if self.is_test or UPDATE_GIT_BRICKS:
-                print(f"Moving external library {package} to externs dir ... ", end="")
-                if not os.path.exists(externs_dir):
-                    os.makedirs(externs_dir)
-                shutil.move(repo_dir, externs_dir)
-                print("Done!")
+            print(f"Following dependendies of {repo} ...")
+            print(os.path.join(repo_dir, "settings.json"))
+            gpm = GPM(settings_file_path=os.path.join(repo_dir, "settings.json"))
+            gpm.install_pip_and_git_packages(default_branch=default_branch, default_commit=default_commit)
 
     # -- P --
 
-    def parse_git_package(self, string: str) -> str:
-        tab = re.findall(r"\[.+\]$", string)
-        if tab:
-            string = string.replace(tab[0], "")
-            commit_sha = re.match(r".*(c|commit)\s*=\s*([A-Za-z0-9]+).*", tab[0])[2]
-            branch = re.match(r".*(b|branch)\s*=\s*([A-Za-z0-9]+).*", tab[0])[2]
-            if commit_sha == "latest":
-                commit_sha = None
-            return string, commit_sha, branch
-        return string, None, None
-
     # -- R --
 
-    @staticmethod
+    @ staticmethod
     def run_proc(cmd, cwd=None) -> bool:
         if cwd:
             if not os.path.exists(cwd):
@@ -285,8 +316,9 @@ class GPM():
 
                 for g in config["environment"]["git"]:
                     if g["source"] == SKELETON_GIT_ENVIRONMENT["source"]:
-                        for p in g["packages"]:
-                            if p in SKELETON_GIT_ENVIRONMENT["packages"]:
+                        for pkg in g["packages"]:
+                            sklt_pkg = SKELETON_GIT_ENVIRONMENT["packages"][0]
+                            if pkg["name"] == sklt_pkg["name"]:
                                 return config
 
                 # skeleton brick does not exists
