@@ -24,7 +24,7 @@ UPDATE_GIT_BRICKS = os.getenv("UPDATE_GIT_BRICKS", None) in ["1", 1]
 SKELETON_GIT_ENVIRONMENT = {
     "source": "https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core",
     "packages": [
-        {"name": "skeleton", "branch": "master", "commit": "latest", "is_brick": True, "is_hidden": False}
+        {"name": "skeleton", "branch": "master", "commit": "", "is_brick": True, "is_hidden": False}
     ]
 }
 
@@ -107,14 +107,18 @@ class GPM():
     def git_pull(self, url, dest_dir, branch=None, commit=None):
         print(f"Pulling git repository {dest_dir} ... ")
         url = self.format_url(url)
+        # refresh current branch
         cmd = ["git", "pull", url]
         OK = GPM.run_proc(cmd, cwd=dest_dir)
         if OK and branch:
             cmd = ["git", "checkout", branch]
+            GPM.run_proc(cmd, cwd=dest_dir)
+            # refresh new branch
+            cmd = ["git", "pull", url]
             OK = GPM.run_proc(cmd, cwd=dest_dir)
             if OK and commit:
                 cmd = ["git", "checkout", commit]
-                GPM.run_proc(cmd, cwd=dest_dir)
+                OK = GPM.run_proc(cmd, cwd=dest_dir)
 
         self._remove_git_credentials_from_config(dest_dir)
         print("Done!")
@@ -130,7 +134,7 @@ class GPM():
                 fp.write(cleaned_text)
     # -- I --
 
-    def install_pip_and_git_packages(self, default_branch=None, default_commit="latest"):
+    def install_pip_and_git_packages(self, default_branch=None, default_commit=None):
         env = self.config.get("environment", {})
         # install pip packages
         print("Installing Pip packages ...")
@@ -286,7 +290,6 @@ class GPM():
 
         if is_brick:
             print(f"Following dependendies of {repo} ...")
-            print(os.path.join(repo_dir, "settings.json"))
             gpm = GPM(settings_file_path=os.path.join(repo_dir, "settings.json"))
             gpm.install_pip_and_git_packages(default_branch=default_branch, default_commit=default_commit)
 
