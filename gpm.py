@@ -98,7 +98,7 @@ class GPM():
         if branch:
             cmd = ["git", "checkout", branch]
             OK = GPM.run_proc(cmd, cwd=dest_dir)
-            if OK and commit:
+            if OK and commit and commit != "latest":
                 cmd = ["git", "checkout", commit]
                 return GPM.run_proc(cmd, cwd=dest_dir)
         else:
@@ -107,19 +107,16 @@ class GPM():
     def git_pull(self, url, dest_dir, branch=None, commit=None):
         print(f"Pulling git repository {dest_dir} ... ")
         url = self.format_url(url)
-        # refresh current branch
-        cmd = ["git", "pull", url]
-        OK = GPM.run_proc(cmd, cwd=dest_dir)
-        if OK and branch:
-            cmd = ["git", "checkout", branch]
-            GPM.run_proc(cmd, cwd=dest_dir)
-            # refresh new branch
-            cmd = ["git", "pull", url]
-            OK = GPM.run_proc(cmd, cwd=dest_dir)
-            if OK and commit:
-                cmd = ["git", "checkout", commit]
-                OK = GPM.run_proc(cmd, cwd=dest_dir)
+        pull_cmd = ["git", "pull", url]
+        if branch:
+            pull_cmd = [*pull_cmd, branch]
+            switch_cmd = ["git", "checkout", branch]
+            if commit and commit != "latest":
+                switch_cmd = [*switch_cmd, commit]
 
+        OK = GPM.run_proc(pull_cmd, cwd=dest_dir)
+        if branch:
+            GPM.run_proc(switch_cmd, cwd=dest_dir)
         self._remove_git_credentials_from_config(dest_dir)
         print("Done!")
         return OK
@@ -286,7 +283,7 @@ class GPM():
             if is_brick:
                 self.git_clone(source_url, repo_dir, branch=branch, commit=commit)
             else:
-                self.git_pull(source_url, repo_dir)
+                self.git_clone(source_url, repo_dir)
 
         if not os.path.exists(repo_dir):
             print(f"ERROR: Git package {package} could not be installed.")
