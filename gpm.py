@@ -278,9 +278,15 @@ class GPM():
         already_exists = os.path.exists(repo_dir)
         if already_exists:
             if self.is_test or UPDATE_GIT_BRICKS:
-                self.git_pull(source_url, repo_dir, branch=branch, commit=commit)
+                if is_brick:
+                    self.git_pull(source_url, repo_dir, branch=branch, commit=commit)
+                else:
+                    self.git_pull(source_url, repo_dir)
         else:
-            self.git_clone(source_url, repo_dir, branch=branch, commit=commit)
+            if is_brick:
+                self.git_clone(source_url, repo_dir, branch=branch, commit=commit)
+            else:
+                self.git_pull(source_url, repo_dir)
 
         if not os.path.exists(repo_dir):
             print(f"ERROR: Git package {package} could not be installed.")
