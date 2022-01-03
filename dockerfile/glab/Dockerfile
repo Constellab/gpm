@@ -14,6 +14,7 @@ WORKDIR ${WORKDIR_DIR}
 
 # install python & base packages
 RUN apt-get -y update && \
+    apt-get -y install jq && \
     apt-get -y install python3 python3-distutils && \
     apt-get -y install git curl zip unzip bzip2 wget rsync && \
     apt-get -y install pipenv

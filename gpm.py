@@ -262,6 +262,12 @@ class GPM():
         if repo in self._installed_git_packages:
             return
 
+        # if already exists, the current 'hiden status' is used
+        if os.path.exists(os.path.join(user_hidden_bricks_dir, repo)):
+            hidden = True
+        elif os.path.exists(os.path.join(user_bricks_dir, repo)):
+            hidden = False
+
         if is_brick:
             if hidden:
                 repo_dir = os.path.join(user_hidden_bricks_dir, repo)
