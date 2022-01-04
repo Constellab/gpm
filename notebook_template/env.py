@@ -19,8 +19,8 @@ def activate():
 
     from gws_core import manage, runner
     manage.load_settings("/lab/.sys/app")
-    runner._run(
-        None,
+    runner.call(
+        notebook=True,
         log_level="INFO",
         show_sql=False
     )
