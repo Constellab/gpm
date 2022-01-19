@@ -179,7 +179,6 @@ class GPM():
         with open(settings_file, 'r', encoding='utf-8') as f:
             settings = json.load(f)
             settings["name"] = self.config["name"]
-            settings["virtual_host"] = self.config["virtual_host"]
             settings["variables"] = self.config["variables"]
             settings["environment"] = self.config["environment"]
         with open(settings_file, 'w', encoding='utf-8') as f:
