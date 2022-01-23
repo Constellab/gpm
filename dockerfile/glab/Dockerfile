@@ -83,7 +83,7 @@ RUN python3 -m pip install  cvxpy==1.1.18 \
                             matplotlib==3.5.1 \
                             scipy>=1.7.0 \
                             scikit-learn==1.0.2 \
-                            tensorflow==2.7.0 \
+                            tensorflow==2.7.0
                             
 
 # other installs (R, mariadb-client, etc.)
