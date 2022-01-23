@@ -7,7 +7,8 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 
 ENV LAB_NAME app
 ENV WORKDIR_DIR /gpm
-ENV CONDA_VERSION 4.10.3
+ENV CONDA_VERSION py39_4.10.3
+#ENV CONDA_VERSION latest
 
 ADD ./ ${WORKDIR_DIR}
 WORKDIR ${WORKDIR_DIR}
