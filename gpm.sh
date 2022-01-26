@@ -4,7 +4,7 @@
 python3 /gpm/gpm.py
 
 # call brick hooks
-for brick in `find /lab/user/bricks -mindepth 1 -maxdepth 1 -type d`; do
+for brick in `find /lab/user/bricks -mindepth 1 -maxdepth 2 -type d`; do
     if [ -f "$brick/.hooks/pre-install.py" ]; then
         python3 "$brick/.hooks/pre-install.py"
     fi
