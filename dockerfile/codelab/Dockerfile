@@ -3,6 +3,9 @@ FROM $IMAGE
 
 LABEL maintainer="Admin <admin@gencovery.com>"
 
+# Set UTC timezone for the docker
+ENV TZ=UTC
+
 # Dockerfile from https://github.com/gitpod-io/openvscode-releases/blob/main/Dockerfile
 ARG RELEASE_TAG=openvscode-server-v1.61.0
 

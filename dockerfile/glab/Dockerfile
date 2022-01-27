@@ -5,6 +5,9 @@ FROM $IMAGE
 
 LABEL maintainer="Admin <admin@gencovery.com>"
 
+# Set UTC timezone for the docker
+ENV TZ=UTC
+
 ENV LAB_NAME app
 ENV WORKDIR_DIR /gpm
 ENV CONDA_VERSION py39_4.10.3
