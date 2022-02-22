@@ -11,6 +11,7 @@ import shutil
 import subprocess
 import time
 from typing import List
+from urllib.parse import quote
 
 import click
 
@@ -37,7 +38,7 @@ class GPM():
     CONFIG_FILE_PATH: str = "/conf/config.json"
     SYS_WORKSPACE_DIR: str = None
     USER_WORKSPACE_DIR: str = None
-    GLOBAL_CONFIG: list = []
+    GLOBAL_CONFIG: dict = None
 
     is_test: bool = False
     config: dict = None
@@ -76,6 +77,7 @@ class GPM():
 
             if value:
                 string = re.sub(r"\$\{?"+token+r"\}?", value, string)
+
         return string
 
     # -- G --
@@ -83,7 +85,8 @@ class GPM():
     def git_clone(self, url, dest_dir, branch=None, commit=None):
         print(f"Cloning git repository {url} ... ")
         url = self.format_url(url)
-        cmd = ["git", "clone", "--depth", "1", "--no-single-branch", url, dest_dir]
+        #cmd = ["git", "clone", "--depth", "1", "--no-single-branch", url, dest_dir]
+        cmd = ["git", "clone", "--no-single-branch", url, dest_dir]
         OK = GPM.run_proc(cmd, cwd=dest_dir)
         nb_retry = 0
         while not OK:
@@ -95,7 +98,10 @@ class GPM():
                 print("Failed!")
                 return False
         self._remove_git_credentials_from_config(dest_dir)
-        if branch:
+        if commit and commit != "latest":
+            cmd = ["git", "checkout", commit]
+            return GPM.run_proc(cmd, cwd=dest_dir)
+        elif branch:
             cmd = ["git", "checkout", branch]
             OK = GPM.run_proc(cmd, cwd=dest_dir)
             if OK and commit and commit != "latest":
@@ -352,7 +358,7 @@ def install(ctx, test=False, rm=False):
     if test:
         __cdir__ = os.path.dirname(os.path.abspath(__file__))
         GPM.LAB_WORKSPACE_DIR = os.path.join(__cdir__, "./tests/build/lab")
-        GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "./tests/build/config.json")
+        GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "./tests/config.json")
         gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH)
 
         # print(gpm.config)
