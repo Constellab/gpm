@@ -26,14 +26,14 @@
                 "source": "https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core",
                 "default_branch": "develop",
                 "packages":[
-                    {"name": "gws_biota", "commit": "aee490debc70c0d6713eb1e52cd6af59ea653d7b", "branch": "", "is_brick": true},
-                    {"name": "skeleton", "commit": "latest", "branch": "master", "is_brick": true, "is_hidden": false}
+                    {"name": "gws_biota", "version": "0.2.0", "commit": "", "branch": "", "is_brick": true},
+                    {"name": "skeleton", "version": "0.1.0", "commit": "", "branch": "", "is_brick": true, "is_hidden": false}
                 ]
             }
         ],
         "variables":{
-            "GWS_GIT_LOGIN": "",
-            "GWS_GIT_PWD": "",
+            "GWS_GIT_LOGIN": "astroboygencovery",
+            "GWS_GIT_PWD": "plHjfdrnpL%26JJ9h2RMKYQtuLHUYvHQ8ZzU%23yUWm%26",
             "GWS_PIP_PACKAGE_TOKEN": ""
         }
     }

@@ -82,10 +82,10 @@ class GPM():
 
     # -- G --
 
-    def git_clone(self, url, dest_dir, branch=None, commit=None):
+    def git_clone(self, url, dest_dir, branch=None, commit=None, version=None):
         print(f"Cloning git repository {url} ... ")
         url = self.format_url(url)
-        #cmd = ["git", "clone", "--depth", "1", "--no-single-branch", url, dest_dir]
+        # cmd = ["git", "clone", "--depth", "1", "--no-single-branch", url, dest_dir]
         cmd = ["git", "clone", "--no-single-branch", url, dest_dir]
         OK = GPM.run_proc(cmd, cwd=dest_dir)
         nb_retry = 0
@@ -98,31 +98,38 @@ class GPM():
                 print("Failed!")
                 return False
         self._remove_git_credentials_from_config(dest_dir)
-        if commit and commit != "latest":
+        if version:
+            cmd = ["git", "checkout", version]
+            return GPM.run_proc(cmd, cwd=dest_dir)
+        elif commit and commit != "latest":
             cmd = ["git", "checkout", commit]
             return GPM.run_proc(cmd, cwd=dest_dir)
         elif branch:
             cmd = ["git", "checkout", branch]
-            OK = GPM.run_proc(cmd, cwd=dest_dir)
-            if OK and commit and commit != "latest":
-                cmd = ["git", "checkout", commit]
-                return GPM.run_proc(cmd, cwd=dest_dir)
+            return GPM.run_proc(cmd, cwd=dest_dir)
+            #OK = GPM.run_proc(cmd, cwd=dest_dir)
+            # if OK and commit and commit != "latest":
+            #    cmd = ["git", "checkout", commit]
+            #    return GPM.run_proc(cmd, cwd=dest_dir)
         else:
             return True
 
-    def git_pull(self, url, dest_dir, branch=None, commit=None):
-        print(f"Pulling git repository {dest_dir} ... ")
+    def git_pull(self, url, dest_dir, branch=None, commit=None, version=None):
+        print(f"Pulling latest git repository {dest_dir} ... ")
         url = self.format_url(url)
-        pull_cmd = ["git", "pull", url]
-        if branch:
-            pull_cmd = [*pull_cmd, branch]
-            switch_cmd = ["git", "checkout", branch]
-            if commit and commit != "latest":
-                switch_cmd = [*switch_cmd, commit]
+        cmd = ["git", "pull", url]
+        OK = GPM.run_proc(cmd, cwd=dest_dir)
 
-        OK = GPM.run_proc(pull_cmd, cwd=dest_dir)
-        if branch:
-            GPM.run_proc(switch_cmd, cwd=dest_dir)
+        if version and version != "latest":
+            cmd = ["git", "checkout", version]
+            GPM.run_proc(cmd, cwd=dest_dir)
+        elif commit and commit != "latest":
+            cmd = ["git", "checkout", commit]
+            GPM.run_proc(cmd, cwd=dest_dir)
+        elif branch:
+            cmd = ["git", "checkout", branch]
+            GPM.run_proc(cmd, cwd=dest_dir)
+
         self._remove_git_credentials_from_config(dest_dir)
         print("Done!")
         return OK
@@ -246,7 +253,8 @@ class GPM():
         GPM._installed_pip_packages.extend(_repos)
         GPM._installed_pip_packages = list(set(GPM._installed_pip_packages))
 
-    def _install_git_packages(self, package, source_url, default_branch=None, default_commit=None,):
+    def _install_git_packages(
+            self, package, source_url, default_branch=None, default_commit=None, default_version=None,):
         user_bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks")
         user_hidden_bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks", ".lib")
         extern_lib_dir = os.path.join(self.SYS_WORKSPACE_DIR, "lib")
@@ -260,6 +268,7 @@ class GPM():
 
         repo = package["name"]
         commit = package.get("commit") or default_commit
+        version = package.get("version") or default_version
         branch = package.get("branch") or default_branch
         is_brick = package.get("is_brick", False)
         hidden = package.get("is_hidden", True)
@@ -285,14 +294,16 @@ class GPM():
 
         already_exists = os.path.exists(repo_dir)
         if already_exists:
-            if self.is_test or UPDATE_GIT_BRICKS:
-                if is_brick:
-                    self.git_pull(source_url, repo_dir, branch=branch, commit=commit)
-                else:
-                    self.git_pull(source_url, repo_dir)
+            if commit == "latest":
+                # only update if latest commit/version is required
+                if self.is_test or UPDATE_GIT_BRICKS:
+                    if is_brick:
+                        self.git_pull(source_url, repo_dir, branch=branch, commit=commit, version=version)
+                    else:
+                        self.git_pull(source_url, repo_dir)
         else:
             if is_brick:
-                self.git_clone(source_url, repo_dir, branch=branch, commit=commit)
+                self.git_clone(source_url, repo_dir, branch=branch, commit=commit, version=version)
             else:
                 self.git_clone(source_url, repo_dir)
 
