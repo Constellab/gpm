@@ -25,7 +25,7 @@ UPDATE_GIT_BRICKS = os.getenv("UPDATE_GIT_BRICKS", None) in ["1", 1]
 SKELETON_GIT_ENVIRONMENT = {
     "source": "https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core",
     "packages": [
-        {"name": "skeleton", "branch": "master", "commit": "", "is_brick": True, "is_hidden": False}
+        {"name": "skeleton", "version": "", "is_brick": True, "is_hidden": False}
     ]
 }
 
@@ -82,11 +82,15 @@ class GPM():
 
     # -- G --
 
-    def git_clone(self, url, dest_dir, branch=None, commit=None, version=None):
+    def git_clone(self, url, dest_dir, version=None):
         print(f"Cloning git repository {url} ... ")
         url = self.format_url(url)
         # cmd = ["git", "clone", "--depth", "1", "--no-single-branch", url, dest_dir]
-        cmd = ["git", "clone", "--no-single-branch", url, dest_dir]
+        if version:
+            cmd = ["git", "clone", "-b", version, "--depth", "1", url, dest_dir]
+        else:
+            cmd = ["git", "clone", "--depth", "1", url, dest_dir]
+
         OK = GPM.run_proc(cmd, cwd=dest_dir)
         nb_retry = 0
         while not OK:
@@ -98,41 +102,6 @@ class GPM():
                 print("Failed!")
                 return False
         self._remove_git_credentials_from_config(dest_dir)
-        if version:
-            cmd = ["git", "checkout", version]
-            return GPM.run_proc(cmd, cwd=dest_dir)
-        elif commit and commit != "latest":
-            cmd = ["git", "checkout", commit]
-            return GPM.run_proc(cmd, cwd=dest_dir)
-        elif branch:
-            cmd = ["git", "checkout", branch]
-            return GPM.run_proc(cmd, cwd=dest_dir)
-            #OK = GPM.run_proc(cmd, cwd=dest_dir)
-            # if OK and commit and commit != "latest":
-            #    cmd = ["git", "checkout", commit]
-            #    return GPM.run_proc(cmd, cwd=dest_dir)
-        else:
-            return True
-
-    def git_pull(self, url, dest_dir, branch=None, commit=None, version=None):
-        print(f"Pulling latest git repository {dest_dir} ... ")
-        url = self.format_url(url)
-        cmd = ["git", "pull", url]
-        OK = GPM.run_proc(cmd, cwd=dest_dir)
-
-        if version and version != "latest":
-            cmd = ["git", "checkout", version]
-            GPM.run_proc(cmd, cwd=dest_dir)
-        elif commit and commit != "latest":
-            cmd = ["git", "checkout", commit]
-            GPM.run_proc(cmd, cwd=dest_dir)
-        elif branch:
-            cmd = ["git", "checkout", branch]
-            GPM.run_proc(cmd, cwd=dest_dir)
-
-        self._remove_git_credentials_from_config(dest_dir)
-        print("Done!")
-        return OK
 
     def _remove_git_credentials_from_config(self, dest_dir):
         file = os.path.join(dest_dir, "./.git/config")
@@ -144,7 +113,7 @@ class GPM():
                 fp.write(cleaned_text)
     # -- I --
 
-    def install_pip_and_git_packages(self, default_branch=None, default_commit=None):
+    def install_pip_and_git_packages(self):
         env = self.config.get("environment", {})
         # install pip packages
         print("Installing Pip packages ...")
@@ -158,13 +127,8 @@ class GPM():
         for channel in env.get("git", []):
             source_url = channel.get("source").strip("/")
             packages = channel.get("packages")
-            default_branch = channel.get("default_branch") or default_branch
             for package in packages:
-                self._install_git_packages(
-                    package, source_url,
-                    default_branch=default_branch,
-                    default_commit=default_commit
-                )
+                self._install_git_packages(package, source_url)
 
     def install_app_entrypoint(self):
         dest_dir = os.path.join(self.SYS_WORKSPACE_DIR, "app")
@@ -253,8 +217,7 @@ class GPM():
         GPM._installed_pip_packages.extend(_repos)
         GPM._installed_pip_packages = list(set(GPM._installed_pip_packages))
 
-    def _install_git_packages(
-            self, package, source_url, default_branch=None, default_commit=None, default_version=None,):
+    def _install_git_packages(self, package, source_url):
         user_bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks")
         user_hidden_bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks", ".lib")
         extern_lib_dir = os.path.join(self.SYS_WORKSPACE_DIR, "lib")
@@ -267,45 +230,43 @@ class GPM():
             os.makedirs(extern_lib_dir)
 
         repo = package["name"]
-        commit = package.get("commit") or default_commit
-        version = package.get("version") or default_version
-        branch = package.get("branch") or default_branch
         is_brick = package.get("is_brick", False)
-        hidden = package.get("is_hidden", True)
+        is_hidden = package.get("is_hidden", True)
+        version = package.get("version", "")
 
         if repo in self._installed_git_packages:
             return
 
         # if already exists, the current 'hiden status' is used
         if os.path.exists(os.path.join(user_hidden_bricks_dir, repo)):
-            hidden = True
+            is_hidden = True
         elif os.path.exists(os.path.join(user_bricks_dir, repo)):
-            hidden = False
+            is_hidden = False
 
         if is_brick:
-            if hidden:
+            if is_hidden:
                 repo_dir = os.path.join(user_hidden_bricks_dir, repo)
             else:
                 repo_dir = os.path.join(user_bricks_dir, repo)
         else:
             repo_dir = os.path.join(extern_lib_dir, repo)
 
-        source_url = f"{source_url}/{repo}.git"
-
         already_exists = os.path.exists(repo_dir)
-        if already_exists:
-            if commit == "latest":
-                # only update if latest commit/version is required
-                if self.is_test or UPDATE_GIT_BRICKS:
-                    if is_brick:
-                        self.git_pull(source_url, repo_dir, branch=branch, commit=commit, version=version)
-                    else:
-                        self.git_pull(source_url, repo_dir)
+
+        source_url = f"{source_url}/{repo}.git"
+        if is_brick:
+            if already_exists:
+                if is_hidden:
+                    print(f"Removing {repo_dir} ...")
+                    shutil.rmtree(repo_dir, ignore_errors=True)
+                else:
+                    print(f"WARNING: Do not update non-hidden brick {repo_dir}")
+                    return
+            self.git_clone(source_url, repo_dir, version=version)
         else:
-            if is_brick:
-                self.git_clone(source_url, repo_dir, branch=branch, commit=commit, version=version)
-            else:
-                self.git_clone(source_url, repo_dir)
+            print(f"Removing {repo_dir} ...")
+            shutil.rmtree(repo_dir, ignore_errors=True)
+            self.git_clone(source_url, repo_dir)
 
         if not os.path.exists(repo_dir):
             print(f"ERROR: Git package {package} could not be installed.")
@@ -316,7 +277,7 @@ class GPM():
         if is_brick:
             print(f"Following dependendies of {repo} ...")
             gpm = GPM(settings_file_path=os.path.join(repo_dir, "settings.json"))
-            gpm.install_pip_and_git_packages(default_branch=default_branch, default_commit=default_commit)
+            gpm.install_pip_and_git_packages()
 
     # -- P --
 
