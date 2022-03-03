@@ -259,10 +259,9 @@ class GPM():
                 if is_hidden:
                     print(f"Removing {repo_dir} ...")
                     shutil.rmtree(repo_dir, ignore_errors=True)
+                    self.git_clone(source_url, repo_dir, version=version)
                 else:
                     print(f"WARNING: Do not update non-hidden brick {repo_dir}")
-                    return
-            self.git_clone(source_url, repo_dir, version=version)
         else:
             print(f"Removing {repo_dir} ...")
             shutil.rmtree(repo_dir, ignore_errors=True)
