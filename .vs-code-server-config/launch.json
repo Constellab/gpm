@@ -4,58 +4,75 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-      // configuration to start the gws
-      {
-          "args": ["--runserver"],
-          "name": "Start dev server",
-          "type": "python",
-          "request": "launch",
-          "program": "/lab/.sys/app/manage.py",
-          "console": "integratedTerminal"
-      },
-      // configuration to start the gws
-      {
-          "args": ["--runserver", "--log_level=DEBUG"],
-          "name": "Start dev server - DEBUG log",
-          "type": "python",
-          "request": "launch",
-          "program": "/lab/.sys/app/manage.py",
-          "console": "integratedTerminal"
-      },
-      // configuration to start the gws
-      {
-          "args": ["--reset_env"],
-          "name": "Reset dev environment",
-          "type": "python",
-          "request": "launch",
-          "program": "/lab/.sys/app/manage.py",
-          "console": "integratedTerminal"
-      },
-      // config to run test on GWS
-      {
-          "args": ["--test", "all"],
-          "name": "Test all files",
-          "type": "python",
-          "request": "launch",
-          "program": "/lab/.sys/app/manage.py",
-          "console": "integratedTerminal"
-      },
-      // config to run test on GWS
-      {
-          "args": ["--test", "${input:testFileName}"],
-          "name": "Test a single file",
-          "type": "python",
-          "request": "launch",
-          "program": "/lab/.sys/app/manage.py",
-          "console": "integratedTerminal"
-      }
+    // configuration to start the gws
+    {
+      "args": [
+        "--runserver"
+      ],
+      "name": "Start dev server",
+      "type": "python",
+      "request": "launch",
+      "program": "/lab/.sys/app/manage.py",
+      "console": "integratedTerminal"
+    },
+    // configuration to start the gws
+    {
+      "args": [
+        "--runserver",
+        "--log_level=DEBUG"
+      ],
+      "name": "Start dev server - DEBUG log",
+      "type": "python",
+      "request": "launch",
+      "program": "/lab/.sys/app/manage.py",
+      "console": "integratedTerminal"
+    },
+    // configuration to start the gws
+    {
+      "args": [
+        "--reset_env"
+      ],
+      "name": "Reset dev environment",
+      "type": "python",
+      "request": "launch",
+      "program": "/lab/.sys/app/manage.py",
+      "console": "integratedTerminal"
+    },
+    // config to run test on GWS
+    {
+      "args": [
+        "--test",
+        "${input:brickName}/test*"
+      ],
+      "name": "Test all files",
+      "type": "python",
+      "request": "launch",
+      "program": "/lab/.sys/app/manage.py",
+      "console": "integratedTerminal"
+    },
+    // config to run test on GWS
+    {
+      "args": [
+        "--test",
+        "${input:testFileName}"
+      ],
+      "name": "Test a single file",
+      "type": "python",
+      "request": "launch",
+      "program": "/lab/.sys/app/manage.py",
+      "console": "integratedTerminal"
+    }
   ],
-
   "inputs": [
-      {
-          "id": "testFileName",
-          "type": "promptString",
-          "description": "Name of the test files to run prefixed with brick name. [brickName]/[testFileName]. Ex: gws_core/test_table. Can provided multiple filenames separated with space"
-      }
+    {
+      "id": "testFileName",
+      "type": "promptString",
+      "description": "Name of the test files to run prefixed with brick name. [brickName]/[testFileName]. Ex: gws_core/test_table. Can provided multiple filenames separated with space"
+    },
+    {
+      "id": "brickName",
+      "type": "promptString",
+      "description": "Name of the brick to test. It will run all the test file of this brick"
+    }
   ]
 }
