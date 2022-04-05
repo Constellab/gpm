@@ -11,7 +11,6 @@ import shutil
 import subprocess
 import time
 from typing import List
-from urllib.parse import quote
 
 import click
 
@@ -262,6 +261,8 @@ class GPM():
                     self.git_clone(source_url, repo_dir, version=version)
                 else:
                     print(f"WARNING: Do not update non-hidden brick {repo_dir}")
+            else:
+                self.git_clone(source_url, repo_dir, version=version)
         else:
             print(f"Removing {repo_dir} ...")
             shutil.rmtree(repo_dir, ignore_errors=True)
