@@ -7,7 +7,7 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 ENV TZ=UTC
 
 # Dockerfile from https://github.com/gitpod-io/openvscode-releases/blob/main/Dockerfile
-ARG RELEASE_TAG=openvscode-server-v1.61.0
+ARG RELEASE_TAG=openvscode-server-v1.66.0
 
 RUN apt update && \
     apt install -y git wget && \

@@ -11,14 +11,14 @@ variables:
   CODELAB: codelab
 
 stages:
-  - build-cpu-glab
-  - build-gpu-glab
-  # - build-cpu-codelab
-  # - build-gpu-codelab
+  - build-cpu-glab-and-codelab
+  - build-gpu-glab-and-codelab
+  - build-cpu-codelab
+  - build-gpu-codelab
 
 #  Build the glab cpu images and push them to the registry
-build-cpu-glab:
-  stage: build-cpu-glab
+build-cpu-glab-and-codelab:
+  stage: build-cpu-glab-and-codelab
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
@@ -39,8 +39,8 @@ build-cpu-glab:
 
 
 #  Build the glab gpu images and push them to the registry
-build-gpu-glab:
-  stage: build-gpu-glab
+build-gpu-glab-and-codelab:
+  stage: build-gpu-glab-and-codelab
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
@@ -59,34 +59,34 @@ build-gpu-glab:
     - master
   when: manual
 
-# #  Build the codelab cpu images and push them to the registry
-# build-cpu-codelab:
-#   stage: build-cpu-codelab
-#   before_script:
-#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-#   script:
-#     # Build the code server (CODELAB) image from the GLAB Image with a latest tag and a tag for the commit
-#     - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$CPU:latest" --cache-from $CI_REGISTRY_IMAGE/$CODELAB-$CPU:latest --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:latest . -f dockerfile/$CODELAB/Dockerfile
-#     # Push both image in the registry
-#     - docker push $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_SHA
-#     - docker push $CI_REGISTRY_IMAGE/$CODELAB-$CPU:latest
+#  Build the codelab cpu images and push them to the registry
+build-cpu-codelab:
+  stage: build-cpu-codelab
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    # Build the code server (CODELAB) image from the GLAB Image with a latest tag and a tag for the commit
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$CPU:latest" --cache-from $CI_REGISTRY_IMAGE/$CODELAB-$CPU:latest --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:latest . -f dockerfile/$CODELAB/Dockerfile
+    # Push both image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$CPU:latest
 
-#   only:
-#     - master
-#   when: manual
+  only:
+    - master
+  when: manual
 
-# #  Build the codelab gpu images and push them to the registry
-# build-gpu-codelab:
-#   stage: build-gpu-codelab
-#   before_script:
-#     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-#   script:
-#     # Build the code server (CODELAB) image from the GLAB Image with a latest tag and a tag for the commit
-#     - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$GPU:latest" --cache-from $CI_REGISTRY_IMAGE/$CODELAB-$GPU:latest --tag $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$CODELAB-$GPU:latest . -f dockerfile/$CODELAB/Dockerfile
-#     # Push both image in the registry
-#     - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_SHA
-#     - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:latest
+#  Build the codelab gpu images and push them to the registry
+build-gpu-codelab:
+  stage: build-gpu-codelab
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  script:
+    # Build the code server (CODELAB) image from the GLAB Image with a latest tag and a tag for the commit
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$GPU:latest" --cache-from $CI_REGISTRY_IMAGE/$CODELAB-$GPU:latest --tag $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$CODELAB-$GPU:latest . -f dockerfile/$CODELAB/Dockerfile
+    # Push both image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_SHA
+    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:latest
 
-#   only:
-#     - master
-#   when: manual
+  only:
+    - master
+  when: manual
