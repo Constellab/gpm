@@ -32,8 +32,8 @@
             }
         ],
         "variables":{
-            "GWS_GIT_LOGIN": "astroboygencovery",
-            "GWS_GIT_PWD": "plHjfdrnpL%26JJ9h2RMKYQtuLHUYvHQ8ZzU%23yUWm%26",
+            "GWS_GIT_LOGIN": "",
+            "GWS_GIT_PWD": "",
             "GWS_PIP_PACKAGE_TOKEN": ""
         }
     }

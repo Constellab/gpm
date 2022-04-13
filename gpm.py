@@ -82,7 +82,7 @@ class GPM():
     # -- G --
 
     def git_clone(self, url, dest_dir, version=None):
-        print(f"Cloning git repository {url} ... ")
+        print(f"Cloning git repository {url}:{version} ... ")
         url = self.format_url(url)
         # cmd = ["git", "clone", "--depth", "1", "--no-single-branch", url, dest_dir]
         if version:
@@ -100,16 +100,25 @@ class GPM():
             if nb_retry >= 3:
                 print("Failed!")
                 return False
-        self._remove_git_credentials_from_config(dest_dir)
 
-    def _remove_git_credentials_from_config(self, dest_dir):
-        file = os.path.join(dest_dir, "./.git/config")
-        with open(file, "r", encoding="utf-8") as fp:
-            text = fp.read()
-            cleaned_text = re.sub(r"(https?://)(.*@)?(.+)", r"\1\3", text)
-        if cleaned_text != text:
-            with open(file, "w", encoding="utf-8") as fp:
-                fp.write(cleaned_text)
+        # remove .git folder
+        try:
+            print(f"Removing .git directory from {dest_dir} ...")
+            shutil.rmtree(os.path.join(dest_dir, ".git"))
+        except:
+            raise Exception(f"Cannot remove .git directory from {dest_dir}")
+
+        # self._remove_git_credentials_from_config(dest_dir)
+
+    # def _remove_git_credentials_from_config(self, dest_dir):
+    #     file = os.path.join(dest_dir, "./.git/config")
+    #     with open(file, "r", encoding="utf-8") as fp:
+    #         text = fp.read()
+    #         cleaned_text = re.sub(r"(https?://)(.*@)?(.+)", r"\1\3", text)
+    #     if cleaned_text != text:
+    #         with open(file, "w", encoding="utf-8") as fp:
+    #             fp.write(cleaned_text)
+
     # -- I --
 
     def install_pip_and_git_packages(self):
@@ -138,7 +147,12 @@ class GPM():
                 raise Exception("The skeleton is not found")
 
         if os.path.exists(dest_dir):
-            shutil.rmtree(dest_dir, ignore_errors=True)
+            try:
+                print(f"Removing {dest_dir} ...")
+                shutil.rmtree(dest_dir, ignore_errors=True)
+            except:
+                raise Exception(f"Cannot remove {dest_dir}")
+
         shutil.copytree(
             skeleton_dir,
             dest_dir
@@ -148,8 +162,15 @@ class GPM():
             os.path.join(dest_dir, "src", "skeleton"),
             os.path.join(dest_dir, "src", self.config["name"])
         )
+
         # remove .git folder
-        shutil.rmtree(os.path.join(dest_dir, ".git"))
+        if os.path.exists(os.path.join(dest_dir, ".git")):
+            try:
+                print(f"Removing .git directory from {dest_dir} ...")
+                shutil.rmtree(os.path.join(dest_dir, ".git"))
+            except:
+                raise Exception(f"Cannot remove .git directory in {dest_dir}")
+
         # update settings.json
         settings_file = os.path.join(dest_dir, "settings.json")
         with open(settings_file, 'r', encoding='utf-8') as f:
@@ -250,27 +271,31 @@ class GPM():
         else:
             repo_dir = os.path.join(extern_lib_dir, repo)
 
-        already_exists = os.path.exists(repo_dir)
-
         source_url = f"{source_url}/{repo}.git"
         if is_brick:
-            if already_exists:
+            if os.path.exists(repo_dir):
                 if is_hidden:
                     print(f"Removing {repo_dir} ...")
-                    shutil.rmtree(repo_dir, ignore_errors=True)
+                    try:
+                        shutil.rmtree(repo_dir)
+                    except:
+                        raise Exception(f"Cannot remove {repo_dir}")
                     self.git_clone(source_url, repo_dir, version=version)
                 else:
-                    print(f"WARNING: Do not update non-hidden brick {repo_dir}")
+                    print(f"Do not update non-hidden brick {repo_dir}")
             else:
                 self.git_clone(source_url, repo_dir, version=version)
         else:
-            print(f"Removing {repo_dir} ...")
-            shutil.rmtree(repo_dir, ignore_errors=True)
+            if os.path.exists(repo_dir):
+                print(f"Removing {repo_dir} ...")
+                try:
+                    shutil.rmtree(repo_dir)
+                except:
+                    raise Exception(f"Cannot remove {repo_dir}")
             self.git_clone(source_url, repo_dir)
 
         if not os.path.exists(repo_dir):
-            print(f"ERROR: Git package {package} could not be installed.")
-            return
+            raise Exception(f"Git package {package} could not be installed.")
 
         self._installed_git_packages.append(repo)
 
@@ -348,7 +373,7 @@ def install(ctx, test=False, rm=False):
         gpm.install_app_entrypoint()
         gpm.install_notebook_entrypoint()
 
-    print(f"\nInstalled pip packages:\n{GPM._installed_pip_packages}")
+    print(f"Installed pip packages:\n{GPM._installed_pip_packages}")
     print(f"Installed git packages:\n{GPM._installed_git_packages}")
 
 
