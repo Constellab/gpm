@@ -3,39 +3,59 @@ FROM $IMAGE
 
 LABEL maintainer="Admin <admin@gencovery.com>"
 
-# Set UTC timezone for the docker
-ENV TZ=UTC
-
-# Dockerfile from https://github.com/gitpod-io/openvscode-releases/blob/main/Dockerfile
-ARG RELEASE_TAG=openvscode-server-v1.61.0
-
 RUN apt update && \
     apt install -y git wget && \
     rm -rf /var/lib/apt/lists/*
 
+RUN pip install mypy pylint autopep8
+
+
+# Dockerfile from https://github.com/gitpod-io/openvscode-releases/blob/main/Dockerfile
 WORKDIR /home
 
+# Set UTC timezone for the docker
+ENV TZ=UTC
+
+ARG RELEASE_TAG=openvscode-server-v1.66.0
+ARG RELEASE_ORG="gitpod-io"
+ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
+
 # Downloading the latest VSC Server release and extracting the release archive
-RUN wget https://github.com/gitpod-io/openvscode-server/releases/download/${RELEASE_TAG}/${RELEASE_TAG}-linux-x64.tar.gz && \
-    tar -xzf ${RELEASE_TAG}-linux-x64.tar.gz && \
-    rm -f ${RELEASE_TAG}-linux-x64.tar.gz
+# Rename `openvscode-server` cli tool to `code` for convenience
+RUN if [ -z "${RELEASE_TAG}" ]; then \
+        echo "The RELEASE_TAG build arg must be set." >&2 && \
+        exit 1; \
+    fi && \
+    arch=$(uname -m) && \
+    if [ "${arch}" = "x86_64" ]; then \
+        arch="x64"; \
+    elif [ "${arch}" = "aarch64" ]; then \
+        arch="arm64"; \
+    elif [ "${arch}" = "armv7l" ]; then \
+        arch="armhf"; \
+    fi && \
+    wget https://github.com/${RELEASE_ORG}/openvscode-server/releases/download/${RELEASE_TAG}/${RELEASE_TAG}-linux-${arch}.tar.gz && \
+    tar -xzf ${RELEASE_TAG}-linux-${arch}.tar.gz && \
+    mv -f ${RELEASE_TAG}-linux-${arch} ${OPENVSCODE_SERVER_ROOT} && \
+    cp ${OPENVSCODE_SERVER_ROOT}/bin/remote-cli/openvscode-server ${OPENVSCODE_SERVER_ROOT}/bin/remote-cli/code && \
+    rm -f ${RELEASE_TAG}-linux-${arch}.tar.gz
 
 
-RUN pip install mypy pylint autopep8
 
 WORKDIR /lab/user/
 
 COPY ./.vs-code-server-config/ /.vs-code-server-config/
 
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
-ENV EDITOR=code
-ENV VISUAL=code
-ENV GIT_EDITOR="code --wait"
-ENV OPENVSCODE_SERVER_ROOT=/home/${RELEASE_TAG}-linux-x64
+ENV LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    EDITOR=code \
+    VISUAL=code \
+    GIT_EDITOR="code --wait" \
+    OPENVSCODE_SERVER_ROOT=${OPENVSCODE_SERVER_ROOT}
 
 EXPOSE 8080
 
+# Default exposed port if none is specified
 COPY ./entrypoint.sh /entrypoint.sh
 
 RUN sed -i -e 's/\r$//' /entrypoint.sh

@@ -17,7 +17,7 @@ elif [ "$1" == "--run-codelab" ]; then
       cp /.vs-code-server-config/extensions.json /lab/user/.vscode/extensions.json
       cp /.vs-code-server-config/settings.json /lab/user/.vscode/settings.json
     fi
-    exec bash -c "source /gpm/clean.sh && bash ${OPENVSCODE_SERVER_ROOT}/server.sh --port 8080"
+    exec bash -c "source /gpm/clean.sh && bash ${OPENVSCODE_SERVER_ROOT}/bin/openvscode-server --port 8080 --host 0.0.0.0 --without-connection-token"
 elif [ "$1" == "--run-local" ]; then
     bash "/gpm/gpm.sh"
     # prevent docker to stop 
