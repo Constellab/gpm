@@ -73,7 +73,8 @@ RUN python3 -m pip install  aiofiles==0.8.0 \
                             requests==2.27.1 \
                             starlette-context==0.3.3 \
                             twine==3.7.1 \
-                            uvicorn==0.17.0
+                            uvicorn==0.17.0 \
+                            charset-normalizer==2.0.12
 
 # install biota dependencies
 RUN python3 -m pip install biopython==1.79
