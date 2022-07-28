@@ -10,7 +10,7 @@ import re
 import shutil
 import subprocess
 import time
-from typing import List
+from typing import List, TypedDict
 
 import click
 
@@ -27,6 +27,11 @@ SKELETON_GIT_ENVIRONMENT = {
         {"name": "skeleton", "version": "", "is_brick": True, "is_hidden": False}
     ]
 }
+
+class GitPackage(TypedDict):
+    name: str
+    version: str
+    is_brick: bool
 
 
 class GPM():
@@ -81,7 +86,7 @@ class GPM():
 
     # -- G --
 
-    def git_clone(self, url, dest_dir, version=None):
+    def git_clone(self, url: str, dest_dir: str, version: str=None) -> None:
         print(f"Cloning git repository {url}:{version} ... ")
         url = self.format_url(url)
         # cmd = ["git", "clone", "--depth", "1", "--no-single-branch", url, dest_dir]
@@ -98,7 +103,7 @@ class GPM():
             OK = GPM.run_proc(cmd, cwd=dest_dir)
             nb_retry += 1
             if nb_retry >= 3:
-                print("Failed!")
+                print(f"Couldn't clonde the repository '{url}' with version '{version}'")
                 return False
 
         # remove .git folder
@@ -237,72 +242,101 @@ class GPM():
         GPM._installed_pip_packages.extend(_repos)
         GPM._installed_pip_packages = list(set(GPM._installed_pip_packages))
 
-    def _install_git_packages(self, package, source_url):
-        user_bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks")
-        user_hidden_bricks_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks", ".lib")
-        extern_lib_dir = os.path.join(self.SYS_WORKSPACE_DIR, "lib")
+    def _install_git_packages(self, package: GitPackage, source_url: str):
+        repo_name = package["name"]
 
-        if not os.path.exists(user_bricks_dir):
-            os.makedirs(user_bricks_dir)
-        if not os.path.exists(user_hidden_bricks_dir):
-            os.makedirs(user_hidden_bricks_dir)
-        if not os.path.exists(extern_lib_dir):
-            os.makedirs(extern_lib_dir)
-
-        repo = package["name"]
-        is_brick = package.get("is_brick", False)
-        is_hidden = package.get("is_hidden", True)
-        version = package.get("version", "")
-
-        if repo in self._installed_git_packages:
+        # skip install if the package is already installed
+        if repo_name in self._installed_git_packages:
             return
 
-        # if already exists, the current 'hiden status' is used
-        if os.path.exists(os.path.join(user_hidden_bricks_dir, repo)):
-            is_hidden = True
-        elif os.path.exists(os.path.join(user_bricks_dir, repo)):
-            is_hidden = False
+
+        is_brick = package.get("is_brick", False)
+        version = package.get("version", "")
+
+        repo_path = f"{source_url}/{repo_name}.git"
 
         if is_brick:
+          self.install_brick_git_package(repo_name, version, repo_path)
+        else:
+          self.install_other_git_package(repo_name, version, repo_path)
+
+
+    def install_brick_git_package(self, brick_name: str, version: str, repo_path: str) -> None:
+        user_bricks_dir = self.get_user_brick_dir()
+        user_hidden_bricks_dir = self.get_hidden_brick_dir()
+      
+
+        # Set hidden to False only if the brick is in the user bricks dir
+        # normally this is only in dev env
+        is_hidden = not os.path.exists(os.path.join(user_bricks_dir, brick_name))
+
+        # retrieve brick repo
+        repo_dir: str = None
+        if is_hidden:
+            repo_dir = os.path.join(user_hidden_bricks_dir, brick_name)
+        else:
+            repo_dir = os.path.join(user_bricks_dir, brick_name)
+
+        if os.path.exists(repo_dir):
+            # update hidden bricks (remove and clone)
             if is_hidden:
-                repo_dir = os.path.join(user_hidden_bricks_dir, repo)
-            else:
-                repo_dir = os.path.join(user_bricks_dir, repo)
-        else:
-            repo_dir = os.path.join(extern_lib_dir, repo)
-
-        source_url = f"{source_url}/{repo}.git"
-        if is_brick:
-            if os.path.exists(repo_dir):
-                if is_hidden:
-                    print(f"Removing {repo_dir} ...")
-                    try:
-                        shutil.rmtree(repo_dir)
-                    except:
-                        raise Exception(f"Cannot remove {repo_dir}")
-                    self.git_clone(source_url, repo_dir, version=version)
-                else:
-                    print(f"Do not update non-hidden brick {repo_dir}")
-            else:
-                self.git_clone(source_url, repo_dir, version=version)
-        else:
-            if os.path.exists(repo_dir):
                 print(f"Removing {repo_dir} ...")
                 try:
                     shutil.rmtree(repo_dir)
                 except:
                     raise Exception(f"Cannot remove {repo_dir}")
-            self.git_clone(source_url, repo_dir)
+                self.git_clone(repo_path, repo_dir, version=version)
+            else:
+                print(f"Do not update non-hidden brick {repo_dir}")
+        else:
+            self.git_clone(repo_path, repo_dir, version=version)
+      
 
         if not os.path.exists(repo_dir):
-            raise Exception(f"Git package {package} could not be installed.")
+            raise Exception(f"Brick package {brick_name} version {version} could not be installed.")
 
-        self._installed_git_packages.append(repo)
+        self._installed_git_packages.append(brick_name)
 
-        if is_brick:
-            print(f"Following dependendies of {repo} ...")
-            gpm = GPM(settings_file_path=os.path.join(repo_dir, "settings.json"))
-            gpm.install_pip_and_git_packages()
+        # install brick sub dependencies
+        print(f"Following dependendies of {brick_name} ...")
+        gpm = GPM(settings_file_path=os.path.join(repo_dir, "settings.json"))
+        gpm.install_pip_and_git_packages()
+
+    def install_other_git_package(self, repo_name: str, version: str, repo_path: str) -> None:
+        extern_lib_dir = self.get_external_lib_dir() 
+        
+        repo_dir = os.path.join(extern_lib_dir, repo_name)
+        
+        if os.path.exists(repo_dir):
+            print(f"Removing {repo_dir} ...")
+            try:
+                shutil.rmtree(repo_dir)
+            except:
+                raise Exception(f"Cannot remove {repo_dir}")
+        self.git_clone(repo_path, repo_dir)
+
+        if not os.path.exists(repo_dir):
+            raise Exception(f"Git package {repo_name} version {version} could not be installed.")
+
+        self._installed_git_packages.append(repo_name)
+
+    def get_user_brick_dir(self) -> str:
+        dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks")
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        return dir
+
+    def get_hidden_brick_dir(self) -> str:
+        dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks", ".lib")
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        return dir
+
+    def get_external_lib_dir(self) -> str:
+        dir = os.path.join(self.SYS_WORKSPACE_DIR, "lib")
+        if not os.path.exists(dir):
+            os.makedirs(dir)
+        return dir
 
     # -- P --
 
