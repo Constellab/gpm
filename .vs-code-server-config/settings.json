@@ -1,50 +1,53 @@
 {
-    "extensions.autoCheckUpdates": false,
-    "extensions.autoUpdate": false,
-    "workbench.editor.enablePreview": false,
-    "git.ignoreMissingGitWarning": true,
-    "diffEditor.ignoreTrimWhitespace": false,
-    "workbench.editor.revealIfOpen": true,
-    "editor.minimap.enabled": false,
-    "python.defaultInterpreterPath": "/usr/bin/python3",
-    // custom config for python
-    "[python]": {
-      // format the code on save
-      "editor.formatOnSave": true,
-      // actions run on save
-      "editor.codeActionsOnSave": {
-        // reoaganize imports on save
-        "source.organizeImports": true
-      },
-      // remove trailling whitespace on save
-      "files.trimTrailingWhitespace": true,
+  "extensions.autoCheckUpdates": false,
+  "extensions.autoUpdate": false,
+  "workbench.editor.enablePreview": false,
+  "git.ignoreMissingGitWarning": true,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "workbench.editor.revealIfOpen": true,
+  "editor.minimap.enabled": false,
+  "python.defaultInterpreterPath": "/usr/bin/python3",
+  // custom config for python
+  "[python]": {
+    // format the code on save
+    "editor.formatOnSave": true,
+    // actions run on save
+    "editor.codeActionsOnSave": {
+      // reoaganize imports on save
+      "source.organizeImports": true
     },
-    
-    
-    // python formatting (indentation)
-    "python.formatting.provider": "autopep8",
-    "python.formatting.autopep8Path": "/usr/local/bin/autopep8",
-    "python.formatting.autopep8Args": ["--max-line-length", "120", "--experimental"],
-    
-    
-    // linting rules it takes the rules of .pylintrc file
-    "python.linting.pylintPath": "/usr/local/bin/pylint",
-    "python.linting.enabled": true,
-    "python.linting.pylintEnabled": true,
-    "python.linting.pylintUseMinimalCheckers": false,
-    "python.linting.lintOnSave": true,
-    
-    // activate mypy to have type hint checking
-    "python.linting.mypyEnabled": true,
-    "python.linting.mypyPath": "/usr/local/bin/mypy",
-    "python.linting.mypyArgs": [
-      "--config-file=${workspaceFolder}/.mypy.ini"
-    ],
+    // remove trailling whitespace on save
+    "files.trimTrailingWhitespace": true
+  },
+  
+  
+  // python formatting (indentation)
+  "python.formatting.provider": "autopep8",
+  "python.formatting.autopep8Path": "/usr/local/bin/autopep8",
+  "python.formatting.autopep8Args": ["--max-line-length", "120", "--experimental"],
 
-    // Git graph
-    // use to enable git graph when working on a higher folder
-    "git-graph.maxDepthOfRepoSearch": 2,
+  // add gws_core path to improve intellisense
+  "python.autoComplete.extraPaths": ["${workspaceFolder}/bricks/gws_core/src", 
+    "${workspaceFolder}/bricks/.lib/gws_core/src"],
+  
+  // linting rules it takes the rules of .pylintrc file
+  "python.linting.pylintPath": "/usr/local/bin/pylint",
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.linting.pylintUseMinimalCheckers": false,
+  "python.linting.lintOnSave": true,
+  
+  // activate mypy to have type hint checking
+  "python.linting.mypyEnabled": true,
+  "python.linting.mypyPath": "/usr/local/bin/mypy",
+  "python.linting.mypyArgs": [
+    "--config-file=${workspaceFolder}/.mypy.ini"
+  ],
 
-    // Doc String
-    "autoDocstring.docstringFormat": "sphinx"
+  // Git graph
+  // use to enable git graph when working on a higher folder
+  "git-graph.maxDepthOfRepoSearch": 2,
+
+  // Doc String
+  "autoDocstring.docstringFormat": "sphinx"
 }

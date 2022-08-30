@@ -16,17 +16,16 @@ ENV CONDA_VERSION py39_4.10.3
 ADD ./ ${WORKDIR_DIR}
 WORKDIR ${WORKDIR_DIR}
 
-# install python & base packages
+# install python v 3.8.10 & base packages
 RUN apt-get -y update && \
     apt-get -y install jq && \
-    apt-get -y install python3 python3-distutils && \
+    apt-get -y install python3.8.10 python3-distutils && \
     apt-get -y install git curl zip unzip bzip2 wget rsync && \
     apt-get -y install pipenv
 
-# install pip
+# install pip v 22.2.2
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python3 get-pip.py && \
-    python3 -m pip install --upgrade pip && \
+    python3 get-pip.py "pip==22.2.2" && \
     python3 -m pip install --upgrade setuptools
     
 # install bazel
