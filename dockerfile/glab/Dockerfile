@@ -27,15 +27,6 @@ RUN apt-get -y update && \
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python3 get-pip.py "pip==22.2.2" && \
     python3 -m pip install --upgrade setuptools
-    
-# install bazel
-RUN apt-get -y install gnupg && \
-    curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg && \
-    mv bazel.gpg /etc/apt/trusted.gpg.d/ && \
-    echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | tee /etc/apt/sources.list.d/bazel.list && \
-    apt -y update && \
-    apt -y install bazel && \
-    apt -y full-upgrade
 
 # install C++ dev tools
 RUN apt-get -y install g++ unzip zip && \
