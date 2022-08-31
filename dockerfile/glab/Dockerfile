@@ -84,7 +84,7 @@ RUN python3 -m pip install  cvxpy==1.1.18 \
                             numpy==1.22.1 \
                             pandas==1.3.5 \
                             matplotlib==3.5.1 \
-                            scipy>=1.7.0 \
+                            scipy==1.8.0 \
                             scikit-learn==1.0.2 \
                             tensorflow==2.7.0
                             
