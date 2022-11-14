@@ -16,7 +16,8 @@ WORKDIR /home
 # Set UTC timezone for the docker
 ENV TZ=UTC
 
-ARG RELEASE_TAG=openvscode-server-v1.66.0
+# Choose version from https://github.com/gitpod-io/openvscode-server
+ARG RELEASE_TAG=openvscode-server-v1.73.1
 ARG RELEASE_ORG="gitpod-io"
 ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
 
