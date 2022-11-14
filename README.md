@@ -13,6 +13,5 @@ For testing, use the VsCode testing extension and run test gpm tests.
 Old solution : For testing ```gpm.py``` module, use ```python3 gpm.py --test```.
 Use ```python3 gpm.py --test --rm``` to test and remove testing files.
 
-
-
-
+Testing the glab image locally : ```docker build -t glab:latest -f .\dockerfile\glab\Dockerfile .```
+Testing the codelab image locally : ```docker build -t local-codelab -f .\dockerfile\codelab\Dockerfile .```
