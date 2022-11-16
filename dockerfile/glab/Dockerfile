@@ -23,9 +23,9 @@ RUN apt-get -y update && \
     apt-get -y install git curl zip unzip bzip2 wget rsync && \
     apt-get -y install pipenv
 
-# install pip v 22.2.2
+# install pip v 22.3.1
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python3 get-pip.py "pip==22.2.2" && \
+    python3 get-pip.py "pip==22.3.1" && \
     python3 -m pip install --upgrade setuptools
 
 # install C++ dev tools
