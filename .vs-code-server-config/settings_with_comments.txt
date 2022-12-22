@@ -7,27 +7,47 @@
   "workbench.editor.revealIfOpen": true,
   "editor.minimap.enabled": false,
   "python.defaultInterpreterPath": "/usr/bin/python3",
+  // custom config for python
   "[python]": {
+    // format the code on save
     "editor.formatOnSave": true,
+    // actions run on save
     "editor.codeActionsOnSave": {
+      // reoaganize imports on save
       "source.organizeImports": true
     },
+    // remove trailling whitespace on save
     "files.trimTrailingWhitespace": true
   },
+  
+  
+  // python formatting (indentation)
   "python.formatting.provider": "autopep8",
   "python.formatting.autopep8Path": "/usr/local/bin/autopep8",
   "python.formatting.autopep8Args": ["--max-line-length", "120", "--experimental"],
+
+  // the paths to the bricks are dynamically added by gpm
+  // so vscode knows where to find the bricks
   "python.autoComplete.extraPaths": [],
+  
+  // linting rules it takes the rules of .pylintrc file
   "python.linting.pylintPath": "/usr/local/bin/pylint",
   "python.linting.enabled": true,
   "python.linting.pylintEnabled": true,
   "python.linting.pylintUseMinimalCheckers": false,
   "python.linting.lintOnSave": true,
+  
+  // activate mypy to have type hint checking
   "python.linting.mypyEnabled": true,
   "python.linting.mypyPath": "/usr/local/bin/mypy",
   "python.linting.mypyArgs": [
     "--config-file=${workspaceFolder}/.mypy.ini"
   ],
+
+  // Git graph
+  // use to enable git graph when working on a higher folder
   "git-graph.maxDepthOfRepoSearch": 2,
+
+  // Doc String
   "autoDocstring.docstringFormat": "sphinx"
 }

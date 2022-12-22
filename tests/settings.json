@@ -24,10 +24,9 @@
         "git":[
             {
                 "source": "https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core",
-                "default_branch": "develop",
                 "packages":[
                     {"name": "gws_biota", "version": "0.2.0", "is_brick": true},
-                    {"name": "skeleton", "version": "0.1.0", "is_brick": true, "is_hidden": false}
+                    {"name": "skeleton", "version": "0.1.0", "is_brick": true}
                 ]
             }
         ],

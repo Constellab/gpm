@@ -56,13 +56,6 @@ ENV LANG=C.UTF-8 \
 
 EXPOSE 8080
 
-# Default exposed port if none is specified
-COPY ./entrypoint.sh /entrypoint.sh
-
-RUN sed -i -e 's/\r$//' /entrypoint.sh
-RUN sed -i -e 's/\r$//' /gpm/gpm.sh
-RUN chmod +x /entrypoint.sh
-
-ENTRYPOINT [ "/entrypoint.sh" ]
+ENTRYPOINT [ "/init-lab/entrypoint.sh" ]
 CMD [ "--run-codelab" ]
 

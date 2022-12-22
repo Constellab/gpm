@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # install bricks & related packages
-python3 /gpm/gpm.py
+python3 /gpm/gpm.py --env_mode $1
 
 # call brick hooks
 for brick in `find /lab/user/bricks -mindepth 1 -maxdepth 2 -type d`; do

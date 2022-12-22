@@ -8,13 +8,9 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 # Set UTC timezone for the docker
 ENV TZ=UTC
 
-ENV LAB_NAME app
-ENV WORKDIR_DIR /gpm
 ENV CONDA_VERSION py39_4.10.3
 #ENV CONDA_VERSION latest
 
-ADD ./ ${WORKDIR_DIR}
-WORKDIR ${WORKDIR_DIR}
 
 # install python v 3.8 & base packages
 RUN apt-get -y update && \
@@ -85,7 +81,7 @@ RUN apt-get -y install mariadb-client
 
 EXPOSE 3000
 
-COPY ./entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT [ "/entrypoint.sh" ]
+COPY ./init /init-lab
+RUN chmod +x /init-lab/entrypoint.sh
+ENTRYPOINT [ "/init-lab/entrypoint.sh" ]
 CMD [ "--run-glab" ]
