@@ -310,6 +310,16 @@ class GPM():
             dest_dir
         )
 
+        # # Really important, update the settings.json file with main config info so the bricks will be loaded on start
+        settings_file = os.path.join(dest_dir, self.SETTING_JSON_FILE)
+        with open(settings_file, 'r', encoding='utf-8') as f:
+            settings = json.load(f)
+            settings["name"] = self.config_reader.get_name()
+            settings["variables"] = self.config_reader.get_variables()
+            settings["environment"] = self.config_reader.get_environment()
+        with open(settings_file, 'w', encoding='utf-8') as f:
+            json.dump(settings, f, indent=4)
+
 
     def install_notebook_entrypoint(self):
         notebook_dir = os.path.join(self.LAB_WORKSPACE_DIR, "user", "notebooks")
@@ -325,25 +335,6 @@ class GPM():
            os.path.abspath(os.path.join(__cdir__, '..', "notebook_template")),
             tempalate_dir
         )
-
-        dest_dir = os.path.join(self.SYS_WORKSPACE_DIR, "app")
-
-        # rename module
-        shutil.move(
-            os.path.join(dest_dir, self.SOURCE_FOLDER, "skeleton"),
-            os.path.join(dest_dir, self.SOURCE_FOLDER, self.config_reader.get_name())
-        )
-
-
-        # Really important, update the settings.json file with main config info so the bricks will be loaded on start
-        settings_file = os.path.join(dest_dir, self.SETTING_JSON_FILE)
-        with open(settings_file, 'r', encoding='utf-8') as f:
-            settings = json.load(f)
-            settings["name"] = self.config_reader.get_name()
-            settings["variables"] = self.config_reader.get_variables()
-            settings["environment"] = self.config_reader.get_environment()
-        with open(settings_file, 'w', encoding='utf-8') as f:
-            json.dump(settings, f, indent=4)
 
 
     def format_url(self, string: str, variables: Dict[str, str]) -> str:
@@ -440,6 +431,8 @@ class GPM():
 
         if not os.path.exists(vs_code_folder):
             os.mkdir(vs_code_folder)
+
+        if not os.path.exists(setting_path):
             # copy the settings.json file only if it does not exist
             shutil.copyfile(os.path.join(default_path, 'settings.json'), setting_path)
             
