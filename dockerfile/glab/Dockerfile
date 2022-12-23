@@ -81,7 +81,6 @@ RUN apt-get -y install mariadb-client
 
 EXPOSE 3000
 
-#COPY ./notebook_template /lab/user/notebooks/template
 COPY ./init /init-lab
 RUN chmod +x /init-lab/entrypoint.sh
 

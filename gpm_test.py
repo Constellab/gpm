@@ -6,9 +6,11 @@
 import json
 import os
 import shutil
+import subprocess
 from unittest import IsolatedAsyncioTestCase
-
-from init.script.gpm import GPM
+import sys
+from init.script.gpm import GPM, BrickInstalationInfo
+import importlib
 
 GENCOVERY_CORE_REPO="https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core/gws_core.git"
 GWS_CORE_VERSION="0.2.1"
@@ -17,6 +19,13 @@ GWS_CORE_VERSION="0.2.1"
 class TestGpm(IsolatedAsyncioTestCase):
 
     def test_glab(self):
+
+
+      subprocess.run(["pip", "uninstall", 'pronto', "-y"])
+       # Check that pronto is not installed
+      self.assertIsNone(importlib.find_loader('pronto'))
+
+
       __cdir__ = os.path.dirname(os.path.abspath(__file__))
       GPM.LAB_WORKSPACE_DIR = os.path.join(__cdir__, "tests/build/lab")
       GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "tests/config.json")
@@ -49,13 +58,29 @@ class TestGpm(IsolatedAsyncioTestCase):
       brendapy_readme_path = os.path.join(gpm.get_external_lib_dir(), "brendapy", "README.md")
       self.assertTrue(os.path.exists(brendapy_readme_path))
 
+      # Check that pip dependecies of biota are installed
+      self.assertIsNotNone(importlib.find_loader('pronto'))
+
+      # Check that the information file is created
+      info_file_path = os.path.join(gws_core_brick_path,GPM.BRICK_INSTALLATION_FILE)
+      self.assertTrue(os.path.exists(info_file_path))
+      with open(info_file_path, 'r') as f:
+        info: BrickInstalationInfo = json.load(f)
+        self.assertEqual(info['version'], GWS_CORE_VERSION)
+        self.assertEqual(info['name'], "gws_core")
+        # check that gws_core was installed because of gws_biota dependency
+        self.assertEqual(info['parent_name'], "gws_biota")
+        self.assertTrue(len(info['git_hash']) > 0)
+        self.assertTrue(len(info['created_at']) > 0)
+
+
       # Check that the update for hide brick works
       # to do this, delete the settings.json file and update the brick, 
       # check if the settings.json file is created
       readme = os.path.join(gws_core_brick_path, "README.md")
       os.remove(readme)
       self.assertFalse(os.path.exists(readme))
-      gpm.install_brick_git_package("gws_core", "0.2.1", GENCOVERY_CORE_REPO)
+      gpm.install_brick_git_package("gws_core", "0.2.1", GENCOVERY_CORE_REPO, 'app')
       self.assertTrue(os.path.exists(readme))
 
 
@@ -110,5 +135,5 @@ class TestGpm(IsolatedAsyncioTestCase):
       os.remove(readme)
       self.assertFalse(os.path.exists(readme))
       # re-install gws_core but as it is in the user brick folder, it should not be updated
-      gpm.install_brick_git_package("gws_core", "0.2.1", GENCOVERY_CORE_REPO)
+      gpm.install_brick_git_package("gws_core", "0.2.1", GENCOVERY_CORE_REPO, 'app')
       self.assertFalse(os.path.exists(readme))

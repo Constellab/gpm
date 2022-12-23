@@ -3,15 +3,17 @@
 # The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
 # About us: https://gencovery.com
 
-import copy
+from datetime import datetime
 import json
 import os
 import re
 import shutil
 import subprocess
 import time
-from typing import List, Optional, TypedDict, Literal
-from .config_reader import SettingsReader 
+from typing import Dict, List, Optional, Literal, TypedDict
+from git import Repo
+from .package_lock import PackageLock
+from .config_reader import SettingsReader, GitPackage
 
 # ####################################################################
 #
@@ -20,10 +22,22 @@ from .config_reader import SettingsReader
 # ####################################################################
 EnvMode = Literal['GLAB', 'CODELAB']
 
-class GitPackage(TypedDict):
+class ClonedPackage(TypedDict):
+    version: Optional[str]
+    git_hash: str
+    name: str
+    path: str
+
+
+class BrickInstalationInfo(TypedDict):
+    """ Use to create a file in the cloned repository to have information about the brick installation """
     name: str
     version: str
-    is_brick: bool
+    parent_name: str
+    git_hash: Optional[str]
+    package_type: Literal["pip", "git"]
+    path: str
+    created_at: str
 
 
 class GPM():
@@ -34,14 +48,16 @@ class GPM():
     CONFIG_FILE_PATH: str = "/conf/config.json"
     SYS_WORKSPACE_DIR: str = None
     USER_WORKSPACE_DIR: str = None
-    GLOBAL_CONFIG: dict = None
     SETTING_JSON_FILE: str = "settings.json"
+    BRICK_INSTALLATION_FILE = ".brick-installation.json"
 
     SOURCE_FOLDER: str = 'src'
     # path where the default config for vs code is stored (it need to be copied to the user workspace)
     VS_CODE_DEFAULT_CONFIG_PATH = "/.vs-code-server-config"
 
     config_reader: SettingsReader = None
+    package_lock: PackageLock
+
     _installed_pip_packages: list = []
     _installed_git_packages: list = []
 
@@ -64,104 +80,53 @@ class GPM():
 
 
         self.config_reader = SettingsReader(self.settings_file_path)
-        if not GPM.GLOBAL_CONFIG:
-            GPM.GLOBAL_CONFIG = copy.deepcopy(self.config_reader.settings)
+        self.package_lock = PackageLock()
 
         GPM.SYS_WORKSPACE_DIR = os.path.join(GPM.LAB_WORKSPACE_DIR, ".sys")
         GPM.USER_WORKSPACE_DIR = os.path.join(GPM.LAB_WORKSPACE_DIR, "user")
 
     def init_all(self):
-        self.install_pip_and_git_packages()
+        self.install_pip_and_git_packages([self.config_reader])
         self.install_app_entrypoint()
         # install notbook here and not in dockerfile because it is in the volumes
         self.install_notebook_entrypoint()
         self.configure_vscode()
 
 
-    def format_url(self, string: str) -> str:
-        if not string:
-            return string
-        local_config_vars = self.config_reader.get_environment_variables()
-        global_config_vars = GPM.GLOBAL_CONFIG.get("environment", {}).get("variables", {})
+    def install_pip_and_git_packages(self, settings_readers: List[SettingsReader]) -> None:
+        """Recursive method to install pip and git packages. The sub packages are installed after the main packages.
 
-        tab = re.findall(r"\$\{?([A-Z_]*)\}?", string)  # re.findall(r"\${?[A-Z_]}?*", string)
-        for token in tab:
-            # search for values in local variable first
-            value = local_config_vars.get(token)
-            if not value:
-                # search for values in os environment
-                value = os.getenv(token)
-                if not value:
-                    # search for values in global environment (given by the main config file)
-                    value = global_config_vars.get(token)
-                    if not value:
-                        raise Exception(f"No environment variable {token} found")
+        :param settings_readers: _description_
+        :type settings_readers: List[SettingsReader]
+        """
 
-            if value:
-                string = re.sub(r"\$\{?"+token+r"\}?", value, string)
+        sub_settings_readers: List[SettingsReader] = []
+        for settings_reader in settings_readers:
+          print(f"Installing Pip and Git packages for brick {settings_reader.get_name()}")
+          for pip_chanel in settings_reader.get_pip_channels():
+               self._install_pip_packages(pip_chanel.get("packages"), source_url=pip_chanel.get("source"), 
+                 env_variables=settings_reader.get_environment_variables())
 
-        return string
+          sub_reader = self.install_git_packages(settings_reader)
+          sub_settings_readers.extend(sub_reader)
 
-    # -- G --
-
-    def git_clone(self, url: str, dest_dir: str, version: str=None) -> None:
-        print(f"Cloning git repository {url}:{version} ... ")
-        url = self.format_url(url)
-        # cmd = ["git", "clone", "--depth", "1", "--no-single-branch", url, dest_dir]
-        if version:
-            cmd = ["git", "clone", "-b", version, "--depth", "1", url, dest_dir]
-        else:
-            cmd = ["git", "clone", "--depth", "1", url, dest_dir]
-
-        OK = GPM.run_proc(cmd, cwd=dest_dir)
-        nb_retry = 0
-        while not OK:
-            print("Waiting 3 secs and retry ...")
-            time.sleep(3)
-            OK = GPM.run_proc(cmd, cwd=dest_dir)
-            nb_retry += 1
-            if nb_retry >= 3:
-                print(f"Couldn't clonde the repository '{url}' with version '{version}'")
-                return False
-
-        # remove .git folder
-        try:
-            print(f"Removing .git directory from {dest_dir} ...")
-            shutil.rmtree(os.path.join(dest_dir, ".git"))
-        except:
-            raise Exception(f"Cannot remove .git directory from {dest_dir}")
-
-        # self._remove_git_credentials_from_config(dest_dir)
-
-    # def _remove_git_credentials_from_config(self, dest_dir):
-    #     file = os.path.join(dest_dir, "./.git/config")
-    #     with open(file, "r", encoding="utf-8") as fp:
-    #         text = fp.read()
-    #         cleaned_text = re.sub(r"(https?://)(.*@)?(.+)", r"\1\3", text)
-    #     if cleaned_text != text:
-    #         with open(file, "w", encoding="utf-8") as fp:
-    #             fp.write(cleaned_text)
-
-    # -- I --
-
-    def install_pip_and_git_packages(self):
-        # install pip packages
-        print("Installing Pip packages ...")
-        for pip_channel in self.config_reader.get_pip_channels():
-            source_url = pip_channel.get("source")
-            packages = pip_channel.get("packages")
-            self._install_pip_packages(packages, source_url=source_url)
-
-        # install git packages
-        print("Installing Git packages ...")
-        self.install_git_packages([self.config_reader])
+        # recursive call to install sub packages
+        # the sub packages are install after the main packages
+        if len(sub_settings_readers) > 0:
+          self.install_pip_and_git_packages(sub_settings_readers)
 
 
-    def _install_pip_packages(self, packages: list, source_url=None):
+    def _install_pip_packages(self, packages: list, source_url=None, env_variables: Dict[str, str] = None):
+        if len(packages) == 0:
+            return
+
+        # format the source url by remplacing the env variables
+        source_url = self.format_url(source_url, env_variables)
+       
         _packages: List[str] = []
         _repos: List[str] = []
         for pkg in packages:
-            if pkg in GPM._installed_pip_packages:
+            if pkg in self._installed_pip_packages:
                 continue
             name = pkg['name']
             version = pkg.get('version', '')
@@ -174,41 +139,30 @@ class GPM():
         if not _packages:
             return
 
-        source_url = self.format_url(source_url)
         cmd = ["python3", "-m", "pip", "install", *_packages]
         if source_url:
             cmd = [*cmd, "--extra-index-url", source_url]
-        GPM.run_proc(cmd)
+        self.run_proc(cmd)
 
-        GPM._installed_pip_packages.extend(_repos)
-        GPM._installed_pip_packages = list(set(GPM._installed_pip_packages))
+        self._installed_pip_packages.extend(_repos)
+        self._installed_pip_packages = list(set(self._installed_pip_packages))
 
-    def install_git_packages(self, settings_readers: List[SettingsReader]):
-        """Recursive method to install git packages. The sub packages are installed after the main packages.
-
-        :param settings_readers: _description_
-        :type settings_readers: List[SettingsReader]
-        """
-       
+    def install_git_packages(self, settings_reader: SettingsReader) -> List[SettingsReader]:
         sub_settings_readers: List[SettingsReader] = []
-        for settings_reader in settings_readers:
-          for git_chanel in settings_reader.get_git_channels():
-              source_url = git_chanel.get("source").strip("/")
-              packages = git_chanel.get("packages")
-              for package in packages:
-                  sub_settings = self._install_git_package(package, source_url)
+        for git_chanel in settings_reader.get_git_channels():
+            source_url = git_chanel.get("source").strip("/")
+            packages = git_chanel.get("packages")
+            for package in packages:
+                sub_settings = self._install_git_package(package, source_url, settings_reader)
 
-                  if sub_settings:
-                    sub_settings_readers.append(sub_settings)
+                if sub_settings:
+                  sub_settings_readers.append(sub_settings)
 
-        # recusrive call to install sub packages
-        # the sub packages are install after the main packages
-        if sub_settings_readers:
-          self.install_git_packages(sub_settings_readers)
+        return sub_settings_readers
         
 
 
-    def _install_git_package(self, package: GitPackage, source_url: str) -> Optional[SettingsReader]:
+    def _install_git_package(self, package: GitPackage, source_url: str, settings_reader: SettingsReader) -> Optional[SettingsReader]:
         repo_name = package["name"]
 
         # skip install if the package is already installed
@@ -220,9 +174,11 @@ class GPM():
         version = package.get("version", "")
 
         repo_path = f"{source_url}/{repo_name}.git"
+        print(f"Cloning git repository {repo_path}:{version} ... ")
+        repo_path = self.format_url(repo_path, settings_reader.get_environment_variables())
 
         if is_brick:
-          sub_settings = self.install_brick_git_package(repo_name, version, repo_path)
+          sub_settings = self.install_brick_git_package(repo_name, version, repo_path, settings_reader.get_name())
         else:
           sub_settings = self.install_other_git_package(repo_name, version, repo_path)
 
@@ -230,7 +186,8 @@ class GPM():
         return sub_settings
 
 
-    def install_brick_git_package(self, brick_name: str, version: str, repo_path: str) -> SettingsReader:
+    def install_brick_git_package(self, brick_name: str, version: str, repo_path: str,
+      parent_name: str) -> SettingsReader:
         user_bricks_dir = self.get_user_brick_dir()
         user_hidden_bricks_dir = self.get_hidden_brick_dir()
       
@@ -246,6 +203,8 @@ class GPM():
         else:
             repo_dir = os.path.join(user_bricks_dir, brick_name)
 
+        
+        cloned_package: ClonedPackage = None
         if os.path.exists(repo_dir):
             # update hidden bricks (remove and clone)
             if is_hidden:
@@ -254,15 +213,20 @@ class GPM():
                     shutil.rmtree(repo_dir)
                 except:
                     raise Exception(f"Cannot remove {repo_dir}")
-                self.git_clone(repo_path, repo_dir, version=version)
+                cloned_package = self.git_clone(repo_path, repo_dir, brick_name, version=version)
             else:
                 print(f"Do not update non-hidden brick {repo_dir}")
         else:
-            self.git_clone(repo_path, repo_dir, version=version)
+            cloned_package = self.git_clone(repo_path, repo_dir,brick_name, version=version)
+
+        if cloned_package:
+            self.create_brick_installation_file(name=brick_name, path=repo_dir, parent_name=parent_name,
+               git_hash=cloned_package["git_hash"], version=cloned_package["version"], package_type='git')
       
 
         if not os.path.exists(repo_dir):
             raise Exception(f"Brick package {brick_name} version {version} could not be installed.")
+
 
         # return the sub settings so the sub dependencies can be installed
         return SettingsReader(os.path.join(repo_dir, self.SETTING_JSON_FILE))
@@ -278,20 +242,60 @@ class GPM():
                 shutil.rmtree(repo_dir)
             except:
                 raise Exception(f"Cannot remove {repo_dir}")
-        self.git_clone(repo_path, repo_dir)
+        self.git_clone(repo_path, repo_dir, repo_name)
 
         if not os.path.exists(repo_dir):
             raise Exception(f"Git package {repo_name} version {version} could not be installed.")
 
+    def git_clone(self, url: str, dest_dir: str, repo_name: str, version: str=None) -> ClonedPackage:       
+        # Try to clone the repository 3 times if it fails
+        repo: Repo 
+        nb_retry = 0
+        while True:
+          try:
+            if version:
+                repo = Repo.clone_from(url=url, to_path=dest_dir, branch=version, depth=1)
+            else:
+                repo = Repo.clone_from(url=url, to_path=dest_dir, depth=1)
+            break
+          except Exception as err:
+            print(f"Couldn't clone the repository '{repo_name}' with version '{version}'. Error: {err}")
+            print("Waiting 3 secs and retry ...")
+            time.sleep(3)
+            nb_retry += 1
+            if nb_retry >= 3:
+                raise err
+
+        # store info about the git
+        clone_package: ClonedPackage = {
+            "version": version,
+            "git_hash": repo.head.object.hexsha,
+            "name": repo_name,
+            "path": dest_dir
+        }
+
+
+        # remove .git folder
+        try:
+            print(f"Removing .git directory from {dest_dir} ...")
+            shutil.rmtree(os.path.join(dest_dir, ".git"))
+        except:
+            raise Exception(f"Cannot remove .git directory from {dest_dir}")
+
+        return clone_package
+
 
     def install_app_entrypoint(self):
-        dest_dir = os.path.join(self.SYS_WORKSPACE_DIR, "app")
+        
+        # retrieve the dir of the skeleton brick
         skeleton_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks", "skeleton")
         if not os.path.exists(skeleton_dir):
             skeleton_dir = os.path.join(self.get_hidden_brick_dir(), "skeleton")
             if not os.path.exists(skeleton_dir):
                 raise Exception("The skeleton is not found")
 
+        # destination for the skeleton : the app dir
+        dest_dir = os.path.join(self.SYS_WORKSPACE_DIR, "app")
         if os.path.exists(dest_dir):
             try:
                 print(f"Removing {dest_dir} ...")
@@ -299,48 +303,13 @@ class GPM():
             except:
                 raise Exception(f"Cannot remove {dest_dir}")
 
+
+        # copy the skeleton to the app sys dir
         shutil.copytree(
             skeleton_dir,
             dest_dir
         )
-        # rename module
-        shutil.move(
-            os.path.join(dest_dir, self.SOURCE_FOLDER, "skeleton"),
-            os.path.join(dest_dir, self.SOURCE_FOLDER, self.config_reader.get_name())
-        )
 
-        # remove .git folder
-        if os.path.exists(os.path.join(dest_dir, ".git")):
-            try:
-                print(f"Removing .git directory from {dest_dir} ...")
-                shutil.rmtree(os.path.join(dest_dir, ".git"))
-            except:
-                raise Exception(f"Cannot remove .git directory in {dest_dir}")
-
-        # update settings.json
-        settings_file = os.path.join(dest_dir, self.SETTING_JSON_FILE)
-        with open(settings_file, 'r', encoding='utf-8') as f:
-            settings = json.load(f)
-            settings["name"] = self.config_reader.get_name()
-            settings["variables"] = self.config_reader.get_variables()
-            settings["environment"] = self.config_reader.get_environment()
-        with open(settings_file, 'w', encoding='utf-8') as f:
-            json.dump(settings, f, indent=4)
-        # replace all words 'skeleton' in app.py
-        file_path = os.path.join(dest_dir, self.SOURCE_FOLDER, self.config_reader.get_name(), "./app.py")
-        with open(file_path, 'r', encoding='utf-8') as f:
-            text = f.read()
-            text = text.replace("skeleton", self.config_reader.get_name())
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(text)
-        # replace all words 'skeleton' in README.md
-        file_path = os.path.join(dest_dir, "./README.md")
-        with open(file_path, 'r', encoding='utf-8') as f:
-            text = f.read()
-            text = text.replace("skeleton", self.config_reader.get_name())
-            text = text.replace("Skeleton", self.config_reader.get_name().title())
-        with open(file_path, 'w', encoding='utf-8') as f:
-            f.write(text)
 
     def install_notebook_entrypoint(self):
         notebook_dir = os.path.join(self.LAB_WORKSPACE_DIR, "user", "notebooks")
@@ -356,6 +325,33 @@ class GPM():
            os.path.abspath(os.path.join(__cdir__, '..', "notebook_template")),
             tempalate_dir
         )
+
+    def format_url(self, string: str, variables: Dict[str, str]) -> str:
+        if not string:
+            return string
+
+        if not variables:
+            variables = {}
+
+        global_config_vars = self.config_reader.get_environment_variables()
+
+        tab = re.findall(r"\$\{?([A-Z_]*)\}?", string)  # re.findall(r"\${?[A-Z_]}?*", string)
+        for token in tab:
+            # search for values in local variable first
+            value = variables.get(token)
+            if not value:
+                # search for values in os environment
+                value = os.getenv(token)
+                if not value:
+                    # search for values in global environment (given by the main config file)
+                    value = global_config_vars.get(token)
+                    if not value:
+                        raise Exception(f"No environment variable {token} found")
+
+            if value:
+                string = re.sub(r"\$\{?"+token+r"\}?", value, string)
+
+        return string
 
     def get_user_brick_dir(self) -> str:
         dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks")
@@ -416,11 +412,14 @@ class GPM():
         if self.env_mode != 'CODELAB':
           return
 
+        print("Configuring VS Code ...")
+
         vs_code_folder = self.get_vs_code_setting_folder()
         setting_path = self.get_vs_code_setting_file_path()
+        default_path = self.VS_CODE_DEFAULT_CONFIG_PATH
+
         if not os.path.exists(vs_code_folder):
             os.mkdir(vs_code_folder)
-            default_path = self.VS_CODE_DEFAULT_CONFIG_PATH
             # copy the settings.json file only if it does not exist
             shutil.copyfile(os.path.join(default_path, 'settings.json'), setting_path)
             
@@ -469,6 +468,26 @@ class GPM():
 
     def get_vs_code_setting_file_path(self) -> str:
         return os.path.join(self.get_vs_code_setting_folder(), "settings.json")
+
+
+
+    def create_brick_installation_file(self, name: str, path: str, parent_name: str, version: str,
+      git_hash: str, package_type:  Literal["pip", "git"]) -> None:
+        """Create a file in the brick directory containing the brick installation info for logging purpose
+        """
+
+        brick_installation: BrickInstalationInfo = {
+            "name": name,
+            "version": version,
+            "parent_name": parent_name,
+            "git_hash": git_hash,
+            "package_type": package_type,
+            "path": path,
+            "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        }
+        brick_installation_file = os.path.join(path, self.BRICK_INSTALLATION_FILE)
+        with open(brick_installation_file, 'w') as f:
+            json.dump(brick_installation, f, indent=2)
 
     
 
