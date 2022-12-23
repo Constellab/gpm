@@ -81,11 +81,12 @@ RUN apt-get -y install mariadb-client
 
 EXPOSE 3000
 
+#COPY ./notebook_template /lab/user/notebooks/template
 COPY ./init /init-lab
 RUN chmod +x /init-lab/entrypoint.sh
 
 RUN sed -i -e 's/\r$//' /init-lab/entrypoint.sh && \
-    sed -i -e 's/\r$//' /init-lab/gpm.sh && \
+    sed -i -e 's/\r$//' /init-lab/init_lab.sh && \
     sed -i -e 's/\r$//' /init-lab/clean.sh
 
 ENTRYPOINT [ "/init-lab/entrypoint.sh" ]

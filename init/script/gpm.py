@@ -11,8 +11,7 @@ import shutil
 import subprocess
 import time
 from typing import List, Optional, TypedDict, Literal
-from config_reader import SettingsReader 
-import click
+from .config_reader import SettingsReader 
 
 # ####################################################################
 #
@@ -20,14 +19,6 @@ import click
 #
 # ####################################################################
 EnvMode = Literal['GLAB', 'CODELAB']
-
-UPDATE_GIT_BRICKS = os.getenv("UPDATE_GIT_BRICKS", None) in ["1", 1]
-SKELETON_GIT_ENVIRONMENT = {
-    "source": "https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core",
-    "packages": [
-        {"name": "skeleton", "version": "", "is_brick": True, "is_hidden": False}
-    ]
-}
 
 class GitPackage(TypedDict):
     name: str
@@ -57,6 +48,7 @@ class GPM():
     env_mode: EnvMode = None
 
     def __init__(self, settings_file_path: str, env_mode: EnvMode):
+        print(f"Initializing GPM with env mode: {env_mode}")
         self.settings_file_path = settings_file_path
         
         # Check that the env mode is valid GLAB or CODELAB
@@ -81,6 +73,7 @@ class GPM():
     def init_all(self):
         self.install_pip_and_git_packages()
         self.install_app_entrypoint()
+        # install notbook here and not in dockerfile because it is in the volumes
         self.install_notebook_entrypoint()
         self.configure_vscode()
 
@@ -360,7 +353,7 @@ class GPM():
 
         __cdir__ = os.path.dirname(os.path.abspath(__file__))
         shutil.copytree(
-            os.path.join(__cdir__, "notebook_template"),
+           os.path.abspath(os.path.join(__cdir__, '..', "notebook_template")),
             tempalate_dir
         )
 
@@ -418,29 +411,6 @@ class GPM():
             return True
         except:
             return False
-
-    def read_config(self) -> dict:
-        with open(self.settings_file_path, 'r', encoding="utf-8") as f:
-            try:
-                config = json.load(f)
-                if not config.get("environment"):
-                    config["environment"] = {}
-                if not config["environment"].get("git"):
-                    config["environment"]["git"] = []
-
-                for g in config["environment"]["git"]:
-                    if g["source"] == SKELETON_GIT_ENVIRONMENT["source"]:
-                        for pkg in g["packages"]:
-                            sklt_pkg = SKELETON_GIT_ENVIRONMENT["packages"][0]
-                            if pkg["name"] == sklt_pkg["name"]:
-                                return config
-
-                # skeleton brick does not exists
-                config["environment"]["git"].append(SKELETON_GIT_ENVIRONMENT)
-                return config
-
-            except Exception as err:
-                raise Exception("Cannot parse the config file. Please check file config file.") from err
 
     def configure_vscode(self) -> None:
         if self.env_mode != 'CODELAB':
@@ -502,22 +472,3 @@ class GPM():
 
     
 
-
-@click.command(context_settings=dict(
-    ignore_unknown_options=True,
-    allow_extra_args=True
-))
-@click.pass_context
-@click.option('--env-mode')
-def install(ctx, env_mode: EnvMode = None):
-    print(f"Initializing GPM with env mode: {env_mode}")
-
-    gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH, env_mode=env_mode)
-    gpm.init_all()
-
-    print(f"Installed pip packages:\n{GPM._installed_pip_packages}")
-    print(f"Installed git packages:\n{GPM._installed_git_packages}")
-
-
-if __name__ == "__main__":
-    install()

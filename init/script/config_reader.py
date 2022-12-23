@@ -5,6 +5,7 @@
 
 
 import json
+import os
 from typing import TypedDict, Dict, List
 
 SKELETON_GIT_ENVIRONMENT = {
@@ -74,6 +75,8 @@ class SettingsReader:
     return self.get_environment().get("git", [])
 
   def read_settings(self) -> SettingsFile:
+        if not os.path.exists(self.settings_file_path):
+            raise Exception(f"Cannot find the config file '{self.settings_file_path}'.")
         with open(self.settings_file_path, 'r', encoding="utf-8") as f:
             try:
                 config = json.load(f)

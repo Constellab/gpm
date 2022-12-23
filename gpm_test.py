@@ -8,7 +8,7 @@ import os
 import shutil
 from unittest import IsolatedAsyncioTestCase
 
-from init.gpm import GPM
+from init.script.gpm import GPM
 
 GENCOVERY_CORE_REPO="https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core/gws_core.git"
 GWS_CORE_VERSION="0.2.1"
@@ -19,7 +19,7 @@ class TestGpm(IsolatedAsyncioTestCase):
     def test_glab(self):
       __cdir__ = os.path.dirname(os.path.abspath(__file__))
       GPM.LAB_WORKSPACE_DIR = os.path.join(__cdir__, "tests/build/lab")
-      GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "tests/settings.json")
+      GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "tests/config.json")
 
       # clean up the workspace
       if os.path.exists(GPM.LAB_WORKSPACE_DIR):
@@ -72,7 +72,7 @@ class TestGpm(IsolatedAsyncioTestCase):
 
       __cdir__ = os.path.dirname(os.path.abspath(__file__))
       GPM.LAB_WORKSPACE_DIR = os.path.join(__cdir__, "tests/build/lab")
-      GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "tests/settings.json")
+      GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "tests/config.json")
       GPM.VS_CODE_DEFAULT_CONFIG_PATH = os.path.join(__cdir__, ".vs-code-server-config")
 
       # clean up the workspace
