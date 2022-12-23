@@ -8,7 +8,7 @@ import os
 import shutil
 import subprocess
 from unittest import IsolatedAsyncioTestCase
-import sys
+from init.script.config_reader import SettingsReader
 from init.script.gpm import GPM, BrickInstalationInfo
 import importlib
 
@@ -90,6 +90,19 @@ class TestGpm(IsolatedAsyncioTestCase):
       self.assertTrue(gws_core_brick_path in brick_list)
       self.assertTrue(gws_biota_brick_path in brick_list)
       self.assertTrue(skeleton_brick_path in brick_list)
+
+
+      # Check the app start is well configured
+      sys_app_path = os.path.join(GPM.SYS_WORKSPACE_DIR, "app")
+      self.assertTrue(os.path.exists(sys_app_path))
+      self.assertTrue(os.path.exists(os.path.join(sys_app_path, "settings.json")))
+      self.assertTrue(os.path.exists(os.path.join(sys_app_path, "manage.py")))
+
+      setting_reader = SettingsReader(os.path.join(sys_app_path, "settings.json"))
+      # check that the skeleton and gws_biota are listed
+      chanel = setting_reader.get_git_channels()[0]
+      self.assertEqual(len([x for x in chanel["packages"] if x["name"] == "gws_biota"]), 1)
+      self.assertEqual(len([x for x in chanel["packages"] if x["name"] == "skeleton"]), 1)
       
      
    
