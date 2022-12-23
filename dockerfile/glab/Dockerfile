@@ -83,5 +83,10 @@ EXPOSE 3000
 
 COPY ./init /init-lab
 RUN chmod +x /init-lab/entrypoint.sh
+
+RUN sed -i -e 's/\r$//' /init-lab/entrypoint.sh && \
+    sed -i -e 's/\r$//' /init-lab/gpm.sh && \
+    sed -i -e 's/\r$//' /init-lab/clean.sh
+
 ENTRYPOINT [ "/init-lab/entrypoint.sh" ]
 CMD [ "--run-glab" ]

@@ -11,7 +11,7 @@ import shutil
 import subprocess
 import time
 from typing import List, Optional, TypedDict, Literal
-from .config_reader import SettingsReader 
+from config_reader import SettingsReader 
 import click
 
 # ####################################################################
