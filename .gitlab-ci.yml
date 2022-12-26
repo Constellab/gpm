@@ -100,7 +100,7 @@ test-rename:
     entrypoint: ['']
   script:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - crane tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:latestbonjouuur
+    - crane tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:latest bonjouuur
   only:
     - master
   when: manual
