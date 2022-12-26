@@ -15,6 +15,7 @@ stages:
   - build-gpu-glab-and-codelab
   - build-cpu-codelab
   - build-gpu-codelab
+  - test-rename
 
 #  Build the glab cpu images and push them to the registry
 build-cpu-glab-and-codelab:
@@ -87,6 +88,21 @@ build-gpu-codelab:
     - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_SHA
     - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:latest
 
+  only:
+    - master
+  when: manual
+
+#  Build the codelab gpu images and push them to the registry
+test-rename:
+  stage: test-rename
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+  image:
+    name: gcr.io/go-containerregistry/crane:debug
+    entrypoint: ['']
+  script:
+    - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - crane tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:latest $CI_REGISTRY_IMAGE/$GLAB-$CPU:bonjouuur
   only:
     - master
   when: manual
