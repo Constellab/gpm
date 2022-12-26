@@ -95,7 +95,7 @@ build-gpu-codelab:
 # Use crane to add a tag to an image
 # Code from https://gitlab.com/gitlab-org/gitlab/-/issues/15252
 release-cpu:
-  stage: test-rename
+  stage: release-cpu
   image:
     # using crane image
     name: gcr.io/go-containerregistry/crane:debug
@@ -113,7 +113,7 @@ release-cpu:
 # Use crane to add a tag to an image
 # Code from https://gitlab.com/gitlab-org/gitlab/-/issues/15252
 release-gpu:
-  stage: test-rename
+  stage: release-gpu
   image:
     # using crane image
     name: gcr.io/go-containerregistry/crane:debug
