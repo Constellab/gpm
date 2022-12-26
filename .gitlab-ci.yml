@@ -100,7 +100,12 @@ test-rename:
     entrypoint: ['']
   script:
     - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    - crane tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:latest $CI_REGISTRY_IMAGE/$GLAB-$CPU:bonjouuur
+    - crane tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:latestbonjouuur
   only:
     - master
   when: manual
+# registry.gitlab.com/gencovery/infra/gpm/glab-cpu:latest
+
+# crane auth login -u bmaisonneuve@gencovery.com -p ?kXLj2Wv,3D$$Aj registry.gitlab.com
+# crane auth login -u gencovery-reader -p mmDyQMy3GPoiy_Q63X2Y registry.gitlab.com
+# crane tag registry.gitlab.com/gencovery/infra/gpm/glab-cpu:latest registry.gitlab.com/gencovery/infra/gpm/glab-cpu:hola
