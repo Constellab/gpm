@@ -15,6 +15,8 @@ elif [ "$1" == "--run-codelab" ]; then
 elif [ "$1" == "--run-local" ]; then
     # mode to create a local dev environment where vscode can log in to the container
     bash /init-lab/init_lab.sh CODELAB
+
+    echo "Dev environment is ready."
     
     # prevent docker to stop 
     tail -f /dev/null

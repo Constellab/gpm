@@ -13,3 +13,5 @@ Create a .env file at project root with GWS_GIT_LOGIN and GWS_GIT_PWD (using ast
 
 Testing the glab image locally : ```docker build -t glab:latest -f .\dockerfile\glab\Dockerfile .```
 Testing the codelab image locally : ```docker build -t local-codelab -f .\dockerfile\codelab\Dockerfile .```
+
+Coding using the dev-env image : ```docker build -t local-dev-env -f .\dockerfile\dev-env\Dockerfile .```

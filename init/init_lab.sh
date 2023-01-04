@@ -4,6 +4,7 @@
 python3 /init-lab/init_lab.py --env-mode $1
 
 # call brick hooks
+echo "Calling brick hooks..."
 for brick in `find /lab/user/bricks -mindepth 1 -maxdepth 2 -type d`; do
     if [ -f "$brick/.hooks/pre-install.py" ]; then
         python3 "$brick/.hooks/pre-install.py"
@@ -13,3 +14,5 @@ for brick in `find /lab/user/bricks -mindepth 1 -maxdepth 2 -type d`; do
         bash "$brick/.hooks/pre-install.sh"
     fi
 done
+
+echo "Brick hooks called."

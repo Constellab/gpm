@@ -1,0 +1,43 @@
+{
+  "name": "app",
+  "title": "Gencovery Lab",
+  "description": "Gencovery Digital Lab as a Service",
+  "app_dir": "/app",
+  "uri": "91620768-2cdd-11eb-adc1-0242ac120002",
+  "frontVersion": "0.2.2",
+  "variables": {},
+  "environment": {
+      "pip": [],
+      "git": [
+          {
+              "source": "https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core",
+              "packages": [
+                  {
+                      "name": "gws_core",
+                      "is_brick": true,
+                      "is_hidden": false,
+                      "version": "0.3.4"
+                  },
+                  {
+                      "name": "skeleton",
+                      "is_brick": true,
+                      "is_hidden": false,
+                      "version": "0.1.0"
+                  },
+                  {
+                      "name": "gws_biota",
+                      "is_brick": true,
+                      "is_hidden": false,
+                      "version": "0.3.0"
+                  }
+              ]
+          }
+      ],
+      "variables":{
+        "GWS_GIT_LOGIN": "astroboygencovery",
+        "GWS_GIT_PWD": "plHjfdrnpL%26JJ9h2RMKYQtuLHUYvHQ8ZzU%23yUWm%26",
+        "GWS_PIP_PACKAGE_TOKEN": ""
+    }
+  },
+  "front_version": "0.3.0"
+}
