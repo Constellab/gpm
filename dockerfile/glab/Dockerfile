@@ -73,8 +73,8 @@ RUN python3 -m pip install  cvxpy==1.1.18 \
                             matplotlib==3.6.2 \
                             scipy==1.10.0 \
                             scikit-learn==1.2.0 \
-                            torch==1.13.1 \
-                            torch-geometric==2.2.0 \
+                            torch==1.13.1
+RUN python3 -m pip install  torch-geometric==2.2.0 \
                             torch-scatter==2.1.0
 
 # other installs (R, mariadb-client, etc.)
