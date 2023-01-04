@@ -68,13 +68,14 @@ RUN python3 -m pip install biopython==1.79
 # install gaia dependencies
 RUN python3 -m pip install  cvxpy==1.1.18 \
                             dill==0.3.4 \
-                            numpy==1.22.1 \
-                            pandas==1.3.5 \
-                            matplotlib==3.5.1 \
-                            scipy==1.8.0 \
-                            scikit-learn==1.0.2 \
-                            tensorflow==2.7.0
-                            
+                            numpy==1.24.1 \
+                            pandas==1.5.2 \
+                            matplotlib==3.6.2 \
+                            scipy==1.10.0 \
+                            scikit-learn==1.2.0 \
+                            torch==1.13.1 \
+                            torch-geometric==2.2.0 \
+                            torch-scatter==2.1.0
 
 # other installs (R, mariadb-client, etc.)
 RUN apt-get -y install mariadb-client
