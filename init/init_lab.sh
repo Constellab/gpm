@@ -3,6 +3,9 @@
 # install bricks & related packages
 python3 /init-lab/init_lab.py --env-mode $1
 
+echo "Clear environment variables..."
+bash /init-lab/clean.sh
+
 # call brick hooks
 echo "Calling brick hooks..."
 for brick in `find /lab/user/bricks -mindepth 1 -maxdepth 2 -type d`; do
