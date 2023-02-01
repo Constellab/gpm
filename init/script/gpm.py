@@ -460,9 +460,10 @@ class GPM():
               extra_paths: List[str] = settings['python.autoComplete.extraPaths']
 
               for brick_path in self.list_all_brick_paths():
-                  if brick_path not in extra_paths:
+                  brick_full_path = os.path.join(brick_path, self.SOURCE_FOLDER)
+                  if brick_full_path not in extra_paths:
                       # add the source folder of the brick to the extra paths
-                      extra_paths.append(os.path.join(brick_path, self.SOURCE_FOLDER))
+                      extra_paths.append(brick_full_path)
 
               settings['python.autoComplete.extraPaths'] = extra_paths
 
