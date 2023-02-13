@@ -6,13 +6,15 @@
 import os
 import sys
 
+user_bricks_folder = os.path.join('/lab', 'user', 'bricks')
+sys_bricks_folder = os.path.join('/lab', '.sys', 'bricks')
 
 def activate():
 
     if 'gws_core' not in sys.modules:
-        core_lib_path = "/lab/user/bricks/gws_core/src"
+        core_lib_path = os.path.join(user_bricks_folder, 'gws_core', 'src')
         if not os.path.exists(core_lib_path):
-            core_lib_path = "/lab/user/bricks/.lib/gws_core/src"
+            core_lib_path = os.path.join(sys_bricks_folder, 'gws_core' ,'src')
             if not os.path.exists(core_lib_path):
                 raise Exception("Cannot find gws_core brick")
         sys.path.insert(0, core_lib_path)

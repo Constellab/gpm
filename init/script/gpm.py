@@ -44,10 +44,18 @@ class GPM():
     """
     Package manager
     """
-    LAB_WORKSPACE_DIR: str = "/lab/"
+    LAB_WORKSPACE_DIR: str = "/lab"
+    SYS_WORKSPACE_DIR: str = os.path.join(GPM.LAB_WORKSPACE_DIR, '.sys')
+    USER_WORKSPACE_DIR: str = os.path.join(GPM.LAB_WORKSPACE_DIR, 'user')
+
+    USER_BRICKS_FOLDER = os.path.join(GPM.USER_WORKSPACE_DIR, 'bricks')
+    NOTEBOOK_FOLDER = os.path.join(GPM.USER_WORKSPACE_DIR, "notebooks")
+    SYS_BRICKS_FOLDER = os.path.join(GPM.SYS_WORKSPACE_DIR, 'bricks')
+    APP_BRICK_FOLDER = os.path.join(GPM.SYS_BRICKS_FOLDER, 'app')
+
+    MANAGE_PY_FILE_PATH = os.path.join('/init-lab', 'script', 'manage.py')
+    
     CONFIG_FILE_PATH: str = "/conf/config.json"
-    SYS_WORKSPACE_DIR: str = None
-    USER_WORKSPACE_DIR: str = None
     SETTING_JSON_FILE: str = "settings.json"
     BRICK_INSTALLATION_FILE = ".brick-installation.json"
 
@@ -81,9 +89,6 @@ class GPM():
 
         self.config_reader = SettingsReader(self.settings_file_path)
         self.package_lock = PackageLock()
-
-        GPM.SYS_WORKSPACE_DIR = os.path.join(GPM.LAB_WORKSPACE_DIR, ".sys")
-        GPM.USER_WORKSPACE_DIR = os.path.join(GPM.LAB_WORKSPACE_DIR, "user")
 
     def init_all(self):
         self.install_pip_and_git_packages([self.config_reader])
@@ -286,32 +291,21 @@ class GPM():
 
 
     def install_app_entrypoint(self):
-        
-        # retrieve the dir of the skeleton brick
-        skeleton_dir = os.path.join(self.USER_WORKSPACE_DIR, "bricks", "skeleton")
-        if not os.path.exists(skeleton_dir):
-            skeleton_dir = os.path.join(self.get_hidden_brick_dir(), "skeleton")
-            if not os.path.exists(skeleton_dir):
-                raise Exception("The skeleton is not found")
+        """Create the fake app brick for the entrypoint with the manage.py start file
+        and the settings.json file
+        """
 
-        # destination for the skeleton : the app dir
-        dest_dir = os.path.join(self.SYS_WORKSPACE_DIR, "app")
-        if os.path.exists(dest_dir):
-            try:
-                print(f"Removing {dest_dir} ...")
-                shutil.rmtree(dest_dir, ignore_errors=True)
-            except:
-                raise Exception(f"Cannot remove {dest_dir}")
+        if not cls.exists_on_os(self.APP_BRICK_FOLDER):
+            os.makedirs(path)
+
+        # Create the main manage.py file which is the entrypoint of the app
+        # copy from the template
+        manage_file_destination = os.path.join(self.APP_BRICK_FOLDER, self.MANAGE_FILE)
+        shutil.copyfile(selfMANAGE_PY_FILE_PATH, manage_file_destination)
 
 
-        # copy the skeleton to the app sys dir
-        shutil.copytree(
-            skeleton_dir,
-            dest_dir
-        )
-
-        # # Really important, update the settings.json file with main config info so the bricks will be loaded on start
-        settings_file = os.path.join(dest_dir, self.SETTING_JSON_FILE)
+        # Really important, update the settings.json file with main config info so the bricks will be loaded on start
+        settings_file = os.path.join(self.APP_BRICK_FOLDER, self.SETTING_JSON_FILE)
         with open(settings_file, 'r', encoding='utf-8') as f:
             settings = json.load(f)
             settings["name"] = self.config_reader.get_name()
@@ -322,11 +316,10 @@ class GPM():
 
 
     def install_notebook_entrypoint(self):
-        notebook_dir = os.path.join(self.LAB_WORKSPACE_DIR, "user", "notebooks")
-        if not os.path.exists(notebook_dir):
-            os.makedirs(notebook_dir)
+        if not os.path.exists(GPM.NOTEBOOK_FOLDER):
+            os.makedirs(GPM.NOTEBOOK_FOLDER)
 
-        tempalate_dir = os.path.join(notebook_dir, "template")
+        tempalate_dir = os.path.join(GPM.NOTEBOOK_FOLDER, "template")
         if os.path.exists(tempalate_dir):
             return
 
