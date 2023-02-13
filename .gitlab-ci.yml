@@ -11,25 +11,12 @@ variables:
   CODELAB: codelab
 
 stages:
-  - test
   - build-cpu-glab-and-codelab
   - build-gpu-glab-and-codelab
   - build-cpu-codelab
   - build-gpu-codelab
   - release-cpu
   - release-gpu
-
-test:
-  tags: [ saas-linux-medium-amd64 ]
-  stage: test
-  script:
-    - echo "AAAAAAAAAAAAAAAAA"
-    - df -H
-    - echo "BBBBBBBBBBBBBBBBB"
-  only:
-    - develop
-  when: manual
-
 
 
 #  Build the glab cpu images and push them to the registry
