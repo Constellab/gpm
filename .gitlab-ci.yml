@@ -20,6 +20,7 @@ stages:
   - release-gpu
 
 test:
+  tags: [ saas-linux-medium-amd64 ]
   stage: test
   script:
     - echo "AAAAAAAAAAAAAAAAA"
