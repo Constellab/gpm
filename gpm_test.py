@@ -40,22 +40,22 @@ class TestGpm(IsolatedAsyncioTestCase):
       gpm.init_all()
 
       # check that gws_core was cloned
-      gws_core_brick_path = os.path.join(gpm.get_hidden_brick_dir(), "gws_core")
+      gws_core_brick_path = os.path.join(gpm.SYS_BRICKS_FOLDER, "gws_core")
       gws_core_settings_path = os.path.join(gws_core_brick_path, "settings.json")
       self.assertTrue(os.path.exists(gws_core_settings_path))
       
       # check that gws_biota was cloned
-      gws_biota_brick_path = os.path.join(gpm.get_hidden_brick_dir(), "gws_biota")
+      gws_biota_brick_path = os.path.join(gpm.SYS_BRICKS_FOLDER, "gws_biota")
       gws_biota_settings_path = os.path.join(gws_biota_brick_path, "settings.json")
       self.assertTrue(os.path.exists(gws_biota_settings_path))
       
       # check that skeleton was cloned
-      skeleton_brick_path = os.path.join(gpm.get_hidden_brick_dir(), "skeleton")
+      skeleton_brick_path = os.path.join(gpm.SYS_BRICKS_FOLDER, "skeleton")
       skeleton_settings_path = os.path.join(skeleton_brick_path, "settings.json")
       self.assertTrue(os.path.exists(skeleton_settings_path))
     
       # check that brendapy was cloned
-      brendapy_readme_path = os.path.join(gpm.get_external_lib_dir(), "brendapy", "README.md")
+      brendapy_readme_path = os.path.join(gpm.EXTERNAL_LIB_FOLDER, "brendapy", "README.md")
       self.assertTrue(os.path.exists(brendapy_readme_path))
 
       # Check that pip dependecies of biota are installed
@@ -93,7 +93,7 @@ class TestGpm(IsolatedAsyncioTestCase):
 
 
       # Check the app start is well configured
-      sys_app_path = os.path.join(GPM.SYS_WORKSPACE_DIR, "app")
+      sys_app_path = os.path.join(gpm.SYS_WORKSPACE_DIR, "app")
       self.assertTrue(os.path.exists(sys_app_path))
       self.assertTrue(os.path.exists(os.path.join(sys_app_path, "settings.json")))
       self.assertTrue(os.path.exists(os.path.join(sys_app_path, "manage.py")))
@@ -107,6 +107,7 @@ class TestGpm(IsolatedAsyncioTestCase):
      
    
     def test_codelab(self):
+
 
       __cdir__ = os.path.dirname(os.path.abspath(__file__))
       GPM.LAB_WORKSPACE_DIR = os.path.join(__cdir__, "tests/build/lab")
@@ -133,14 +134,14 @@ class TestGpm(IsolatedAsyncioTestCase):
               # load json file 
               settings = json.load(f)
 
-              self.assertTrue(os.path.join(gpm.get_hidden_brick_dir(), 'gws_core', 'src') in settings['python.autoComplete.extraPaths'])
-              self.assertTrue(os.path.join(gpm.get_hidden_brick_dir(), 'gws_biota', 'src') in settings['python.autoComplete.extraPaths'])
-              self.assertTrue(os.path.join(gpm.get_hidden_brick_dir(), 'skeleton', 'src') in settings['python.autoComplete.extraPaths'])
+              self.assertTrue(os.path.join(gpm.SYS_BRICKS_FOLDER, 'gws_core', 'src') in settings['python.autoComplete.extraPaths'])
+              self.assertTrue(os.path.join(gpm.SYS_BRICKS_FOLDER, 'gws_biota', 'src') in settings['python.autoComplete.extraPaths'])
+              self.assertTrue(os.path.join(gpm.SYS_BRICKS_FOLDER, 'skeleton', 'src') in settings['python.autoComplete.extraPaths'])
 
      
       # test to move the brick to non hidden folder
-      gws_core_path = os.path.join(gpm.get_hidden_brick_dir(), 'gws_core')
-      gws_core_dest_path = os.path.join(gpm.get_user_brick_dir(), 'gws_core')
+      gws_core_path = os.path.join(gpm.SYS_BRICKS_FOLDER, 'gws_core')
+      gws_core_dest_path = os.path.join(gpm.USER_BRICKS_FOLDER, 'gws_core')
 
       shutil.move(gws_core_path, gws_core_dest_path)
       # delete the reamdme file to force the update
