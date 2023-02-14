@@ -310,6 +310,7 @@ class GPM():
 
         settings = {
             "name": self.config_reader.get_name(),
+            "version": "1.0.0",
             "variables": self.config_reader.get_variables(),
             "environment": self.config_reader.get_environment()
         }
