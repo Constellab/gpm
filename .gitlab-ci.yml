@@ -33,6 +33,10 @@ build-cpu-glab-and-codelab:
     - docker push $CI_REGISTRY_IMAGE/$GLAB-$CPU:beta
 
     - df -H
+
+    - docker builder prune -f
+
+    - df -H
     # Build the code server (CODELAB) image from the GLAB Image with a beta tag and a tag for the commit
     - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$CPU:beta" --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:beta . -f dockerfile/$CODELAB/Dockerfile
     - df -H

@@ -3,24 +3,28 @@ FROM $IMAGE
 
 LABEL maintainer="Admin <admin@gencovery.com>"
 
-RUN df -H
-RUN apt update && \
-    apt install -y git wget && \
-    rm -rf /var/lib/apt/lists/*
-RUN df -H
-RUN pip install mypy pylint autopep8
-
-RUN df -H
-# Dockerfile from https://github.com/gitpod-io/openvscode-releases/blob/main/Dockerfile
-WORKDIR /home
-
-# Set UTC timezone for the docker
-ENV TZ=UTC
-
 # Choose version from https://github.com/gitpod-io/openvscode-server
 ARG RELEASE_TAG=openvscode-server-v1.73.1
 ARG RELEASE_ORG="gitpod-io"
 ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
+
+# Dockerfile from https://github.com/gitpod-io/openvscode-releases/blob/main/Dockerfile
+WORKDIR /home
+
+RUN apt update && \
+    apt install -y git wget && \
+    rm -rf /var/lib/apt/lists/* && \
+    pip install mypy pylint autopep8
+
+# Set UTC timezone for the docker
+ENV TZ=UTC \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    EDITOR=code \
+    VISUAL=code \
+    GIT_EDITOR="code --wait" \
+    OPENVSCODE_SERVER_ROOT=${OPENVSCODE_SERVER_ROOT}
+
 
 # Downloading the latest VSC Server release and extracting the release archive
 # Rename `openvscode-server` cli tool to `code` for convenience
@@ -42,19 +46,10 @@ RUN if [ -z "${RELEASE_TAG}" ]; then \
     cp ${OPENVSCODE_SERVER_ROOT}/bin/remote-cli/openvscode-server ${OPENVSCODE_SERVER_ROOT}/bin/remote-cli/code && \
     rm -f ${RELEASE_TAG}-linux-${arch}.tar.gz
 
-RUN df -H
-
 WORKDIR /lab/user/
 
 COPY ./.vs-code-server-config/ /.vs-code-server-config/
-RUN df -H
-ENV LANG=C.UTF-8 \
-    LC_ALL=C.UTF-8 \
-    EDITOR=code \
-    VISUAL=code \
-    GIT_EDITOR="code --wait" \
-    OPENVSCODE_SERVER_ROOT=${OPENVSCODE_SERVER_ROOT}
-RUN df -H
+
 EXPOSE 8080
 
 ENTRYPOINT [ "/init-lab/entrypoint.sh" ]
