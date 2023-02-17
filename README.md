@@ -15,3 +15,16 @@ Testing the glab image locally : ```docker build -t glab:latest -f .\dockerfile\
 Testing the codelab image locally : ```docker build -t local-codelab -f .\dockerfile\codelab\Dockerfile .```
 
 Coding using the dev-env image : ```docker build -t local-dev-env -f .\dockerfile\dev-env\Dockerfile .```
+
+## Building with buildx for multi-arch
+
+From : https://itnext.io/building-multi-cpu-architecture-docker-images-for-arm-and-x86-2-building-in-gitlab-ci-295966b7185d
+
+Create a new docker context for builder instance to use
+```docker context create builder-context```
+
+Create a builder instance named "builderx"
+```docker buildx create --name builderx --driver docker-container --use builder-context```
+
+
+```docker buildx build -t glab:latest -f .\dockerfile\glab\Dockerfile --platform linux/amd64,linux/arm64 .```

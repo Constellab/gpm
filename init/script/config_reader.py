@@ -38,10 +38,6 @@ class SettingFileEnv(TypedDict):
 
 class SettingsFile(TypedDict):
   name: str
-  title: str
-  description: str
-  app_dir: str
-  uri: str
   variables: Dict[str, str]
   environment: SettingFileEnv
 
