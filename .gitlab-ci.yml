@@ -17,22 +17,7 @@ stages:
   - build-gpu-codelab
   - release-cpu
   - release-gpu
-  - test_arm
 
-
-test_arm:
-  stage: test_arm
-  before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-  script:
-    # Create a new docker context for builder instance to use
-    - docker context create builder-context
-    # Create a builder instance named "builderx"
-    - docker buildx create --name builderx --driver docker-container --use builder-context
-    - docker buildx build --build-arg IMAGE="ubuntu:20.04" --tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:waow -f dockerfile/$GLAB/Dockerfile --platform=linux/arm64,linux/amd64 .
-    - docker push $CI_REGISTRY_IMAGE/$GLAB-$CPU:waow
-  only:
-    - develop
 # /!\ Gitlab runner have 20Go of disk space, so the docker build must be optimized to generate
 # less layers.
 
