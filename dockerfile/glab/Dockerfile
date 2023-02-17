@@ -22,6 +22,8 @@ RUN apt-get -y update && \
     python3 -m pip install --upgrade setuptools && \
     # install conda
     wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O miniconda.sh && \
+    # for arm64
+    # wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-aarch64.sh -O miniconda.sh && \
     mkdir -p /opt && \
     sh miniconda.sh -b -p /opt/conda && \
     rm miniconda.sh && \
