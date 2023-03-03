@@ -299,24 +299,32 @@ class GPM():
         """Create the fake app brick for the entrypoint with the manage.py start file
         and the settings.json file
         """
+        try:
 
-        # get manage.py file path, it the same folder as current file
-        manage_py_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "manage.py")
-        manage_file_destination = os.path.join(self.APP_BRICK_FOLDER, "manage.py")
-        print(f"Copying manage.py file from {manage_py_file} to {manage_file_destination} ... ")
-        shutil.copyfile(manage_py_file, manage_file_destination)
+          # get manage.py file path, it the same folder as current file
+          manage_py_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "manage.py")
+          manage_file_destination = os.path.join(self.APP_BRICK_FOLDER, "manage.py")
+          print(f"Copying manage.py file from {manage_py_file} to {manage_file_destination} ... ")
+          shutil.copyfile(manage_py_file, manage_file_destination)
 
-        # Really important, update the settings.json file with main config info so the bricks will be loaded on start
-        settings_file = os.path.join(self.APP_BRICK_FOLDER, self.SETTING_JSON_FILE)
 
-        settings = {
-            "name": self.config_reader.get_name(),
-            "version": "1.0.0",
-            "variables": self.config_reader.get_variables(),
-            "environment": self.config_reader.get_environment()
-        }
-        with open(settings_file, 'w', encoding='utf-8') as f:
-            json.dump(settings, f, indent=4)
+          # Really important, update the settings.json file with main config info so the bricks will be loaded on start
+          settings_file = os.path.join(self.APP_BRICK_FOLDER, self.SETTING_JSON_FILE)
+          print(f"Generating settings.json file at {settings_file} ...")
+
+          settings = {
+              "name": self.config_reader.get_name(),
+              "version": "1.0.0",
+              "variables": self.config_reader.get_variables(),
+              "environment": self.config_reader.get_environment()
+          }
+          with open(settings_file, 'w', encoding='utf-8') as f:
+              json.dump(settings, f, indent=4)
+
+        except Exception as err:
+            print(f"Error while creating the app entrypoint: {err}")
+            raise err
+
 
     def install_notebook_entrypoint(self):
 
@@ -450,9 +458,11 @@ class GPM():
             with open(setting_path, 'w') as f:
                 json.dump(settings, f, indent=2)
 
+
         except Exception as err:
-            print(f"Error during parsing or writting the settings file : {err}")
+            print(f"Error during parsing or writting the vscode settings file : {err}")
             return
+        print("VS Code configured !")
 
     def get_vs_code_setting_folder(self) -> str:
         return os.path.join(self.USER_WORKSPACE_DIR, ".vscode")

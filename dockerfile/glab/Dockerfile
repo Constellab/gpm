@@ -18,7 +18,7 @@ RUN apt-get -y update && \
     apt-get -y install pipenv && \
     # install pip v 23.0
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python3 get-pip.py "pip==23.0" && \
+    python3 get-pip.py "pip==23.0.1" && \
     python3 -m pip install --upgrade setuptools && \
     # install conda
     wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O miniconda.sh && \
@@ -30,28 +30,9 @@ RUN apt-get -y update && \
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
 
 # install gws dependencies
-RUN python3 -m pip install  awesome-slugify==1.6.5 \
-                            click==8.1.3 \
-                            cryptography==39.0.1 \
-                            fastapi==0.91.0 \
-                            GitPython==3.1.26 \
-                            peewee==3.15.4 \
-                            psutil==5.9.0 \
-                            pyjwt==2.3.0 \
-                            pymysql==1.0.2 \
-                            python-multipart==0.0.5 \
-                            requests==2.28.2 \
-                            starlette-context==0.3.3 \
-                            uvicorn==0.20.0 \
-                            charset-normalizer==2.0.12 \
-                            # install gaia dependencies
-                            cvxpy==1.1.18 \
-                            dill==0.3.4 \
-                            numpy==1.24.1 \
-                            pandas==1.5.2 \
-                            matplotlib==3.6.2 \
-                            scipy==1.10.0 \
-                            scikit-learn==1.2.0
+RUN python3 -m pip install  click==8.1.3 \
+                            GitPython==3.1.26 
+                            
 EXPOSE 3000
 
 COPY ./init /init-lab
