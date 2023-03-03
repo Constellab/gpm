@@ -1,6 +1,6 @@
 # Dockerfile to build an image to work on lab (gws_core, gws_biota)
 # with vscode remote containers
-FROM registry.gitlab.com/gencovery/infra/gpm/glab-cpu:beta
+FROM glab-local
 
 # Configure python
 RUN pip install mypy pylint autopep8

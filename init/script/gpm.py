@@ -303,6 +303,7 @@ class GPM():
         # get manage.py file path, it the same folder as current file
         manage_py_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "manage.py")
         manage_file_destination = os.path.join(self.APP_BRICK_FOLDER, "manage.py")
+        print(f"Copying manage.py file from {manage_py_file} to {manage_file_destination} ... ")
         shutil.copyfile(manage_py_file, manage_file_destination)
 
         # Really important, update the settings.json file with main config info so the bricks will be loaded on start
