@@ -61,6 +61,18 @@
       "request": "launch",
       "program": "/lab/.sys/app/manage.py",
       "console": "integratedTerminal"
+    },
+    // create brick
+    {
+      "args": [
+        "--name",
+        "${input:newBrickName}"
+      ],
+      "name": "Create brick",
+      "type": "python",
+      "request": "launch",
+      "program": "/lab/.sys/bricks/gws_core/utils/create_brick.py",
+      "console": "integratedTerminal"
     }
   ],
   "inputs": [
