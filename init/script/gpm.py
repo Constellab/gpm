@@ -112,7 +112,7 @@ class GPM():
         self.install_pip_and_git_packages([self.config_reader])
         self.install_app_entrypoint()
         # install notbook here and not in dockerfile because it is in the volumes
-        self.install_notebook_entrypoint()
+        self.install_notebook_template()
         self.configure_vscode()
 
     def install_pip_and_git_packages(self, settings_readers: List[SettingsReader]) -> None:
@@ -326,17 +326,22 @@ class GPM():
             raise err
 
 
-    def install_notebook_entrypoint(self):
+    def install_notebook_template(self):
+        
+        __cdir__ = os.path.dirname(os.path.abspath(__file__))
+        src_notebook_dir = os.path.abspath(os.path.join(__cdir__, '..', "notebook_template"))
 
         tempalate_dir = os.path.join(self.NOTEBOOK_FOLDER, "template")
         if os.path.exists(tempalate_dir):
-            return
-
-        __cdir__ = os.path.dirname(os.path.abspath(__file__))
-        shutil.copytree(
-            os.path.abspath(os.path.join(__cdir__, '..', "notebook_template")),
-            tempalate_dir
-        )
+            # override only the env.py file
+            print(f"Updating {tempalate_dir} ...")
+            shutil.copyfile(
+                os.path.join(src_notebook_dir, "env.py"),
+                os.path.join(tempalate_dir, "env.py")
+            )
+        
+        else:
+          shutil.copytree(src_notebook_dir,tempalate_dir)
 
     def format_url(self, string: str, variables: Dict[str, str]) -> str:
         if not string:

@@ -13,7 +13,7 @@ from init.script.gpm import GPM, BrickInstalationInfo
 import importlib
 
 GENCOVERY_CORE_REPO="https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core/gws_core.git"
-GWS_CORE_VERSION="0.2.1"
+GWS_CORE_VERSION="0.5.0-beta.1"
 
 
 class TestGpm(IsolatedAsyncioTestCase):
@@ -80,7 +80,7 @@ class TestGpm(IsolatedAsyncioTestCase):
       readme = os.path.join(gws_core_brick_path, "README.md")
       os.remove(readme)
       self.assertFalse(os.path.exists(readme))
-      gpm.install_brick_git_package("gws_core", "0.2.1", GENCOVERY_CORE_REPO, 'app')
+      gpm.install_brick_git_package("gws_core", "0.5.0-beta.1", GENCOVERY_CORE_REPO, 'app')
       self.assertTrue(os.path.exists(readme))
 
 
@@ -102,8 +102,7 @@ class TestGpm(IsolatedAsyncioTestCase):
       # check that the skeleton and gws_biota are listed
       chanel = setting_reader.get_git_channels()[0]
       self.assertEqual(len([x for x in chanel["packages"] if x["name"] == "gws_biota"]), 1)
-      self.assertEqual(len([x for x in chanel["packages"] if x["name"] == "skeleton"]), 1)
-      
+    
      
    
     def test_codelab(self):
@@ -136,7 +135,6 @@ class TestGpm(IsolatedAsyncioTestCase):
 
               self.assertTrue(os.path.join(gpm.SYS_BRICKS_FOLDER, 'gws_core', 'src') in settings['python.autoComplete.extraPaths'])
               self.assertTrue(os.path.join(gpm.SYS_BRICKS_FOLDER, 'gws_biota', 'src') in settings['python.autoComplete.extraPaths'])
-              self.assertTrue(os.path.join(gpm.SYS_BRICKS_FOLDER, 'skeleton', 'src') in settings['python.autoComplete.extraPaths'])
 
      
       # test to move the brick to non hidden folder
@@ -149,5 +147,32 @@ class TestGpm(IsolatedAsyncioTestCase):
       os.remove(readme)
       self.assertFalse(os.path.exists(readme))
       # re-install gws_core but as it is in the user brick folder, it should not be updated
-      gpm.install_brick_git_package("gws_core", "0.2.1", GENCOVERY_CORE_REPO, 'app')
+      gpm.install_brick_git_package("gws_core", "0.5.0-beta.1", GENCOVERY_CORE_REPO, 'app')
       self.assertFalse(os.path.exists(readme))
+
+      ############################## NOTEBOOK TESTS ##############################
+      # Check that the notebook is well configured
+      template_path = os.path.join(gpm.NOTEBOOK_FOLDER, "template")
+      self.assertTrue(os.path.exists(template_path))
+
+      env_file_path = os.path.join(template_path, "env.py")
+      jupyter_file_path = os.path.join(template_path, "template.ipynb")
+      self.assertTrue(os.path.exists(env_file_path))
+      self.assertTrue(os.path.exists(jupyter_file_path))
+
+      # clear env file path and jypyter file path
+      with open(env_file_path, 'w') as f:
+        f.write("")
+      with open(jupyter_file_path, 'w') as f:
+        f.write("")
+
+      # test reinstall notebook and check that there is no error
+      gpm.install_notebook_template()
+
+      # check that only the env file was override and is not empty
+      self.assertTrue(os.path.exists(env_file_path))
+      self.assertTrue(os.path.exists(jupyter_file_path))
+      with open(env_file_path, 'r') as f:
+        self.assertTrue(len(f.read()) > 0)
+      with open(jupyter_file_path, 'r') as f:
+        self.assertTrue(len(f.read()) == 0)

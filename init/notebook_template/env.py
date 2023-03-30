@@ -8,6 +8,7 @@ import sys
 
 user_bricks_folder = os.path.join('/lab', 'user', 'bricks')
 sys_bricks_folder = os.path.join('/lab', '.sys', 'bricks')
+app_folder = os.path.join('/lab', '.sys', 'app')
 
 def activate():
 
@@ -19,10 +20,6 @@ def activate():
                 raise Exception("Cannot find gws_core brick")
         sys.path.insert(0, core_lib_path)
 
-    from gws_core import manage, runner
-    manage.load_settings("/lab/.sys/app")
-    runner.call(
-        notebook=True,
-        log_level="INFO",
-        show_sql=False
-    )
+    from gws_core import manage
+    manage.start_notebook(str(app_folder))
+    return str(app_folder)

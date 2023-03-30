@@ -8,10 +8,15 @@ This repository allows managing Gencovery Web Services packages. It is used to c
 
 ## Testing
 
-For testing, use the VsCode testing extension and run test gpm tests. 
+For testing, install dependencies with ```pip install -r requirements.txt```
+
 Create a .env file at project root with GWS_GIT_LOGIN and GWS_GIT_PWD (using astroyboy account or you own account) env variables to test the git pull.
 
-Testing the glab image locally : ```docker build -t glab-local -f .\dockerfile\glab\Dockerfile .```
+Use the VsCode testing extension and run test gpm tests. 
+
+## Testing the docker images
+
+Testing the glab image locally : ```docker build -t glab:latest -f .\dockerfile\glab\Dockerfile .```
 Testing the codelab image locally : ```docker build -t local-codelab -f .\dockerfile\codelab\Dockerfile .```
 
 Coding using the dev-env image : ```docker build -t local-dev-env -f .\dockerfile\dev-env\Dockerfile .```
