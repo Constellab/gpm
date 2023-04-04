@@ -3,7 +3,7 @@ services:
   - docker:dind
 
 variables:
-  DOCKER_DRIVER: overlay
+  DOCKER_DRIVER: overlay2
   GIT_DEPTH: 0
   CPU: cpu
   GPU: gpu
@@ -20,30 +20,23 @@ stages:
 
 # /!\ Gitlab runner have 20Go of disk space, so the docker build must be optimized to generate
 # less layers.
-
 #  Build the glab cpu images and push them to the registry
 build-cpu-glab-and-codelab:
   stage: build-cpu-glab-and-codelab
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    # Build the gws (GLAB) image with a beta tag and a tag for the commit
-    - docker build --build-arg IMAGE="ubuntu:20.04" --tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:beta . -f dockerfile/$GLAB/Dockerfile
-    # Push both image in the registry
-    - docker push $CI_REGISTRY_IMAGE/$GLAB-$CPU:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$GLAB-$CPU:beta
+    # Build the gws (GLAB) image
+    - docker build --build-arg IMAGE="ubuntu:20.04" --tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:$CI_COMMIT_TAG . -f dockerfile/$GLAB/Dockerfile
+    # Push image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$GLAB-$CPU:$CI_COMMIT_TAG
 
-    # clear intermediate layers (not really effective)
-    - docker builder prune -f
-
-    # Build the code server (CODELAB) image from the GLAB Image with a beta tag and a tag for the commit
-    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$CPU:beta" --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:beta . -f dockerfile/$CODELAB/Dockerfile
-    # Push both image in the registry
-    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$CPU:beta
+    # Build the code server (CODELAB) image
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$CPU:$CI_COMMIT_TAG" --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_TAG . -f dockerfile/$CODELAB/Dockerfile
+    # Push image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_TAG
   only:
-    - develop
-  when: manual
+    - tags
 
 
 #  Build the glab gpu images and push them to the registry
@@ -52,19 +45,17 @@ build-gpu-glab-and-codelab:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    # Build the gws (GLAB) image with a beta tag and a tag for the commit
-    - docker build --build-arg IMAGE="nvidia/cuda:11.2.1-runtime-ubuntu20.04" --cache-from $CI_REGISTRY_IMAGE/$GLAB-$GPU:beta --tag $CI_REGISTRY_IMAGE/$GLAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$GLAB-$GPU:beta . -f dockerfile/$GLAB/Dockerfile
-    # Push both image in the registry
-    - docker push $CI_REGISTRY_IMAGE/$GLAB-$GPU:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$GLAB-$GPU:beta
+    # Build the gws (GLAB) image 
+    - docker build --build-arg IMAGE="nvidia/cuda:11.2.1-runtime-ubuntu20.04" --tag $CI_REGISTRY_IMAGE/$GLAB-$GPU:$CI_COMMIT_TAG . -f dockerfile/$GLAB/Dockerfile
+    # Push image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$GLAB-$GPU:$CI_COMMIT_TAG
 
-    # Build the code server (CODELAB) image from the GLAB Image with a beta tag and a tag for the commit
-    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$GPU:beta" --cache-from $CI_REGISTRY_IMAGE/$CODELAB-$GPU:beta --tag $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$CODELAB-$GPU:beta . -f dockerfile/$CODELAB/Dockerfile
-    # Push both image in the registry
-    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:beta
+    # Build the code server (CODELAB)
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$GPU:$CI_COMMIT_TAG" --tag $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_TAG . -f dockerfile/$CODELAB/Dockerfile
+    # Push image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_TAG
   only:
-    - develop
+    - tags
   when: manual
 
 #  Build the codelab cpu images and push them to the registry
@@ -73,14 +64,13 @@ build-cpu-codelab:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    # Build the code server (CODELAB) image from the GLAB Image with a beta tag and a tag for the commit
-    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$CPU:beta" --cache-from $CI_REGISTRY_IMAGE/$CODELAB-$CPU:beta --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:beta . -f dockerfile/$CODELAB/Dockerfile
-    # Push both image in the registry
-    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$CPU:beta
+    # Build the code server (CODELAB) image 
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$CPU:$CI_COMMIT_TAG" --tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_TAG . -f dockerfile/$CODELAB/Dockerfile
+    # Push image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$CPU:$CI_COMMIT_TAG
 
   only:
-    - develop
+    - tags
   when: manual
 
 #  Build the codelab gpu images and push them to the registry
@@ -89,48 +79,12 @@ build-gpu-codelab:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    # Build the code server (CODELAB) image from the GLAB Image with a beta tag and a tag for the commit
-    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$GPU:beta" --cache-from $CI_REGISTRY_IMAGE/$CODELAB-$GPU:beta --tag $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_SHA --tag $CI_REGISTRY_IMAGE/$CODELAB-$GPU:beta . -f dockerfile/$CODELAB/Dockerfile
-    # Push both image in the registry
-    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_SHA
-    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:beta
+    # Build the code server (CODELAB) image
+    - docker build --build-arg IMAGE="$CI_REGISTRY_IMAGE/$GLAB-$GPU:$CI_COMMIT_TAG" --tag $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_TAG . -f dockerfile/$CODELAB/Dockerfile
+    # Push image in the registry
+    - docker push $CI_REGISTRY_IMAGE/$CODELAB-$GPU:$CI_COMMIT_TAG
   only:
-    - develop
+    - tags
   when: manual
 
-# Use crane to add a tag to an image
-# Code from https://gitlab.com/gitlab-org/gitlab/-/issues/15252
-release-cpu:
-  stage: release-cpu
-  image:
-    # using crane image
-    name: gcr.io/go-containerregistry/crane:debug
-    entrypoint: ['']
-  script:
-    # login to registry
-    - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    # rename the beta image to the latest image
-    - crane tag $CI_REGISTRY_IMAGE/$GLAB-$CPU:beta latest
-    - crane tag $CI_REGISTRY_IMAGE/$CODELAB-$CPU:beta latest
-  only:
-    - master
-  when: manual
-
-# Use crane to add a tag to an image
-# Code from https://gitlab.com/gitlab-org/gitlab/-/issues/15252
-release-gpu:
-  stage: release-gpu
-  image:
-    # using crane image
-    name: gcr.io/go-containerregistry/crane:debug
-    entrypoint: ['']
-  script:
-    # login to registry
-    - crane auth login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
-    # rename the beta image to the latest image
-    - crane tag $CI_REGISTRY_IMAGE/$GLAB-$GPU:beta latest
-    - crane tag $CI_REGISTRY_IMAGE/$CODELAB-$GPU:beta latest
-  only:
-    - master
-  when: manual
  
