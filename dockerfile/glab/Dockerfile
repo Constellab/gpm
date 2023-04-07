@@ -31,7 +31,8 @@ RUN apt-get -y update && \
 
 # install gws dependencies
 RUN python3 -m pip install  click==8.1.3 \
-                            GitPython==3.1.26 
+                            GitPython==3.1.26 \
+                            requests==2.28.2
                             
 EXPOSE 3000
 
