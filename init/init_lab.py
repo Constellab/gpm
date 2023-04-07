@@ -17,8 +17,8 @@ def install(ctx, env_mode: str = None):
     gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH, env_mode=env_mode)
     gpm.init_all()
 
-    print(f"Installed pip packages:\n{GPM.get_installed_pip_packages()}")
-    print(f"Installed git packages:\n{GPM._installed_git_packages}")
+    print(f"Installed pip packages:\n{gpm.get_installed_pip_packages()}")
+    print(f"Installed git packages:\n{gpm._installed_git_packages}")
 
 
 if __name__ == "__main__":

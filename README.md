@@ -10,7 +10,7 @@ This repository allows managing Gencovery Web Services packages. It is used to c
 
 For testing, install dependencies with ```pip install -r requirements.txt```
 
-Create a .env file at project root with GWS_GIT_LOGIN and GWS_GIT_PWD (using astroyboy account or you own account) env variables to test the git pull.
+Create a .env file at project root with COMMUNITY_API_URL and COMMUNITY_API_KEY (optional) env variables to test the git pull.
 
 Use the VsCode testing extension and run test gpm tests. 
 
