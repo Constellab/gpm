@@ -15,12 +15,6 @@
                       "version": "0.3.4"
                   },
                   {
-                      "name": "skeleton",
-                      "is_brick": true,
-                      "is_hidden": false,
-                      "version": "0.1.0"
-                  },
-                  {
                       "name": "gws_biota",
                       "is_brick": true,
                       "is_hidden": false,

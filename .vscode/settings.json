@@ -10,4 +10,28 @@
   "python.testing.unittestEnabled": true,
   // add environment variable TEST=OK to the test
   "python.envFile": "${workspaceFolder}/.env",
+  // custom config for python
+  "[python]": {
+    // format the code on save
+    "editor.formatOnSave": true,
+    // actions run on save
+    "editor.codeActionsOnSave": {
+        // reoaganize imports on save
+        "source.organizeImports": true
+    },
+    // remove trailling whitespace on save
+    "files.trimTrailingWhitespace": true,
+  },
+
+  // python formatting (indentation)
+  "python.formatting.provider": "autopep8",
+  "python.formatting.autopep8Path": "/usr/local/bin/autopep8",
+  "python.formatting.autopep8Args": ["--max-line-length", "120", "--experimental"],
+
+
+  // linting rules it takes the rules of .pylintrc file
+  "python.linting.pylintPath": "/usr/local/bin/pylint",
+  "python.linting.enabled": true,
+  "python.linting.pylintEnabled": true,
+  "python.linting.lintOnSave": true
 }

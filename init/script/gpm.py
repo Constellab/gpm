@@ -7,14 +7,15 @@ import json
 import os
 import re
 import shutil
-import subprocess
 import time
 from datetime import datetime
 from typing import Dict, List, Literal, Optional, TypedDict
 
 from git import Repo
 
-from .config_reader import GitPackage, SettingsReader
+from .pip_manager import PipManager
+from .community_service import CommunityBrick, CommunityService
+from .config_reader import SettingsReader
 from .package_lock import PackageLock
 
 # ####################################################################
@@ -52,11 +53,11 @@ class GPM():
     USER_WORKSPACE_DIR: str = None
 
     USER_BRICKS_FOLDER: str = None
-    NOTEBOOK_FOLDER : str = None
+    NOTEBOOK_FOLDER: str = None
     SYS_BRICKS_FOLDER: str = None
     APP_BRICK_FOLDER: str = None
     EXTERNAL_LIB_FOLDER: str = None
-    
+
     CONFIG_FILE_PATH: str = "/conf/config.json"
     SETTING_JSON_FILE: str = "settings.json"
     BRICK_INSTALLATION_FILE = ".brick-installation.json"
@@ -68,8 +69,11 @@ class GPM():
     config_reader: SettingsReader = None
     package_lock: PackageLock
 
+    pip_manager: PipManager = None
+
     _installed_pip_packages: list = []
     _installed_git_packages: list = []
+    _installed_brick_packages: list = []
 
     env_mode: EnvMode = None
 
@@ -82,7 +86,7 @@ class GPM():
         self.SYS_BRICKS_FOLDER = os.path.join(self.SYS_WORKSPACE_DIR, 'bricks')
         self.APP_BRICK_FOLDER = os.path.join(self.SYS_WORKSPACE_DIR, 'app')
         self.EXTERNAL_LIB_FOLDER = os.path.join(self.SYS_WORKSPACE_DIR, 'lib')
-        
+
         self.create_folder_if_not_exists(self.SYS_WORKSPACE_DIR)
         self.create_folder_if_not_exists(self.USER_WORKSPACE_DIR)
         self.create_folder_if_not_exists(self.USER_BRICKS_FOLDER)
@@ -102,121 +106,120 @@ class GPM():
             raise Exception(f"Environment mode must be either GLAB or CODELAB, not '{env_mode}'")
 
         self.env_mode = env_mode
-        self._installed_pip_packages: list = []
+
+        self.pip_manager = PipManager()
         self._installed_git_packages: list = []
+        self._installed_brick_packages: list = []
 
         self.config_reader = SettingsReader(self.settings_file_path)
         self.package_lock = PackageLock()
 
     def init_all(self):
-        self.install_pip_and_git_packages([self.config_reader])
+        self.install_git_packages_and_bricks([self.config_reader])
+
+        # install all the pip packages
+        print("Installing pip packages")
+        self.pip_manager.install_packages()
+
         self.install_app_entrypoint()
         # install notbook here and not in dockerfile because it is in the volumes
         self.install_notebook_template()
         self.configure_vscode()
 
-    def install_pip_and_git_packages(self, settings_readers: List[SettingsReader]) -> None:
+    def install_git_packages_and_bricks(self, settings_readers: List[SettingsReader]) -> None:
         """Recursive method to install pip and git packages. The sub packages are installed after the main packages.
 
         :param settings_readers: _description_
         :type settings_readers: List[SettingsReader]
         """
 
-        sub_settings_readers: List[SettingsReader] = []
+        # install git and pip packages
         for settings_reader in settings_readers:
-            print(f"Installing Pip and Git packages for brick {settings_reader.get_name()}")
-            for pip_chanel in settings_reader.get_pip_channels():
-                self._install_pip_packages(pip_chanel.get("packages"), source_url=pip_chanel.get("source"),
-                                           env_variables=settings_reader.get_environment_variables())
+            print(f"Installing git packages for '{settings_reader.get_name()}' brick")
+            self._install_git_packages(settings_reader)
 
-            sub_reader = self.install_git_packages(settings_reader)
-            sub_settings_readers.extend(sub_reader)
+            # store the pip packages to install them later
+            self.pip_manager.add_packages(settings_reader.get_pip_packages())
+
+        # install bricks
+        self.install_bricks(settings_readers)
+
+    def _install_git_packages(self, settings_reader: SettingsReader) -> None:
+        for package in settings_reader.get_git_packages():
+
+            repo_name = package["name"]
+            # skip install if the package is already installed
+            if repo_name in self._installed_git_packages:
+                continue
+
+            version = package.get("version", "")
+            source_url = package.get("source").strip("/")
+            repo_path = f"{source_url}/{repo_name}.git"
+            print(f"Cloning git repository '{repo_path}:{version}' ... ")
+
+            # replace the variable name with the values (including credentials)
+            repo_path = self.format_url(repo_path, settings_reader.get_environment_variables())
+
+            # install the package
+            self._install_git_package(repo_name, version, repo_path)
+
+            self._installed_git_packages.append(repo_name)
+
+    def _install_git_package(self, repo_name: str, version: str, repo_path: str) -> None:
+
+        repo_dir = os.path.join(self.EXTERNAL_LIB_FOLDER, repo_name)
+
+        if os.path.exists(repo_dir):
+            print(f"Removing '{repo_dir}'")
+            try:
+                shutil.rmtree(repo_dir)
+            except:
+                raise Exception(f"Cannot remove '{repo_dir}'")
+        self.git_clone(repo_path, repo_dir, repo_name)
+
+        if not os.path.exists(repo_dir):
+            raise Exception(f"Git package '{repo_name}' version '{version}' could not be installed.")
+
+    def install_bricks(self, settings_readers: List[SettingsReader]) -> List[SettingsReader]:
+        sub_settings_readers: List[SettingsReader] = []
+
+        for settings_reader in settings_readers:
+            print(f"Installing bricks for '{settings_reader.get_name()}' brick")
+
+            # get all the bricks packages
+            for brick in settings_reader.get_brick_packages():
+                if brick['name'] in self._installed_brick_packages:
+                    continue
+
+                # install the brick
+                sub_reader = self.install_brick(name=brick.get("name"),
+                                                version=brick.get("version"),
+                                                parent_name=settings_reader.get_name())
+                sub_settings_readers.append(sub_reader)
 
         # recursive call to install sub packages
         # the sub packages are install after the main packages
         if len(sub_settings_readers) > 0:
-            self.install_pip_and_git_packages(sub_settings_readers)
+            self.install_git_packages_and_bricks(sub_settings_readers)
 
-    def _install_pip_packages(self, packages: list, source_url=None, env_variables: Dict[str, str] = None):
-        if len(packages) == 0:
-            return
-
-        # format the source url by remplacing the env variables
-        source_url = self.format_url(source_url, env_variables)
-
-        _packages: List[str] = []
-        _repos: List[str] = []
-        for pkg in packages:
-            if pkg in self._installed_pip_packages:
-                continue
-            name = pkg['name']
-            version = pkg.get('version', '')
-            if version:
-                if version[0] not in [">", "<", "="]:
-                    version = "==" + version
-            _packages.append(f"{name}{version}")
-            _repos.append(name)
-
-        if not _packages:
-            return
-
-        cmd = ["python3", "-m", "pip", "install", *_packages]
-        if source_url:
-            cmd = [*cmd, "--extra-index-url", source_url]
-        self.run_proc(cmd)
-
-        self._installed_pip_packages.extend(_repos)
-        self._installed_pip_packages = list(set(self._installed_pip_packages))
-
-    def install_git_packages(self, settings_reader: SettingsReader) -> List[SettingsReader]:
-        sub_settings_readers: List[SettingsReader] = []
-        for git_chanel in settings_reader.get_git_channels():
-            source_url = git_chanel.get("source").strip("/")
-            packages = git_chanel.get("packages")
-            for package in packages:
-                sub_settings = self._install_git_package(package, source_url, settings_reader)
-
-                if sub_settings:
-                    sub_settings_readers.append(sub_settings)
-
-        return sub_settings_readers
-
-    def _install_git_package(
-            self, package: GitPackage, source_url: str, settings_reader: SettingsReader) -> Optional[SettingsReader]:
-        repo_name = package["name"]
-
-        # skip install if the package is already installed
-        if repo_name in self._installed_git_packages:
-            return None
-
-        is_brick = package.get("is_brick", False)
-        version = package.get("version", "")
-
-        repo_path = f"{source_url}/{repo_name}.git"
-        print(f"Cloning git repository {repo_path}:{version} ... ")
-        repo_path = self.format_url(repo_path, settings_reader.get_environment_variables())
-
-        if is_brick:
-            sub_settings = self.install_brick_git_package(repo_name, version, repo_path, settings_reader.get_name())
-        else:
-            sub_settings = self.install_other_git_package(repo_name, version, repo_path)
-
-        self._installed_git_packages.append(repo_name)
-        return sub_settings
-
-    def install_brick_git_package(self, brick_name: str, version: str, repo_path: str,
-                                  parent_name: str) -> SettingsReader:
+    def install_brick(self, name: str, version: str,
+                      parent_name: str) -> SettingsReader:
         # Set hidden to False only if the brick is in the user bricks dir
         # normally this is only in dev env
-        is_hidden = not os.path.exists(os.path.join(self.USER_BRICKS_FOLDER, brick_name)) or self.env_mode == 'GLAB'
+        is_hidden = not os.path.exists(os.path.join(self.USER_BRICKS_FOLDER, name)) or self.env_mode == 'GLAB'
 
         # retrieve brick repo
         repo_dir: str = None
         if is_hidden:
-            repo_dir = os.path.join(self.SYS_BRICKS_FOLDER, brick_name)
+            repo_dir = os.path.join(self.SYS_BRICKS_FOLDER, name)
         else:
-            repo_dir = os.path.join(self.USER_BRICKS_FOLDER, brick_name)
+            repo_dir = os.path.join(self.USER_BRICKS_FOLDER, name)
 
+        brick_info: CommunityBrick = CommunityService().get_brick(name, version)
+
+        print(f"Cloning brick '{name}' version '{version}' from {brick_info['repositoryUrl']}.")
+
+        repo_path = brick_info["repositoryAccessUrl"]
         cloned_package: ClonedPackage = None
         if os.path.exists(repo_dir):
             # update hidden bricks (remove and clone)
@@ -226,38 +229,25 @@ class GPM():
                     shutil.rmtree(repo_dir)
                 except:
                     raise Exception(f"Cannot remove {repo_dir}")
-                cloned_package = self.git_clone(repo_path, repo_dir, brick_name, version=version)
+                cloned_package = self.git_clone(repo_path, repo_dir, name, version=version)
             else:
                 print(f"Do not update non-hidden brick {repo_dir}")
         else:
-            cloned_package = self.git_clone(repo_path, repo_dir, brick_name, version=version)
+            cloned_package = self.git_clone(repo_path, repo_dir, name, version=version)
 
         if cloned_package:
             self.create_brick_installation_file(
-                name=brick_name, path=repo_dir, parent_name=parent_name, git_hash=cloned_package["git_hash"],
+                name=name, path=repo_dir, parent_name=parent_name, git_hash=cloned_package["git_hash"],
                 version=cloned_package["version"],
                 package_type='git')
 
         if not os.path.exists(repo_dir):
-            raise Exception(f"Brick package {brick_name} version {version} could not be installed.")
+            raise Exception(f"Brick package {name} version {version} could not be installed.")
+
+        self._installed_brick_packages.append(name)
 
         # return the sub settings so the sub dependencies can be installed
         return SettingsReader(os.path.join(repo_dir, self.SETTING_JSON_FILE))
-
-    def install_other_git_package(self, repo_name: str, version: str, repo_path: str) -> None:
-
-        repo_dir = os.path.join(self.EXTERNAL_LIB_FOLDER, repo_name)
-
-        if os.path.exists(repo_dir):
-            print(f"Removing {repo_dir} ...")
-            try:
-                shutil.rmtree(repo_dir)
-            except:
-                raise Exception(f"Cannot remove {repo_dir}")
-        self.git_clone(repo_path, repo_dir, repo_name)
-
-        if not os.path.exists(repo_dir):
-            raise Exception(f"Git package {repo_name} version {version} could not be installed.")
 
     def git_clone(self, url: str, dest_dir: str, repo_name: str, version: str = None) -> ClonedPackage:
         # Try to clone the repository 3 times if it fails
@@ -288,7 +278,6 @@ class GPM():
 
         # remove .git folder
         try:
-            print(f"Removing .git directory from {dest_dir} ...")
             shutil.rmtree(os.path.join(dest_dir, ".git"))
         except:
             raise Exception(f"Cannot remove .git directory from {dest_dir}")
@@ -301,33 +290,31 @@ class GPM():
         """
         try:
 
-          # get manage.py file path, it the same folder as current file
-          manage_py_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "manage.py")
-          manage_file_destination = os.path.join(self.APP_BRICK_FOLDER, "manage.py")
-          print(f"Copying manage.py file from {manage_py_file} to {manage_file_destination} ... ")
-          shutil.copyfile(manage_py_file, manage_file_destination)
+            # get manage.py file path, it the same folder as current file
+            manage_py_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "manage.py")
+            manage_file_destination = os.path.join(self.APP_BRICK_FOLDER, "manage.py")
+            print(f"Copying manage.py file from {manage_py_file} to {manage_file_destination} ... ")
+            shutil.copyfile(manage_py_file, manage_file_destination)
 
+            # Really important, update the settings.json file with main config info so the bricks will be loaded on start
+            settings_file = os.path.join(self.APP_BRICK_FOLDER, self.SETTING_JSON_FILE)
+            print(f"Generating settings.json file at {settings_file} ...")
 
-          # Really important, update the settings.json file with main config info so the bricks will be loaded on start
-          settings_file = os.path.join(self.APP_BRICK_FOLDER, self.SETTING_JSON_FILE)
-          print(f"Generating settings.json file at {settings_file} ...")
-
-          settings = {
-              "name": self.config_reader.get_name(),
-              "version": "1.0.0",
-              "variables": self.config_reader.get_variables(),
-              "environment": self.config_reader.get_environment()
-          }
-          with open(settings_file, 'w', encoding='utf-8') as f:
-              json.dump(settings, f, indent=4)
+            settings = {
+                "name": self.config_reader.get_name(),
+                "version": "1.0.0",
+                "variables": self.config_reader.get_variables(),
+                "environment": self.config_reader.get_environment()
+            }
+            with open(settings_file, 'w', encoding='utf-8') as file:
+                json.dump(settings, file, indent=4)
 
         except Exception as err:
             print(f"Error while creating the app entrypoint: {err}")
             raise err
 
-
     def install_notebook_template(self):
-        
+
         __cdir__ = os.path.dirname(os.path.abspath(__file__))
         src_notebook_dir = os.path.abspath(os.path.join(__cdir__, '..', "notebook_template"))
 
@@ -339,9 +326,9 @@ class GPM():
                 os.path.join(src_notebook_dir, "env.py"),
                 os.path.join(tempalate_dir, "env.py")
             )
-        
+
         else:
-          shutil.copytree(src_notebook_dir,tempalate_dir)
+            shutil.copytree(src_notebook_dir, tempalate_dir)
 
     def format_url(self, string: str, variables: Dict[str, str]) -> str:
         if not string:
@@ -400,17 +387,6 @@ class GPM():
         if not os.path.exists(path):
             os.makedirs(path)
 
-    @staticmethod
-    def run_proc(cmd, cwd=None) -> bool:
-        if cwd:
-            if not os.path.exists(cwd):
-                os.makedirs(cwd)
-        try:
-            subprocess.check_call(cmd, stdout=subprocess.DEVNULL, cwd=cwd)
-            return True
-        except:
-            return False
-
     def configure_vscode(self) -> None:
         if self.env_mode != 'CODELAB':
             return
@@ -440,8 +416,8 @@ class GPM():
 
         # load the settings file into a dict
         try:
-            with open(setting_path, 'r') as f:
-                settings = json.load(f)
+            with open(setting_path, 'r', encoding='UTF-8') as file:
+                settings = json.load(file)
 
                 # init the extra paths if not already done
                 if 'python.autoComplete.extraPaths' not in settings \
@@ -460,9 +436,8 @@ class GPM():
                 settings['python.autoComplete.extraPaths'] = extra_paths
 
             # write the settings file
-            with open(setting_path, 'w') as f:
-                json.dump(settings, f, indent=2)
-
+            with open(setting_path, 'w', encoding='UTF-8') as file:
+                json.dump(settings, file, indent=2)
 
         except Exception as err:
             print(f"Error during parsing or writting the vscode settings file : {err}")
@@ -490,5 +465,10 @@ class GPM():
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
         brick_installation_file = os.path.join(path, self.BRICK_INSTALLATION_FILE)
-        with open(brick_installation_file, 'w') as f:
-            json.dump(brick_installation, f, indent=2)
+        with open(brick_installation_file, 'w', encoding='UTF-8') as file:
+            json.dump(brick_installation, file, indent=2)
+
+    def get_installed_pip_packages(self) -> List[str]:
+        """return a list of all the pip packages installed in the current environment
+        """
+        return self.pip_manager.get_installed_packages_version()
