@@ -3,28 +3,16 @@
   "frontVersion": "0.2.2",
   "variables": {},
   "environment": {
-      "pip": [],
-      "git": [
-          {
-              "source": "https://$GWS_GIT_LOGIN:$GWS_GIT_PWD@gitlab.com/gencovery/core",
-              "packages": [
-                  {
-                      "name": "gws_core",
-                      "is_brick": true,
-                      "is_hidden": false,
-                      "version": "0.3.4"
-                  },
-                  {
-                      "name": "gws_biota",
-                      "is_brick": true,
-                      "is_hidden": false,
-                      "version": "0.3.0"
-                  }
-              ]
-          }
-      ],
-      "variables":{
-    }
+    "bricks": [
+      {
+        "name": "gws_biota",
+        "version": "0.5.0-beta.2"
+      }
+    ],
+    "pip": [],
+    "git": [
+    ],
+    "variables": {}
   },
   "front_version": "0.3.0"
 }
