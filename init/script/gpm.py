@@ -184,7 +184,7 @@ class GPM():
         sub_settings_readers: List[SettingsReader] = []
 
         for settings_reader in settings_readers:
-            print(f"Installing bricks for '{settings_reader.get_name()}' brick")
+            print(f"Installing bricks dependencies for '{settings_reader.get_name()}' brick")
 
             # get all the bricks packages
             for brick in settings_reader.get_brick_packages():
