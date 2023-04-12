@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # install bricks & related packages
-python3 /init-lab/init_lab.py --env-mode $1
+# -u is to have the log in real time in the docker
+python3 -u /init-lab/init_lab.py --env-mode $1
 
 echo "Clear environment variables..."
 bash /init-lab/clean.sh

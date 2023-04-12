@@ -117,9 +117,17 @@ class GPM():
     def init_all(self):
         self.install_git_packages_and_bricks([self.config_reader])
 
+        git_packages = self._installed_git_packages
+        git_packages.sort()
+        print(f"Installed git packages:\n{git_packages}")
+
+
         # install all the pip packages
         print("Installing pip packages")
         self.pip_manager.install_packages()
+        pip_packages = self.get_installed_pip_packages()
+        pip_packages.sort()
+        print(f"Installed pip packages:\n{pip_packages}")
 
         self.install_app_entrypoint()
         # install notbook here and not in dockerfile because it is in the volumes
