@@ -26,13 +26,6 @@ from .package_lock import PackageLock
 EnvMode = Literal['GLAB', 'CODELAB']
 
 
-class ClonedPackage(TypedDict):
-    version: Optional[str]
-    git_hash: str
-    name: str
-    path: str
-
-
 class BrickInstalationInfo(TypedDict):
     """ Use to create a file in the cloned repository to have information about the brick installation """
     name: str
@@ -60,7 +53,7 @@ class GPM():
 
     CONFIG_FILE_PATH: str = "/conf/config.json"
     SETTING_JSON_FILE: str = "settings.json"
-    BRICK_INSTALLATION_FILE = ".brick-installation.json"
+    GIT_INSTALLATION_FILE = ".gws-git-installation.json"
 
     SOURCE_FOLDER: str = 'src'
     # path where the default config for vs code is stored (it need to be copied to the user workspace)
@@ -153,6 +146,8 @@ class GPM():
         self.install_bricks(settings_readers)
 
     def _install_git_packages(self, settings_reader: SettingsReader) -> None:
+
+        parent_name = settings_reader.get_name()
         for package in settings_reader.get_git_packages():
 
             repo_name = package["name"]
@@ -169,11 +164,11 @@ class GPM():
             repo_path = self.format_url(repo_path, settings_reader.get_environment_variables())
 
             # install the package
-            self._install_git_package(repo_name, version, repo_path)
+            self._install_git_package(repo_name, version, repo_path, parent_name)
 
             self._installed_git_packages.append(repo_name)
 
-    def _install_git_package(self, repo_name: str, version: str, repo_path: str) -> None:
+    def _install_git_package(self, repo_name: str, version: str, repo_path: str, parent_name: str) -> None:
 
         repo_dir = os.path.join(self.EXTERNAL_LIB_FOLDER, repo_name)
 
@@ -183,7 +178,7 @@ class GPM():
                 shutil.rmtree(repo_dir)
             except:
                 raise Exception(f"Cannot remove '{repo_dir}'")
-        self.git_clone(repo_path, repo_dir, repo_name)
+        self.git_clone(url=repo_path, dest_dir=repo_dir, repo_name=repo_name, parent_name=parent_name, version=version)
 
         if not os.path.exists(repo_dir):
             raise Exception(f"Git package '{repo_name}' version '{version}' could not be installed.")
@@ -225,29 +220,24 @@ class GPM():
 
         brick_info: CommunityBrick = CommunityService().get_brick(name, version)
 
-        print(f"Cloning brick '{name}' version '{version}' from {brick_info['repositoryUrl']}.")
 
         repo_path = brick_info["repositoryAccessUrl"]
-        cloned_package: ClonedPackage = None
+
+        # remove bricks if it is hidden (in sys bricks folder)
         if os.path.exists(repo_dir):
-            # update hidden bricks (remove and clone)
             if is_hidden:
                 print(f"Removing {repo_dir} ...")
                 try:
                     shutil.rmtree(repo_dir)
                 except:
                     raise Exception(f"Cannot remove {repo_dir}")
-                cloned_package = self.git_clone(repo_path, repo_dir, name, version=version)
             else:
                 print(f"Do not update non-hidden brick {repo_dir}")
-        else:
-            cloned_package = self.git_clone(repo_path, repo_dir, name, version=version)
 
-        if cloned_package:
-            self.create_brick_installation_file(
-                name=name, path=repo_dir, parent_name=parent_name, git_hash=cloned_package["git_hash"],
-                version=cloned_package["version"],
-                package_type='git')
+        if not os.path.exists(repo_dir):
+            print(f"Cloning brick '{name}' version '{version}' from {brick_info['repositoryUrl']}.")
+            self.git_clone(url=repo_path, dest_dir=repo_dir, repo_name=name, parent_name=parent_name, version=version)
+
 
         if not os.path.exists(repo_dir):
             raise Exception(f"Brick package {name} version {version} could not be installed.")
@@ -257,7 +247,7 @@ class GPM():
         # return the sub settings so the sub dependencies can be installed
         return SettingsReader(os.path.join(repo_dir, self.SETTING_JSON_FILE))
 
-    def git_clone(self, url: str, dest_dir: str, repo_name: str, version: str = None) -> ClonedPackage:
+    def git_clone(self, url: str, dest_dir: str, repo_name: str, parent_name: str, version: str = None) -> None:
         # Try to clone the repository 3 times if it fails
         repo: Repo
         nb_retry = 0
@@ -276,13 +266,8 @@ class GPM():
                 if nb_retry >= 3:
                     raise err
 
-        # store info about the git
-        clone_package: ClonedPackage = {
-            "version": version,
-            "git_hash": repo.head.object.hexsha,
-            "name": repo_name,
-            "path": dest_dir
-        }
+        self.create_git_installation_file(name=repo_name, path=dest_dir, parent_name=parent_name,
+                                          git_hash=repo.head.object.hexsha, version=version)
 
         # remove .git folder
         try:
@@ -290,7 +275,6 @@ class GPM():
         except:
             raise Exception(f"Cannot remove .git directory from {dest_dir}")
 
-        return clone_package
 
     def install_app_entrypoint(self):
         """Create the fake app brick for the entrypoint with the manage.py start file
@@ -458,9 +442,9 @@ class GPM():
     def get_vs_code_setting_file_path(self) -> str:
         return os.path.join(self.get_vs_code_setting_folder(), "settings.json")
 
-    def create_brick_installation_file(self, name: str, path: str, parent_name: str, version: str,
-                                       git_hash: str, package_type:  Literal["pip", "git"]) -> None:
-        """Create a file in the brick directory containing the brick installation info for logging purpose
+    def create_git_installation_file(self, name: str, path: str, parent_name: str,
+                                       git_hash: str, version: str = None) -> None:
+        """Create a file in the git repo directory containing the git installation info for logging purpose
         """
 
         brick_installation: BrickInstalationInfo = {
@@ -468,12 +452,11 @@ class GPM():
             "version": version,
             "parent_name": parent_name,
             "git_hash": git_hash,
-            "package_type": package_type,
             "path": path,
             "created_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
-        brick_installation_file = os.path.join(path, self.BRICK_INSTALLATION_FILE)
-        with open(brick_installation_file, 'w', encoding='UTF-8') as file:
+        git_installation_file = os.path.join(path, self.GIT_INSTALLATION_FILE)
+        with open(git_installation_file, 'w', encoding='UTF-8') as file:
             json.dump(brick_installation, file, indent=2)
 
     def get_installed_pip_packages(self) -> List[str]:
