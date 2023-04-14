@@ -47,6 +47,7 @@ class GPM():
 
     USER_BRICKS_FOLDER: str = None
     NOTEBOOK_FOLDER: str = None
+    R_CONFIG_FOLDER: str = None
     SYS_BRICKS_FOLDER: str = None
     APP_BRICK_FOLDER: str = None
     EXTERNAL_LIB_FOLDER: str = None
@@ -76,6 +77,7 @@ class GPM():
 
         self.USER_BRICKS_FOLDER = os.path.join(self.USER_WORKSPACE_DIR, 'bricks')
         self.NOTEBOOK_FOLDER = os.path.join(self.USER_WORKSPACE_DIR, "notebooks")
+        self.R_CONFIG_FOLDER = os.path.join(self.USER_WORKSPACE_DIR, "r_config")
         self.SYS_BRICKS_FOLDER = os.path.join(self.SYS_WORKSPACE_DIR, 'bricks')
         self.APP_BRICK_FOLDER = os.path.join(self.SYS_WORKSPACE_DIR, 'app')
         self.EXTERNAL_LIB_FOLDER = os.path.join(self.SYS_WORKSPACE_DIR, 'lib')
@@ -84,6 +86,7 @@ class GPM():
         self.create_folder_if_not_exists(self.USER_WORKSPACE_DIR)
         self.create_folder_if_not_exists(self.USER_BRICKS_FOLDER)
         self.create_folder_if_not_exists(self.NOTEBOOK_FOLDER)
+        self.create_folder_if_not_exists(self.R_CONFIG_FOLDER)
         self.create_folder_if_not_exists(self.SYS_BRICKS_FOLDER)
         self.create_folder_if_not_exists(self.APP_BRICK_FOLDER)
         self.create_folder_if_not_exists(self.EXTERNAL_LIB_FOLDER)
@@ -123,8 +126,6 @@ class GPM():
         print(f"Installed pip packages:\n{pip_packages}")
 
         self.install_app_entrypoint()
-        # install notbook here and not in dockerfile because it is in the volumes
-        self.install_notebook_template()
         self.configure_vscode()
 
     def install_git_packages_and_bricks(self, settings_readers: List[SettingsReader]) -> None:
@@ -305,22 +306,6 @@ class GPM():
             print(f"Error while creating the app entrypoint: {err}")
             raise err
 
-    def install_notebook_template(self):
-
-        __cdir__ = os.path.dirname(os.path.abspath(__file__))
-        src_notebook_dir = os.path.abspath(os.path.join(__cdir__, '..', "notebook_template"))
-
-        tempalate_dir = os.path.join(self.NOTEBOOK_FOLDER, "template")
-        if os.path.exists(tempalate_dir):
-            # override only the env.py file
-            print(f"Updating {tempalate_dir} ...")
-            shutil.copyfile(
-                os.path.join(src_notebook_dir, "env.py"),
-                os.path.join(tempalate_dir, "env.py")
-            )
-
-        else:
-            shutil.copytree(src_notebook_dir, tempalate_dir)
 
     def format_url(self, string: str, variables: Dict[str, str]) -> str:
         if not string:
@@ -434,7 +419,31 @@ class GPM():
         except Exception as err:
             print(f"Error during parsing or writting the vscode settings file : {err}")
             return
+
+        self.install_notebook_template()
+        self.install_r_config_files()
         print("VS Code configured !")
+
+    def install_notebook_template(self):
+
+        print("Installing notebook template ...")
+
+        __cdir__ = os.path.dirname(os.path.abspath(__file__))
+        src_notebook_dir = os.path.abspath(os.path.join(__cdir__, '..', "notebook_template"))
+
+        tempalate_dir = os.path.join(self.NOTEBOOK_FOLDER, "template")
+        if os.path.exists(tempalate_dir):
+            # override only the env.py file
+            print(f"Updating {tempalate_dir} ...")
+            shutil.copyfile(
+                os.path.join(src_notebook_dir, "env.py"),
+                os.path.join(tempalate_dir, "env.py")
+            )
+
+        else:
+            shutil.copytree(src_notebook_dir, tempalate_dir)
+
+
 
     def get_vs_code_setting_folder(self) -> str:
         return os.path.join(self.USER_WORKSPACE_DIR, ".vscode")
