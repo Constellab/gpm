@@ -47,10 +47,10 @@ class GPM():
 
     USER_BRICKS_FOLDER: str = None
     NOTEBOOK_FOLDER: str = None
-    R_CONFIG_FOLDER: str = None
     SYS_BRICKS_FOLDER: str = None
     APP_BRICK_FOLDER: str = None
     EXTERNAL_LIB_FOLDER: str = None
+    USER_DATA_FOLDER: str = None
 
     CONFIG_FILE_PATH: str = "/conf/config.json"
     SETTING_JSON_FILE: str = "settings.json"
@@ -77,7 +77,7 @@ class GPM():
 
         self.USER_BRICKS_FOLDER = os.path.join(self.USER_WORKSPACE_DIR, 'bricks')
         self.NOTEBOOK_FOLDER = os.path.join(self.USER_WORKSPACE_DIR, "notebooks")
-        self.R_CONFIG_FOLDER = os.path.join(self.USER_WORKSPACE_DIR, "r_config")
+        self.USER_DATA_FOLDER = os.path.join(self.USER_WORKSPACE_DIR, 'data')
         self.SYS_BRICKS_FOLDER = os.path.join(self.SYS_WORKSPACE_DIR, 'bricks')
         self.APP_BRICK_FOLDER = os.path.join(self.SYS_WORKSPACE_DIR, 'app')
         self.EXTERNAL_LIB_FOLDER = os.path.join(self.SYS_WORKSPACE_DIR, 'lib')
@@ -85,8 +85,8 @@ class GPM():
         self.create_folder_if_not_exists(self.SYS_WORKSPACE_DIR)
         self.create_folder_if_not_exists(self.USER_WORKSPACE_DIR)
         self.create_folder_if_not_exists(self.USER_BRICKS_FOLDER)
+        self.create_folder_if_not_exists(self.USER_DATA_FOLDER)
         self.create_folder_if_not_exists(self.NOTEBOOK_FOLDER)
-        self.create_folder_if_not_exists(self.R_CONFIG_FOLDER)
         self.create_folder_if_not_exists(self.SYS_BRICKS_FOLDER)
         self.create_folder_if_not_exists(self.APP_BRICK_FOLDER)
         self.create_folder_if_not_exists(self.EXTERNAL_LIB_FOLDER)
@@ -421,7 +421,6 @@ class GPM():
             return
 
         self.install_notebook_template()
-        self.install_r_config_files()
         print("VS Code configured !")
 
     def install_notebook_template(self):
