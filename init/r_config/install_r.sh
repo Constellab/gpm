@@ -13,7 +13,7 @@ pip install jupyter
 # required for languageserver
 apt-get install libxml2-dev -y
 
-# execute r file named 'r_config.r'
+# execute r file named 'configure_r.R' with the path in the container
 echo 'Configuring R'
-Rscript configure_r.r
+Rscript /init-lab/r_config/configure_r.R
 
