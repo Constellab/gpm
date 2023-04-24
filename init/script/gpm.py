@@ -117,13 +117,14 @@ class GPM():
         git_packages.sort()
         print(f"Installed git packages:\n{git_packages}")
 
-
-        # install all the pip packages
-        print("Installing pip packages")
-        self.pip_manager.install_packages()
-        pip_packages = self.get_installed_pip_packages()
-        pip_packages.sort()
-        print(f"Installed pip packages:\n{pip_packages}")
+        try:
+          # install all the pip packages
+          self.pip_manager.install_packages()
+        except Exception as err:
+          # in codelab, ignore the error so it start the CODELAB
+          # even if packages are no installed
+          if self.env_mode == 'GLAB':
+              raise err
 
         self.install_app_entrypoint()
         self.configure_vscode()
@@ -466,8 +467,3 @@ class GPM():
         git_installation_file = os.path.join(path, self.GIT_INSTALLATION_FILE)
         with open(git_installation_file, 'w', encoding='UTF-8') as file:
             json.dump(brick_installation, file, indent=2)
-
-    def get_installed_pip_packages(self) -> List[str]:
-        """return a list of all the pip packages installed in the current environment
-        """
-        return self.pip_manager.get_installed_packages_version()

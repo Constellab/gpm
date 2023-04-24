@@ -66,20 +66,28 @@ class PipManager:
         if not _packages_with_version:
             return
 
+        _packages_with_version.sort()
+
         cmd = ["python3", "-m", "pip", "install", *_packages_with_version, "--extra-index-url", source]
+        print(f"Installing pip packages : '{cmd}'")
         self._run_proc(cmd)
 
         self._installed_packages_version.extend(_packages_with_version)
+
+        print(f"Pip packages successfully insalled")
 
     def _run_proc(self, cmd, cwd=None) -> bool:
         if cwd:
             if not os.path.exists(cwd):
                 os.makedirs(cwd)
         try:
-            subprocess.check_call(cmd, stdout=subprocess.DEVNULL, cwd=cwd)
+            subprocess.check_call(cmd, cwd=cwd)
             return True
-        except:
-            return False
+        except Exception as err:
+            print("Error during pip instalation")
+            raise err
 
     def get_installed_packages_version(self) -> List[str]:
-        return self._installed_packages_version
+        packages = self._installed_packages_version
+        packages.sort()
+        return packages
