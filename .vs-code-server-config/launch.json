@@ -85,6 +85,11 @@
       "id": "brickName",
       "type": "promptString",
       "description": "Name of the brick to test. It will run all the test file of this brick"
+    },
+    {
+      "id": "newBrickName",
+      "type": "promptString",
+      "description": "Name of the new brick to create"
     }
   ]
 }
