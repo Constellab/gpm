@@ -8,7 +8,8 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 # Set UTC timezone for the docker
 ENV TZ=UTC
 
-ENV CONDA_VERSION py39_4.10.3
+ENV CONDA_VERSION py38_23.3.1-0
+ENV PIP_VERSION 23.1.2
 
 # install python v 3.8 & base packages
 RUN apt-get -y update && \
@@ -16,9 +17,9 @@ RUN apt-get -y update && \
     apt-get -y install python3.8 python3-distutils && \
     apt-get -y install git curl zip unzip bzip2 wget rsync && \
     apt-get -y install pipenv && \
-    # install pip v 23.0
+    # install pip 
     curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python3 get-pip.py "pip==23.0.1" && \
+    python3 get-pip.py "pip==${PIP_VERSION}" && \
     python3 -m pip install --upgrade setuptools && \
     # install conda
     wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O miniconda.sh && \
