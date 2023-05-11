@@ -69,7 +69,7 @@ class PipManager:
         _packages_with_version.sort()
 
         cmd = ["python3", "-m", "pip", "install", *_packages_with_version, "--extra-index-url", source]
-        print(f"Installing pip packages : '{cmd}'")
+        print(f"Installing pip packages : '{' '.join(cmd)}'")
         self._run_proc(cmd)
 
         self._installed_packages_version.extend(_packages_with_version)
