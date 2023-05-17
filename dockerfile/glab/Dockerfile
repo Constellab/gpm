@@ -16,13 +16,15 @@ RUN apt-get -y update && \
     apt-get -y install jq && \
     apt-get -y install python3.8 python3-distutils && \
     apt-get -y install git curl zip unzip bzip2 wget rsync && \
-    apt-get -y install pipenv && \
-    # install pip 
-    curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    apt-get -y install pipenv
+
+# install pip 
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python3 get-pip.py "pip==${PIP_VERSION}" && \
-    python3 -m pip install --upgrade setuptools && \
-    # install conda
-    wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O miniconda.sh && \
+    python3 -m pip install --upgrade setuptools 
+
+# install conda
+RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O miniconda.sh && \
     # for arm64
     # wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-aarch64.sh -O miniconda.sh && \
     mkdir -p /opt && \
