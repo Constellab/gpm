@@ -9,7 +9,8 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 ENV TZ=UTC
 
 ENV PIP_VERSION 23.1.2
-ENV PIPENV_VERSION 2023.5.19
+# don't name env PIPENV_VERSION, it will be overwritten by pipenv
+ENV CUSTOM_PIPENV_VERSION 2023.5.19
 ENV CONDA_VERSION py38_23.3.1-0
 
 # install python v 3.8 & base packages
@@ -24,7 +25,7 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python3 -m pip install --upgrade setuptools 
 
 # install pipenv 
-RUN pip install pipenv==${PIPENV_VERSION}
+RUN pip install pipenv==${CUSTOM_PIPENV_VERSION}
 
 # install conda
 RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O miniconda.sh && \
