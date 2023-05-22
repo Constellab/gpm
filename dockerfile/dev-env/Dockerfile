@@ -10,7 +10,5 @@ COPY ./dockerfile/dev-env/config.json /conf/config.json
 
 COPY ./.vs-code-server-config/ /.vs-code-server-config/
 
-
-
 ENTRYPOINT [ "/init-lab/entrypoint.sh" ]
 CMD [ "--run-local" ]

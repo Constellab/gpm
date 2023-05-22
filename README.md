@@ -16,10 +16,10 @@ Use the VsCode testing extension and run test gpm tests.
 
 ## Testing the docker images
 
-Testing the glab image locally : ```docker build -t glab:latest -f .\dockerfile\glab\Dockerfile .```
-Testing the codelab image locally : ```docker build -t local-codelab -f .\dockerfile\codelab\Dockerfile .```
+Testing the glab image locally : ```docker build -t glab:latest -f ./dockerfile/glab/Dockerfile .```
+Testing the codelab image locally : ```docker build -t local-codelab -f ./dockerfile/codelab/Dockerfile .```
 
-Coding using the dev-env image : ```docker build -t local-dev-env -f .\dockerfile\dev-env\Dockerfile .```
+Coding using the dev-env image : ```docker build -t local-dev-env -f ./dockerfile/dev-env/Dockerfile .```
 
 ## Building with buildx for multi-arch
 
@@ -32,4 +32,4 @@ Create a builder instance named "builderx"
 ```docker buildx create --name builderx --driver docker-container --use builder-context```
 
 
-```docker buildx build -t glab:latest -f .\dockerfile\glab\Dockerfile --platform linux/amd64,linux/arm64 .```
+```docker buildx build -t glab:latest -f ./dockerfile/glab/Dockerfile --platform linux/amd64,linux/arm64 .```
