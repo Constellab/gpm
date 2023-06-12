@@ -34,6 +34,6 @@ else:
 
 
 if __name__ == "__main__":
-    from gws_core import manage, runner
+    from gws_core import manage
     __cdir__ = os.path.dirname(os.path.abspath(__file__))
     manage.start_app(__cdir__)
