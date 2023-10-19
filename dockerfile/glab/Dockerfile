@@ -27,17 +27,15 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
 # install pipenv
 RUN pip install pipenv==2023.7.9
 
-# install conda
-# RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O miniconda.sh && \
-#     # for arm64
-#     # wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-aarch64.sh -O miniconda.sh && \
-#     mkdir -p /opt && \
-#     sh miniconda.sh -b -p /opt/conda && \
-#     rm miniconda.sh && \
-#     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
 
-RUN curl https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_MAMBA_VERSION}/Miniforge3-$(uname)-$(uname -m).sh -o mamba.sh
-RUN bash mamba.sh
+# Installing conda and mamba
+# Info from https://github.com/conda-forge/miniforge#mambaforge
+RUN curl -L https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_MAMBA_VERSION}/Miniforge3-${CUSTOM_MAMBA_VERSION}-$(uname)-$(uname -m).sh -o mamba_install.sh && \
+    bash mamba_install.sh -b -p /opt/conda && \
+    # enable conda and mamba in bash
+    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
+    echo ". /opt/conda/etc/profile.d/mamba.sh" >> ~/.bashrc && \
+    rm mamba_install.sh
 
 # install gws dependencies
 RUN python3 -m pip install  click==8.1.3 \
