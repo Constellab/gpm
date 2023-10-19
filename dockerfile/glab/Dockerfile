@@ -10,6 +10,7 @@ ENV TZ=UTC
 
 # don't name it PIP_VERSION because it will be overwritten by pip
 ENV CUSTOM_PIP_VERSION 23.1.2
+ENV CUSTOM_MAMBA_VERSION 23.3.1-1
 ENV CONDA_VERSION py38_23.3.1-0
 
 # install python v 3.8 & base packages
@@ -27,13 +28,16 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
 RUN pip install pipenv==2023.7.9
 
 # install conda
-RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O miniconda.sh && \
-    # for arm64
-    # wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-aarch64.sh -O miniconda.sh && \
-    mkdir -p /opt && \
-    sh miniconda.sh -b -p /opt/conda && \
-    rm miniconda.sh && \
-    echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
+# RUN wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-x86_64.sh -O miniconda.sh && \
+#     # for arm64
+#     # wget --quiet https://repo.anaconda.com/miniconda/Miniconda3-${CONDA_VERSION}-Linux-aarch64.sh -O miniconda.sh && \
+#     mkdir -p /opt && \
+#     sh miniconda.sh -b -p /opt/conda && \
+#     rm miniconda.sh && \
+#     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
+
+RUN curl https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_MAMBA_VERSION}/Miniforge3-$(uname)-$(uname -m).sh -o mamba.sh
+RUN bash mamba.sh
 
 # install gws dependencies
 RUN python3 -m pip install  click==8.1.3 \
