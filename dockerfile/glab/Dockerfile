@@ -11,7 +11,6 @@ ENV TZ=UTC
 # don't name it PIP_VERSION because it will be overwritten by pip
 ENV CUSTOM_PIP_VERSION 23.1.2
 ENV CUSTOM_MAMBA_VERSION 23.3.1-1
-ENV CONDA_VERSION py38_23.3.1-0
 
 # install python v 3.8 & base packages
 RUN apt-get -y update && \
