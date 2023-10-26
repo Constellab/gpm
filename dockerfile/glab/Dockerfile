@@ -17,7 +17,9 @@ RUN apt-get -y update && \
     apt-get -y install python3.8 python3-distutils && \
     apt-get -y install git curl zip unzip bzip2 wget rsync && \
     # It is needed to install hdmedians which is a dependency of scikit-bio
-    apt-get -y install gcc libpq-dev python3-dev
+    apt-get -y install gcc libpq-dev python3-dev && \
+    # create a symlink to python3 so python command will use python3
+    ln -s $(which python3) /usr/local/bin/python
 
 # install pip 
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
