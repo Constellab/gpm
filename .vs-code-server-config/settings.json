@@ -14,19 +14,13 @@
     },
     "files.trimTrailingWhitespace": true
   },
-  "python.formatting.provider": "autopep8",
-  "python.formatting.autopep8Path": "/usr/local/bin/autopep8",
-  "python.formatting.autopep8Args": ["--max-line-length", "120", "--experimental"],
-  "python.autoComplete.extraPaths": [],
-  "python.linting.pylintPath": "/usr/local/bin/pylint",
-  "python.linting.enabled": true,
-  "python.linting.pylintEnabled": true,
-  "python.linting.pylintUseMinimalCheckers": false,
-  "python.linting.lintOnSave": true,
-  "python.linting.mypyEnabled": true,
-  "python.linting.mypyPath": "/usr/local/bin/mypy",
-  "python.linting.mypyArgs": [
-    "--config-file=${workspaceFolder}/.mypy.ini"
+  "autopep8.path": ["/usr/local/bin/autopep8"],
+  "autopep8.args": ["--max-line-length", "120", "--experimental"],
+  "pylint.path": ["/usr/local/bin/pylint"],
+  "pylint.args":["--rcfile=${workspaceFolder}/.pylintrc"],
+  "mypy-type-checker.path": ["/usr/local/bin/mypy"],
+  "mypy-type-checker.args": [
+      "--config-file=${workspaceFolder}/.mypy.ini"
   ],
   "git-graph.maxDepthOfRepoSearch": 2,
   "autoDocstring.docstringFormat": "sphinx"
