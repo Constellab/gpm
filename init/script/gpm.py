@@ -91,7 +91,7 @@ class GPM():
         self.create_folder_if_not_exists(self.APP_BRICK_FOLDER)
         self.create_folder_if_not_exists(self.EXTERNAL_LIB_FOLDER)
 
-        print(f"Initializing GPM with env mode: {env_mode}")
+        print(f"Initializing GPM with env mode: {env_mode} using settings file: {settings_file_path}")
         self.settings_file_path = settings_file_path
 
         # Check that the env mode is valid GLAB or CODELAB
