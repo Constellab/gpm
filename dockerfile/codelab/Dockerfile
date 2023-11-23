@@ -4,7 +4,7 @@ FROM $IMAGE
 LABEL maintainer="Admin <admin@gencovery.com>"
 
 # Choose version from https://github.com/gitpod-io/openvscode-server
-ARG RELEASE_TAG=openvscode-server-v1.78.1
+ARG RELEASE_TAG=openvscode-server-v1.84.0
 ARG RELEASE_ORG="gitpod-io"
 ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
 

@@ -13,10 +13,10 @@ from typing import Dict, List, Literal, Optional, TypedDict
 
 from git import Repo
 
-from .pip_manager import PipManager
 from .community_service import CommunityBrick, CommunityService
 from .config_reader import SettingsReader
 from .package_lock import PackageLock
+from .pip_manager import PipManager
 
 # ####################################################################
 #
@@ -72,11 +72,15 @@ class GPM():
     env_mode: EnvMode = None
 
     def __init__(self, settings_file_path: str, env_mode: EnvMode):
-        self.SYS_WORKSPACE_DIR: str = os.path.join(self.LAB_WORKSPACE_DIR, '.sys')
-        self.USER_WORKSPACE_DIR: str = os.path.join(self.LAB_WORKSPACE_DIR, 'user')
+        self.SYS_WORKSPACE_DIR: str = os.path.join(
+            self.LAB_WORKSPACE_DIR, '.sys')
+        self.USER_WORKSPACE_DIR: str = os.path.join(
+            self.LAB_WORKSPACE_DIR, 'user')
 
-        self.USER_BRICKS_FOLDER = os.path.join(self.USER_WORKSPACE_DIR, 'bricks')
-        self.NOTEBOOK_FOLDER = os.path.join(self.USER_WORKSPACE_DIR, "notebooks")
+        self.USER_BRICKS_FOLDER = os.path.join(
+            self.USER_WORKSPACE_DIR, 'bricks')
+        self.NOTEBOOK_FOLDER = os.path.join(
+            self.USER_WORKSPACE_DIR, "notebooks")
         self.USER_DATA_FOLDER = os.path.join(self.USER_WORKSPACE_DIR, 'data')
         self.SYS_BRICKS_FOLDER = os.path.join(self.SYS_WORKSPACE_DIR, 'bricks')
         self.APP_BRICK_FOLDER = os.path.join(self.SYS_WORKSPACE_DIR, 'app')
@@ -99,7 +103,8 @@ class GPM():
             raise Exception("Please specify the environment mode (--env-mode)")
 
         if env_mode != 'GLAB' and env_mode != 'CODELAB':
-            raise Exception(f"Environment mode must be either GLAB or CODELAB, not '{env_mode}'")
+            raise Exception(
+                f"Environment mode must be either GLAB or CODELAB, not '{env_mode}'")
 
         self.env_mode = env_mode
 
@@ -118,13 +123,13 @@ class GPM():
         print(f"Installed git packages:\n{git_packages}")
 
         try:
-          # install all the pip packages
-          self.pip_manager.install_packages()
+            # install all the pip packages
+            self.pip_manager.install_packages()
         except Exception as err:
-          # in codelab, ignore the error so it start the CODELAB
-          # even if packages are no installed
-          if self.env_mode == 'GLAB':
-              raise err
+            # in codelab, ignore the error so it start the CODELAB
+            # even if packages are no installed
+            if self.env_mode == 'GLAB':
+                raise err
 
         self.install_app_entrypoint()
         self.configure_vscode()
@@ -138,7 +143,8 @@ class GPM():
 
         # install git and pip packages
         for settings_reader in settings_readers:
-            print(f"Installing git packages for '{settings_reader.get_name()}' brick")
+            print(
+                f"Installing git packages for '{settings_reader.get_name()}' brick")
             self._install_git_packages(settings_reader)
 
             # store the pip packages to install them later
@@ -163,10 +169,12 @@ class GPM():
             print(f"Cloning git repository '{repo_path}:{version}' ... ")
 
             # replace the variable name with the values (including credentials)
-            repo_path = self.format_url(repo_path, settings_reader.get_environment_variables())
+            repo_path = self.format_url(
+                repo_path, settings_reader.get_environment_variables())
 
             # install the package
-            self._install_git_package(repo_name, version, repo_path, parent_name)
+            self._install_git_package(
+                repo_name, version, repo_path, parent_name)
 
             self._installed_git_packages.append(repo_name)
 
@@ -180,16 +188,19 @@ class GPM():
                 shutil.rmtree(repo_dir)
             except:
                 raise Exception(f"Cannot remove '{repo_dir}'")
-        self.git_clone(url=repo_path, dest_dir=repo_dir, repo_name=repo_name, parent_name=parent_name, version=version)
+        self.git_clone(url=repo_path, dest_dir=repo_dir,
+                       repo_name=repo_name, parent_name=parent_name, version=version)
 
         if not os.path.exists(repo_dir):
-            raise Exception(f"Git package '{repo_name}' version '{version}' could not be installed.")
+            raise Exception(
+                f"Git package '{repo_name}' version '{version}' could not be installed.")
 
     def install_bricks(self, settings_readers: List[SettingsReader]) -> List[SettingsReader]:
         sub_settings_readers: List[SettingsReader] = []
 
         for settings_reader in settings_readers:
-            print(f"Installing bricks dependencies for '{settings_reader.get_name()}' brick")
+            print(
+                f"Installing bricks dependencies for '{settings_reader.get_name()}' brick")
 
             # get all the bricks packages
             for brick in settings_reader.get_brick_packages():
@@ -211,7 +222,8 @@ class GPM():
                       parent_name: str) -> SettingsReader:
         # Set hidden to False only if the brick is in the user bricks dir
         # normally this is only in dev env
-        is_hidden = not os.path.exists(os.path.join(self.USER_BRICKS_FOLDER, name)) or self.env_mode == 'GLAB'
+        is_hidden = not os.path.exists(os.path.join(
+            self.USER_BRICKS_FOLDER, name)) or self.env_mode == 'GLAB'
 
         # retrieve brick repo
         repo_dir: str = None
@@ -221,7 +233,6 @@ class GPM():
             repo_dir = os.path.join(self.USER_BRICKS_FOLDER, name)
 
         brick_info: CommunityBrick = CommunityService().get_brick(name, version)
-
 
         repo_path = brick_info["repositoryAccessUrl"]
 
@@ -237,12 +248,14 @@ class GPM():
                 print(f"Do not update non-hidden brick {repo_dir}")
 
         if not os.path.exists(repo_dir):
-            print(f"Cloning brick '{name}' version '{version}' from {brick_info['repositoryUrl']}.")
-            self.git_clone(url=repo_path, dest_dir=repo_dir, repo_name=name, parent_name=parent_name, version=version)
-
+            print(
+                f"Cloning brick '{name}' version '{version}' from {brick_info['repositoryUrl']}.")
+            self.git_clone(url=repo_path, dest_dir=repo_dir,
+                           repo_name=name, parent_name=parent_name, version=version)
 
         if not os.path.exists(repo_dir):
-            raise Exception(f"Brick package {name} version {version} could not be installed.")
+            raise Exception(
+                f"Brick package {name} version {version} could not be installed.")
 
         self._installed_brick_packages.append(name)
 
@@ -256,12 +269,14 @@ class GPM():
         while True:
             try:
                 if version:
-                    repo = Repo.clone_from(url=url, to_path=dest_dir, branch=version, depth=1)
+                    repo = Repo.clone_from(
+                        url=url, to_path=dest_dir, branch=version, depth=1)
                 else:
                     repo = Repo.clone_from(url=url, to_path=dest_dir, depth=1)
                 break
             except Exception as err:
-                print(f"Couldn't clone the repository '{repo_name}' with version '{version}'. Error: {err}")
+                print(
+                    f"Couldn't clone the repository '{repo_name}' with version '{version}'. Error: {err}")
                 print("Waiting 3 secs and retry ...")
                 time.sleep(3)
                 nb_retry += 1
@@ -277,7 +292,6 @@ class GPM():
         except:
             raise Exception(f"Cannot remove .git directory from {dest_dir}")
 
-
     def install_app_entrypoint(self):
         """Create the fake app brick for the entrypoint with the manage.py start file
         and the settings.json file
@@ -285,13 +299,17 @@ class GPM():
         try:
 
             # get manage.py file path, it the same folder as current file
-            manage_py_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "manage.py")
-            manage_file_destination = os.path.join(self.APP_BRICK_FOLDER, "manage.py")
-            print(f"Copying manage.py file from {manage_py_file} to {manage_file_destination} ... ")
+            manage_py_file = os.path.join(os.path.dirname(
+                os.path.abspath(__file__)), "manage.py")
+            manage_file_destination = os.path.join(
+                self.APP_BRICK_FOLDER, "manage.py")
+            print(
+                f"Copying manage.py file from {manage_py_file} to {manage_file_destination} ... ")
             shutil.copyfile(manage_py_file, manage_file_destination)
 
             # Really important, update the settings.json file with main config info so the bricks will be loaded on start
-            settings_file = os.path.join(self.APP_BRICK_FOLDER, self.SETTING_JSON_FILE)
+            settings_file = os.path.join(
+                self.APP_BRICK_FOLDER, self.SETTING_JSON_FILE)
             print(f"Generating settings.json file at {settings_file} ...")
 
             settings = {
@@ -307,7 +325,6 @@ class GPM():
             print(f"Error while creating the app entrypoint: {err}")
             raise err
 
-
     def format_url(self, string: str, variables: Dict[str, str]) -> str:
         if not string:
             return string
@@ -317,7 +334,8 @@ class GPM():
 
         global_config_vars = self.config_reader.get_environment_variables()
 
-        tab = re.findall(r"\$\{?([A-Z_]*)\}?", string)  # re.findall(r"\${?[A-Z_]}?*", string)
+        # re.findall(r"\${?[A-Z_]}?*", string)
+        tab = re.findall(r"\$\{?([A-Z_]*)\}?", string)
         for token in tab:
             # search for values in local variable first
             value = variables.get(token)
@@ -328,7 +346,8 @@ class GPM():
                     # search for values in global environment (given by the main config file)
                     value = global_config_vars.get(token)
                     if not value:
-                        raise Exception(f"No environment variable {token} found")
+                        raise Exception(
+                            f"No environment variable {token} found")
 
             if value:
                 string = re.sub(r"\$\{?"+token+r"\}?", value, string)
@@ -380,15 +399,21 @@ class GPM():
 
         if not os.path.exists(setting_path):
             # copy the settings.json file only if it does not exist
-            shutil.copyfile(os.path.join(default_path, 'settings.json'), setting_path)
+            shutil.copyfile(os.path.join(
+                default_path, 'settings.json'), setting_path)
 
         # always override the extensions.json file
-        shutil.copyfile(os.path.join(default_path, 'extensions.json'), os.path.join(vs_code_folder, 'extensions.json'))
+        shutil.copyfile(os.path.join(default_path, 'extensions.json'),
+                        os.path.join(vs_code_folder, 'extensions.json'))
         # always override the launch.json file
-        shutil.copyfile(os.path.join(default_path, 'launch.json'), os.path.join(vs_code_folder, 'launch.json'))
+        shutil.copyfile(os.path.join(default_path, 'launch.json'),
+                        os.path.join(vs_code_folder, 'launch.json'))
 
         # copy the pylint files
-        shutil.copyfile(os.path.join(default_path, '.pylintrc'), os.path.join(self.USER_WORKSPACE_DIR, '.pylintrc'))
+        shutil.copyfile(os.path.join(default_path, '.pylintrc'),
+                        os.path.join(self.USER_WORKSPACE_DIR, '.pylintrc'))
+        shutil.copyfile(os.path.join(default_path, '.mypy.ini'),
+                        os.path.join(self.USER_WORKSPACE_DIR, '.mypy.ini'))
         shutil.copyfile(os.path.join(default_path, 'pylint_init.py'),
                         os.path.join(self.USER_WORKSPACE_DIR, 'pylint_init.py'))
 
@@ -406,7 +431,8 @@ class GPM():
                 extra_paths: List[str] = settings['python.autoComplete.extraPaths']
 
                 for brick_path in self.list_all_brick_paths():
-                    brick_full_path = os.path.join(brick_path, self.SOURCE_FOLDER)
+                    brick_full_path = os.path.join(
+                        brick_path, self.SOURCE_FOLDER)
                     if brick_full_path not in extra_paths:
                         # add the source folder of the brick to the extra paths
                         extra_paths.append(brick_full_path)
@@ -418,7 +444,8 @@ class GPM():
                 json.dump(settings, file, indent=2)
 
         except Exception as err:
-            print(f"Error during parsing or writting the vscode settings file : {err}")
+            print(
+                f"Error during parsing or writting the vscode settings file : {err}")
             return
 
         self.install_notebook_template()
@@ -429,7 +456,8 @@ class GPM():
         print("Installing notebook template ...")
 
         __cdir__ = os.path.dirname(os.path.abspath(__file__))
-        src_notebook_dir = os.path.abspath(os.path.join(__cdir__, '..', "notebook_template"))
+        src_notebook_dir = os.path.abspath(
+            os.path.join(__cdir__, '..', "notebook_template"))
 
         tempalate_dir = os.path.join(self.NOTEBOOK_FOLDER, "template")
         if os.path.exists(tempalate_dir):
@@ -443,8 +471,6 @@ class GPM():
         else:
             shutil.copytree(src_notebook_dir, tempalate_dir)
 
-
-
     def get_vs_code_setting_folder(self) -> str:
         return os.path.join(self.USER_WORKSPACE_DIR, ".vscode")
 
@@ -452,7 +478,7 @@ class GPM():
         return os.path.join(self.get_vs_code_setting_folder(), "settings.json")
 
     def create_git_installation_file(self, name: str, path: str, parent_name: str,
-                                       git_hash: str, version: str = None) -> None:
+                                     git_hash: str, version: str = None) -> None:
         """Create a file in the git repo directory containing the git installation info for logging purpose
         """
 

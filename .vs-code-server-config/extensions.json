@@ -1,8 +1,10 @@
 {
   "recommendations": [
     "ms-python.python",
-    "mhutchie.git-graph",
+    "ms-python.mypy-type-checker",
+    "ms-python.pylint",
     "ms-toolsai.jupyter",
+    "mhutchie.git-graph",
     "REditorSupport.r"
   ]
 }
