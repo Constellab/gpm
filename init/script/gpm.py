@@ -406,8 +406,9 @@ class GPM():
 
 
         # always override the extensions.json file
+        extensions_dest = os.path.join(vs_code_folder, 'extensions.json')
         shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, 'extensions.json'),
-                        os.path.join(vs_code_folder, 'extensions.json'))
+                        extensions_dest)
         # always override the launch.json file
         shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, 'launch.json'),
                         os.path.join(vs_code_folder, 'launch.json'))
@@ -421,9 +422,8 @@ class GPM():
                         os.path.join(self.USER_WORKSPACE_DIR, 'pylint_init.py'))
         
         self._config_vs_code_settings_json()
-
-        
         self.install_notebook_template()
+        self._install_vscode_extensions(extensions_dest)
         print("VS Code configured !")
 
     def _config_vs_code_settings_json(self) -> None:
@@ -491,6 +491,20 @@ class GPM():
         # load the settings file into a dict
         with open(settings_path, 'r', encoding='UTF-8') as file:
             return json.load(file)
+        
+    def _install_vscode_extensions(self, extension_file_path: str) -> None:
+        """Install the vscode extensions
+        """
+        print("Installing vscode extensions ...")
+        # load the settings file into a dict
+        extensions: dict = None
+        with open(extension_file_path, 'r', encoding='UTF-8') as file:
+            extensions = json.load(file)
+
+        # install the extensions
+        for extension in extensions["recommendations"]:
+            print(f"Installing extension {extension} ...")
+            os.system(f"/home/.openvscode-server/bin/openvscode-server code --install-extension {extension}")
 
 
     def install_notebook_template(self):
