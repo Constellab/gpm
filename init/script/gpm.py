@@ -116,11 +116,16 @@ class GPM():
         self.package_lock = PackageLock()
 
     def init_all(self):
-        self.install_git_packages_and_bricks([self.config_reader])
 
-        git_packages = self._installed_git_packages
-        git_packages.sort()
-        print(f"Installed git packages:\n{git_packages}")
+        try:
+            self.install_git_packages_and_bricks([self.config_reader])
+
+            git_packages = self._installed_git_packages
+            git_packages.sort()
+            print(f"Installed git packages:\n{git_packages}")
+        except Exception as err:
+            print(f"Error while installing git packages: {err}")
+            raise err
 
         try:
             # install all the pip packages
@@ -354,22 +359,26 @@ class GPM():
 
         return string
 
-    def list_all_brick_paths(self) -> List[str]:
+    def list_all_brick_paths(self) -> Dict[str, str]:
+        """ return a list of all the bricks in the user and sys folder
+        Where key = brick_name and value = brick_path"""
 
         user_bricks = self.get_bricks_in_folder(self.USER_BRICKS_FOLDER)
         sys_bricks = self.get_bricks_in_folder(self.SYS_BRICKS_FOLDER)
 
-        user_bricks.extend(sys_bricks)
+        for brick_name, brick_path in sys_bricks.items():
+            if brick_name not in user_bricks:
+                user_bricks[brick_name] = brick_path
         return user_bricks
 
-    def get_bricks_in_folder(self, path: str) -> List[str]:
+    def get_bricks_in_folder(self, path: str) -> Dict[str, str]:
         """return a list of all the bricks in the provided folder
         """
-        brick_paths = []
+        brick_paths: {} = {}
         for brick_folder in os.listdir(path):
             brick_path = os.path.join(path, brick_folder)
             if self.folder_is_brick(brick_path):
-                brick_paths.append(brick_path)
+                brick_paths[brick_folder] = brick_path
         return brick_paths
 
     def folder_is_brick(self, path: str) -> bool:
@@ -391,65 +400,98 @@ class GPM():
         print("Configuring VS Code ...")
 
         vs_code_folder = self.get_vs_code_setting_folder()
-        setting_path = self.get_vs_code_setting_file_path()
-        default_path = self.VS_CODE_DEFAULT_CONFIG_PATH
-
         if not os.path.exists(vs_code_folder):
             os.mkdir(vs_code_folder)
 
-        if not os.path.exists(setting_path):
-            # copy the settings.json file only if it does not exist
-            shutil.copyfile(os.path.join(
-                default_path, 'settings.json'), setting_path)
+
 
         # always override the extensions.json file
-        shutil.copyfile(os.path.join(default_path, 'extensions.json'),
+        shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, 'extensions.json'),
                         os.path.join(vs_code_folder, 'extensions.json'))
         # always override the launch.json file
-        shutil.copyfile(os.path.join(default_path, 'launch.json'),
+        shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, 'launch.json'),
                         os.path.join(vs_code_folder, 'launch.json'))
 
         # copy the pylint files
-        shutil.copyfile(os.path.join(default_path, '.pylintrc'),
+        shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, '.pylintrc'),
                         os.path.join(self.USER_WORKSPACE_DIR, '.pylintrc'))
-        shutil.copyfile(os.path.join(default_path, '.mypy.ini'),
+        shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, '.mypy.ini'),
                         os.path.join(self.USER_WORKSPACE_DIR, '.mypy.ini'))
-        shutil.copyfile(os.path.join(default_path, 'pylint_init.py'),
+        shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, 'pylint_init.py'),
                         os.path.join(self.USER_WORKSPACE_DIR, 'pylint_init.py'))
+        
+        self._config_vs_code_settings_json()
 
-        # load the settings file into a dict
-        try:
-            with open(setting_path, 'r', encoding='UTF-8') as file:
-                settings = json.load(file)
-
-                # init the extra paths if not already done
-                if 'python.autoComplete.extraPaths' not in settings \
-                        or not isinstance(settings['python.autoComplete.extraPaths'], list):
-                    settings['python.autoComplete.extraPaths'] = []
-
-                # add the brick paths to the extra paths
-                extra_paths: List[str] = settings['python.autoComplete.extraPaths']
-
-                for brick_path in self.list_all_brick_paths():
-                    brick_full_path = os.path.join(
-                        brick_path, self.SOURCE_FOLDER)
-                    if brick_full_path not in extra_paths:
-                        # add the source folder of the brick to the extra paths
-                        extra_paths.append(brick_full_path)
-
-                settings['python.autoComplete.extraPaths'] = extra_paths
-
-            # write the settings file
-            with open(setting_path, 'w', encoding='UTF-8') as file:
-                json.dump(settings, file, indent=2)
-
-        except Exception as err:
-            print(
-                f"Error during parsing or writting the vscode settings file : {err}")
-            return
-
+        
         self.install_notebook_template()
         print("VS Code configured !")
+
+    def _config_vs_code_settings_json(self) -> None:
+        """Configure the vscode settings.json file to add the bricks to the python path
+        """
+        print("Configuring VS Code settings.json file")
+        settings_path = self.get_vs_code_settings_file_path()
+
+        # load the settings file into a dict
+        settings: dict = None
+        if not os.path.exists(settings_path):
+            print('Creating a new vscode settings file')
+            settings = self._generate_vs_code_settings_json(settings_path)
+        else:
+            print('Reading the existing vscode settings file')
+            try:
+                with open(settings_path, 'r', encoding='UTF-8') as file:
+                    settings = json.load(file)
+            except Exception as err:
+                print(f"Error during parsing of the vscode settings file : {err}.")
+                print("Moving the existing file to settings_backup.json and creating a new one ...")
+                shutil.move(settings_path, os.path.join(self.get_vs_code_setting_folder(), "settings_backup.json"))
+                # create a new settings file
+                settings = self._generate_vs_code_settings_json(settings_path)
+                return
+
+        print("Adding the bricks to the python path ...")
+        # init the extra paths if not already done
+        if 'python.autoComplete.extraPaths' not in settings \
+                or not isinstance(settings['python.autoComplete.extraPaths'], list):
+            settings['python.autoComplete.extraPaths'] = []
+
+        # add the brick paths to the extra paths
+        existing_paths: List[str] = settings['python.autoComplete.extraPaths']
+
+        # set all the brick src paths in the extraPaths
+        brick_infos = self.list_all_brick_paths()
+        new_paths: List[str] = [os.path.join(brick_path, self.SOURCE_FOLDER) for brick_path in brick_infos.values()]
+        
+        # add the existing path that are not brick path (added manually by the user)
+        for existing_path in existing_paths:
+            found = False
+            for brick_name in brick_infos.keys():
+                if brick_name in existing_path:
+                    found = True
+                    break
+            if not found:
+                new_paths.append(existing_path)
+        settings['python.autoComplete.extraPaths'] = new_paths
+
+        try:
+            print('Writting the vscode settings file ...')
+            # write the settings file
+            with open(settings_path, 'w', encoding='UTF-8') as file:
+                json.dump(settings, file, indent=2)
+        except Exception as err:
+            print(
+                f"Error during writting the vscode settings file : {err}")
+            return
+        
+    def _generate_vs_code_settings_json(self, settings_path: str) -> dict:
+        # copy the settings.json file only if it does not exist
+        shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, 'settings.json'), settings_path)
+    
+        # load the settings file into a dict
+        with open(settings_path, 'r', encoding='UTF-8') as file:
+            return json.load(file)
+
 
     def install_notebook_template(self):
 
@@ -474,7 +516,7 @@ class GPM():
     def get_vs_code_setting_folder(self) -> str:
         return os.path.join(self.USER_WORKSPACE_DIR, ".vscode")
 
-    def get_vs_code_setting_file_path(self) -> str:
+    def get_vs_code_settings_file_path(self) -> str:
         return os.path.join(self.get_vs_code_setting_folder(), "settings.json")
 
     def create_git_installation_file(self, name: str, path: str, parent_name: str,

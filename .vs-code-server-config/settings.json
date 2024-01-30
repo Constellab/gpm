@@ -1,6 +1,4 @@
 {
-  "extensions.autoCheckUpdates": false,
-  "extensions.autoUpdate": false,
   "workbench.editor.enablePreview": false,
   "git.ignoreMissingGitWarning": true,
   "diffEditor.ignoreTrimWhitespace": false,
@@ -22,6 +20,5 @@
   "mypy-type-checker.args": [
       "--config-file=${workspaceFolder}/.mypy.ini"
   ],
-  "git-graph.maxDepthOfRepoSearch": 2,
-  "autoDocstring.docstringFormat": "sphinx"
+  "git-graph.maxDepthOfRepoSearch": 2
 }

@@ -74,10 +74,10 @@ class TestGpm(IsolatedAsyncioTestCase):
         self.assertTrue(os.path.exists(readme))
 
         # test other methods
-        brick_list = gpm.list_all_brick_paths()
-        self.assertEqual(len(brick_list), 2)
-        self.assertTrue(gws_core_brick_path in brick_list)
-        self.assertTrue(gws_biota_brick_path in brick_list)
+        brick_paths = gpm.list_all_brick_paths()
+        self.assertEqual(len(brick_paths), 2)
+        self.assertTrue(gws_core_brick_path in [brick for brick in brick_paths.values()])
+        self.assertTrue(gws_biota_brick_path in [brick for brick in brick_paths.values()])
 
         # Check the app start is well configured
         sys_app_path = os.path.join(gpm.SYS_WORKSPACE_DIR, "app")
@@ -106,13 +106,13 @@ class TestGpm(IsolatedAsyncioTestCase):
         gpm.init_all()
 
         # check that all the vscode config file are created
-        self.assertTrue(os.path.exists(gpm.get_vs_code_setting_file_path()))
+        self.assertTrue(os.path.exists(gpm.get_vs_code_settings_file_path()))
         self.assertTrue(os.path.exists(os.path.join(gpm.get_vs_code_setting_folder(), 'extensions.json')))
         self.assertTrue(os.path.exists(os.path.join(gpm.get_vs_code_setting_folder(), 'launch.json')))
         self.assertTrue(os.path.exists(os.path.join(gpm.USER_WORKSPACE_DIR, '.pylintrc')))
         self.assertTrue(os.path.exists(os.path.join(gpm.USER_WORKSPACE_DIR, 'pylint_init.py')))
 
-        with open(gpm.get_vs_code_setting_file_path(), 'r') as f:
+        with open(gpm.get_vs_code_settings_file_path(), 'r') as f:
             # load json file
             settings = json.load(f)
 

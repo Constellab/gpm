@@ -4,7 +4,8 @@ FROM $IMAGE
 LABEL maintainer="Admin <admin@gencovery.com>"
 
 # Choose version from https://github.com/gitpod-io/openvscode-server
-ARG RELEASE_TAG=openvscode-server-v1.84.0
+# The version 1.85.1 uses python exstension v2023.22.1 which as a problem, the bricks are not found
+ARG RELEASE_TAG=openvscode-server-v1.85.1
 ARG RELEASE_ORG="gitpod-io"
 ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
 
@@ -14,7 +15,7 @@ WORKDIR /home
 RUN apt update && \
     apt install -y git wget && \
     rm -rf /var/lib/apt/lists/* && \
-    pip install mypy pylint autopep8
+    pip install mypy==1.8.0 pylint==3.0.3 autopep8==2.0.4
 
 # Set UTC timezone for the docker
 ENV TZ=UTC \
