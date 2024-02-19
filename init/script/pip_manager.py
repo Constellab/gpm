@@ -7,6 +7,7 @@ import os
 import subprocess
 from typing import Dict, List
 
+from .logger import Logger
 from .config_reader import PackageInfo
 
 
@@ -69,12 +70,12 @@ class PipManager:
         _packages_with_version.sort()
 
         cmd = ["python3", "-m", "pip", "install", *_packages_with_version, "--extra-index-url", source]
-        print(f"Installing pip packages : '{' '.join(cmd)}'")
+        Logger.info(f"Installing pip packages : '{' '.join(cmd)}'")
         self._run_proc(cmd)
 
         self._installed_packages_version.extend(_packages_with_version)
 
-        print(f"Pip packages successfully insalled")
+        Logger.info(f"Pip packages successfully insalled")
 
     def _run_proc(self, cmd, cwd=None) -> bool:
         if cwd:
@@ -84,7 +85,7 @@ class PipManager:
             subprocess.check_call(cmd, cwd=cwd)
             return True
         except Exception as err:
-            print("Error during pip instalation")
+            Logger.error("Error during pip instalation")
             raise err
 
     def get_installed_packages_version(self) -> List[str]:
