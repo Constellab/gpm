@@ -16,8 +16,7 @@
     "editor.formatOnSave": true,
     // actions run on save
     "editor.codeActionsOnSave": {
-        // reoaganize imports on save
-        "source.organizeImports": true
+      "source.organizeImports": "explicit"
     },
     // remove trailling whitespace on save
     "files.trimTrailingWhitespace": true,
@@ -25,14 +24,11 @@
   },
 
   // python formatting (indentation)
-  "python.formatting.provider": "none",
-  "python.formatting.autopep8Path": "/usr/local/bin/autopep8",
-  "python.formatting.autopep8Args": ["--max-line-length", "120", "--experimental"],
+  "autopep8.path": ["/usr/local/bin/autopep8"],
+  "autopep8.args": ["--max-line-length", "120", "--experimental"],
 
+  // activate pylint
+  "pylint.path": ["/usr/local/bin/pylint"],
+  "pylint.args":["--rcfile=${workspaceFolder}/.pylintrc"],
 
-  // linting rules it takes the rules of .pylintrc file
-  "python.linting.pylintPath": "/usr/local/bin/pylint",
-  "python.linting.enabled": true,
-  "python.linting.pylintEnabled": true,
-  "python.linting.lintOnSave": true
 }
