@@ -27,7 +27,7 @@ build-cpu-glab-and-codelab:
     - docker login -u $DOCKER_PUBLIC_USERNAME -p $DOCKER_PUBLIC_PASSWORD $DOCKER_PUBLIC_REGISTRY
   script:
     # Build the gws (GLAB) image
-    - docker build --build-arg IMAGE="ubuntu:20.04" --tag $DOCKER_PUBLIC_REGISTRY/$GLAB-$CPU:$CI_COMMIT_TAG . -f dockerfile/$GLAB/Dockerfile
+    - docker build --build-arg IMAGE="ubuntu:22.04" --tag $DOCKER_PUBLIC_REGISTRY/$GLAB-$CPU:$CI_COMMIT_TAG . -f dockerfile/$GLAB/Dockerfile
     # Push image in the registry
     - docker push $DOCKER_PUBLIC_REGISTRY/$GLAB-$CPU:$CI_COMMIT_TAG
 
@@ -46,7 +46,7 @@ build-gpu-glab-and-codelab:
     - docker login -u $DOCKER_PUBLIC_USERNAME -p $DOCKER_PUBLIC_PASSWORD $DOCKER_PUBLIC_REGISTRY
   script:
     # Build the gws (GLAB) image 
-    - docker build --build-arg IMAGE="nvidia/cuda:12.1.1-runtime-ubuntu20.04" --tag $DOCKER_PUBLIC_REGISTRY/$GLAB-$GPU:$CI_COMMIT_TAG . -f dockerfile/$GLAB/Dockerfile
+    - docker build --build-arg IMAGE="nvidia/cuda:12.4.1-runtime-ubuntu22.04" --tag $DOCKER_PUBLIC_REGISTRY/$GLAB-$GPU:$CI_COMMIT_TAG . -f dockerfile/$GLAB/Dockerfile
     # Push image in the registry
     - docker push $DOCKER_PUBLIC_REGISTRY/$GLAB-$GPU:$CI_COMMIT_TAG
 

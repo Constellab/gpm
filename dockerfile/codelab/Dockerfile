@@ -14,7 +14,7 @@ WORKDIR /home
 RUN apt update && \
     apt install -y git wget && \
     rm -rf /var/lib/apt/lists/* && \
-    pip install mypy==1.8.0 pylint==3.0.3 autopep8==2.0.4
+    pip install mypy==1.9.0 pylint==3.1.0 autopep8==2.1.0
 
 # Set UTC timezone for the docker
 ENV TZ=UTC \
