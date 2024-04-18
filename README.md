@@ -21,6 +21,8 @@ Testing the codelab image locally : ```docker build -t local-codelab -f ./docker
 
 Coding using the dev-env image : ```docker build -t local-dev-env -f ./dockerfile/dev-env/Dockerfile .```
 
+To run and tests the images, see dockerlab repository.
+
 ## Building with buildx for multi-arch
 
 From : https://itnext.io/building-multi-cpu-architecture-docker-images-for-arm-and-x86-2-building-in-gitlab-ci-295966b7185d

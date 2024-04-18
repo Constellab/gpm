@@ -5,8 +5,23 @@
 import importlib.util
 import os
 import sys
+from datetime import datetime
 
-from init.script.logger import Logger
+
+class Logger:
+
+    @classmethod
+    def info(cls, msg: str):
+        cls._log(msg, "INFO")
+
+    @classmethod
+    def error(cls, msg):
+        cls._log(msg, "ERROR")
+
+    @classmethod
+    def _log(cls, msg: str, type_: str):
+        # get the date in UTC format
+        print(f"{type_} - {datetime.now().isoformat()} - {msg}")
 
 gws_core_package = 'gws_core'
 user_bricks_folder = os.path.join('/lab', 'user', 'bricks')

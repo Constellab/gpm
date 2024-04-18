@@ -4,8 +4,7 @@ FROM $IMAGE
 LABEL maintainer="Admin <admin@gencovery.com>"
 
 # Choose version from https://github.com/gitpod-io/openvscode-server
-# The version 1.85.1 uses python exstension v2023.22.1 which as a problem, the bricks are not found
-ARG RELEASE_TAG=openvscode-server-v1.85.1
+ARG RELEASE_TAG=openvscode-server-v1.88.0
 ARG RELEASE_ORG="gitpod-io"
 ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
 
