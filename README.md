@@ -2,7 +2,7 @@
 
 This repository allows managing Gencovery Web Services packages. It is used to create docker images to easily deploy GLab.
 
-* Shell script ```init_lab.sh``` is run by the docerfile entrypoint
+* Shell script ```init_lab.sh``` is run by the dockerfile entrypoint
 
 * Python script ```init_lab.py``` is called by the ```init_lab.sh``` and allows pulling and intalling from Pip and Git any library described in an environment file ```config.json``` as given in folder ```tests/config.json```
 

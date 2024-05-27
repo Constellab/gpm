@@ -12,7 +12,7 @@ from init.script.config_reader import SettingsReader
 from init.script.gpm import GPM, BrickInstalationInfo
 import importlib
 
-GWS_CORE_VERSION = "0.5.0"
+GWS_CORE_VERSION = "0.6.2"
 
 
 class TestGpm(IsolatedAsyncioTestCase):

@@ -75,7 +75,7 @@ class PipManager:
 
         self._installed_packages_version.extend(_packages_with_version)
 
-        Logger.info(f"Pip packages successfully insalled")
+        Logger.info("Pip packages successfully insalled")
 
     def _run_proc(self, cmd, cwd=None) -> bool:
         if cwd:
