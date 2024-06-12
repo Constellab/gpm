@@ -10,7 +10,7 @@
         "--runserver"
       ],
       "name": "Start dev server",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "/lab/.sys/app/manage.py",
       "console": "integratedTerminal"
@@ -22,7 +22,7 @@
         "--log_level=DEBUG"
       ],
       "name": "Start dev server - DEBUG log",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "/lab/.sys/app/manage.py",
       "console": "integratedTerminal"
@@ -30,10 +30,11 @@
     // configuration to start the gws
     {
       "args": [
-        "--reset_env"
+        "--reset_env",
+        "${input:resetKey}"
       ],
       "name": "Reset dev environment",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "/lab/.sys/app/manage.py",
       "console": "integratedTerminal"
@@ -45,7 +46,7 @@
         "${input:brickName}/test*"
       ],
       "name": "Test all files",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "/lab/.sys/app/manage.py",
       "console": "integratedTerminal"
@@ -57,7 +58,7 @@
         "${input:testFileName}"
       ],
       "name": "Test a single file",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "/lab/.sys/app/manage.py",
       "console": "integratedTerminal"
@@ -69,7 +70,7 @@
         "${input:newBrickName}"
       ],
       "name": "Create brick",
-      "type": "python",
+      "type": "debugpy",
       "request": "launch",
       "program": "/lab/.sys/bricks/gws_core/utils/create_brick.py",
       "console": "integratedTerminal"
@@ -90,6 +91,11 @@
       "id": "newBrickName",
       "type": "promptString",
       "description": "Name of the new brick to create"
+    },
+    {
+        "id": "resetKey",
+        "type": "promptString",
+        "description": "/!\\ This delete all the data of the dev env (prod env will not be affected). Please type 'reset-dev-env' to confirm./!\\",
     }
   ]
 }
