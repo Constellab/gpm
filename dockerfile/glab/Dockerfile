@@ -27,7 +27,7 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python3 get-pip.py "pip==${CUSTOM_PIP_VERSION}" && \
     python3 -m pip install --upgrade setuptools 
 # install pipenv
-RUN pip install pipenv==2023.12.1
+RUN pip install pipenv==2024.0.1
 
 # Installing conda and mamba
 # Info from https://github.com/conda-forge/miniforge#mambaforge
@@ -41,7 +41,7 @@ RUN curl -L https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_
 # install gws dependencies
 RUN python3 -m pip install  click==8.1.7 \
                             GitPython==3.1.43 \
-                            requests==2.31.0
+                            requests==2.32.3
                             
 EXPOSE 3000
 
