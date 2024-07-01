@@ -5,9 +5,6 @@ FROM glab:latest
 # Configure python
 RUN pip install mypy pylint autopep8
 
-# copy the example config.json
-COPY ./dockerfile/dev-env/config.json /conf/config.json
-
 COPY ./.vs-code-server-config/ /.vs-code-server-config/
 
 ENTRYPOINT [ "/init-lab/entrypoint.sh" ]
