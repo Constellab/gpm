@@ -31,12 +31,9 @@ sys_bricks_folder = os.path.join('/lab', '.sys', 'bricks')
 if gws_core_package in sys.modules:
     Logger.info(f"{gws_core_package} already in sys.modules")
 
-# try to install in from the pip package
-elif (spec := importlib.util.find_spec(gws_core_package)) is not None:
-    # If you choose to perform the actual import ...
-    module = importlib.util.module_from_spec(spec)
-    sys.modules[gws_core_package] = module
-    spec.loader.exec_module(module)
+# Check if the brick was installed from pip
+elif importlib.util.find_spec(gws_core_package) is not None:
+    # the brick was imported from a pip package, not need to add the path
     Logger.info(f"{gws_core_package} has been imported from pip packages")
 
 # try to install it from the bricks folder
