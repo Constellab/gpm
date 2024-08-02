@@ -23,6 +23,12 @@ Coding using the dev-env image : ```docker build -t local-dev-env -f ./dockerfil
 
 To run and tests the images, see dockerlab repository.
 
+## Testing GPU the docker images
+
+Testing the glab image locally : ```docker build --build-arg IMAGE="nvidia/cuda:12.4.1-runtime-ubuntu22.04" -t glab:gpu -f ./dockerfile/glab/Dockerfile .```
+
+Testing the codelab image locally : ```docker build --build-arg IMAGE="glab:gpu" -t local-codelab -f ./dockerfile/codelab/Dockerfile .```
+
 ## Building with buildx for multi-arch
 
 From : https://itnext.io/building-multi-cpu-architecture-docker-images-for-arm-and-x86-2-building-in-gitlab-ci-295966b7185d

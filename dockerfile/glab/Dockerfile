@@ -1,6 +1,5 @@
 ARG IMAGE="ubuntu:22.04"
 FROM $IMAGE
-#FROM "ubuntu:22.04"
 #FROM "nvidia/cuda:11.2.1-runtime-ubuntu22.04"
 
 LABEL maintainer="Admin <admin@gencovery.com>"
