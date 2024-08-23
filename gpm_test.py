@@ -83,7 +83,6 @@ class TestGpm(IsolatedAsyncioTestCase):
         sys_app_path = os.path.join(gpm.SYS_WORKSPACE_DIR, "app")
         self.assertTrue(os.path.exists(sys_app_path))
         self.assertTrue(os.path.exists(os.path.join(sys_app_path, "settings.json")))
-        self.assertTrue(os.path.exists(os.path.join(sys_app_path, "manage.py")))
 
         setting_reader = SettingsReader(os.path.join(sys_app_path, "settings.json"))
         # check that the gws_biota is listed

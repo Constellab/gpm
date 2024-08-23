@@ -7,7 +7,7 @@ if [ "$1" == "--run-glab" ]; then
     # default port=3000, ip=0.0.0.0 
     bash /init-lab/init_lab.sh GLAB
     echo "Glab environment is ready."
-    exec bash -c "source /init-lab/clean.sh && python3 /lab/.sys/app/manage.py --runserver"
+    exec bash -c "source /init-lab/clean.sh && gws server run --settings-path /lab/.sys/settings.json"
 elif [ "$1" == "--run-codelab" ]; then
     # codelab
     bash /init-lab/init_lab.sh CODELAB

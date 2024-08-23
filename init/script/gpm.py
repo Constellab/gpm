@@ -137,7 +137,7 @@ class GPM():
             if self.env_mode == 'GLAB':
                 raise err
 
-        self.install_app_entrypoint()
+        self.configure_settings_json()
         self.configure_vscode()
 
     def install_git_packages_and_bricks(self, settings_readers: List[SettingsReader]) -> None:
@@ -298,20 +298,10 @@ class GPM():
         except:
             raise Exception(f"Cannot remove .git directory from {dest_dir}")
 
-    def install_app_entrypoint(self):
-        """Create the fake app brick for the entrypoint with the manage.py start file
-        and the settings.json file
+    def configure_settings_json(self):
+        """Create settings.json file containing the main config info for the app entrypoint
         """
         try:
-
-            # get manage.py file path, it the same folder as current file
-            manage_py_file = os.path.join(os.path.dirname(
-                os.path.abspath(__file__)), "manage.py")
-            manage_file_destination = os.path.join(
-                self.APP_BRICK_FOLDER, "manage.py")
-            Logger.info(
-                f"Copying manage.py file from {manage_py_file} to {manage_file_destination} ... ")
-            shutil.copyfile(manage_py_file, manage_file_destination)
 
             # Really important, update the settings.json file with main config info so the bricks will be loaded on start
             settings_file = os.path.join(
