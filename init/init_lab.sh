@@ -10,12 +10,12 @@ bash /init-lab/clean.sh
 # call brick hooks
 echo "Calling brick hooks..."
 for brick in `find /lab/user/bricks -mindepth 1 -maxdepth 2 -type d`; do
-    if [ -f "$brick/.hooks/pre-install.py" ]; then
-        python3 "$brick/.hooks/pre-install.py"
+    if [ -f "$brick/.hooks/post-install.py" ]; then
+        python3 "$brick/.hooks/post-install.py"
     fi
 
-    if [ -f "$brick/.hooks/pre-install.sh" ]; then
-        bash "$brick/.hooks/pre-install.sh"
+    if [ -f "$brick/.hooks/post-install.sh" ]; then
+        bash "$brick/.hooks/post-install.sh"
     fi
 done
 
