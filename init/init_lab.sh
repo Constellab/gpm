@@ -8,7 +8,19 @@ echo "Clear environment variables..."
 bash /init-lab/clean.sh
 
 # call brick hooks
-echo "Calling brick hooks..."
+echo "Calling brick hooks in /lab/.sys/bricks ..."
+for brick in `find /lab/.sys/bricks -mindepth 1 -maxdepth 2 -type d`; do
+    if [ -f "$brick/.hooks/post-install.py" ]; then
+        python3 "$brick/.hooks/post-install.py"
+    fi
+
+    if [ -f "$brick/.hooks/post-install.sh" ]; then
+        bash "$brick/.hooks/post-install.sh"
+    fi
+done
+
+# call brick hooks
+echo "Calling brick hooks in /lab/user/bricks ..."
 for brick in `find /lab/user/bricks -mindepth 1 -maxdepth 2 -type d`; do
     if [ -f "$brick/.hooks/post-install.py" ]; then
         python3 "$brick/.hooks/post-install.py"
