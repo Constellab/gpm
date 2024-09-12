@@ -21,7 +21,7 @@ Testing the codelab image locally : ```docker build -t local-codelab -f ./docker
 
 Coding using the dev-env image : ```docker build -t local-dev-env -f ./dockerfile/dev-env/Dockerfile .```
 
-To run and tests the images, see dockerlab repository.
+To run and tests the images, see lab-configurer repository.
 
 ## Testing GPU the docker images
 
