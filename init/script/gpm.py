@@ -12,10 +12,10 @@ from datetime import datetime
 from typing import Dict, List, Literal, Optional, TypedDict
 
 from git import Repo
-from .logger import Logger
 
 from .community_service import CommunityBrick, CommunityService
 from .config_reader import SettingsReader
+from .logger import Logger
 from .package_lock import PackageLock
 from .pip_manager import PipManager
 
@@ -226,47 +226,48 @@ class GPM():
 
     def install_brick(self, name: str, version: str,
                       parent_name: str) -> SettingsReader:
-        # Set hidden to False only if the brick is in the user bricks dir
-        # normally this is only in dev env
-        is_hidden = not os.path.exists(os.path.join(
-            self.USER_BRICKS_FOLDER, name)) or self.env_mode == 'GLAB'
-
-        # retrieve brick repo
-        repo_dir: str = None
-        if is_hidden:
-            repo_dir = os.path.join(self.SYS_BRICKS_FOLDER, name)
-        else:
-            repo_dir = os.path.join(self.USER_BRICKS_FOLDER, name)
 
         brick_info: CommunityBrick = CommunityService().get_brick(name, version)
 
         repo_path = brick_info["repositoryAccessUrl"]
 
-        # remove bricks if it is hidden (in sys bricks folder)
-        if os.path.exists(repo_dir):
-            if is_hidden:
-                Logger.info(f"Removing {repo_dir} ...")
-                try:
-                    shutil.rmtree(repo_dir)
-                except:
-                    raise Exception(f"Cannot remove {repo_dir}")
-            else:
-                Logger.info(f"Do not update non-hidden brick {repo_dir}")
+        # path of the brick in sys and user folder
+        sys_brick_dir = os.path.join(self.SYS_BRICKS_FOLDER, name)
+        user_brick_dir = os.path.join(self.USER_BRICKS_FOLDER, name)
 
-        if not os.path.exists(repo_dir):
+        # remove brick in sys folder
+        if os.path.exists(sys_brick_dir):
+            Logger.info(f"Removing {sys_brick_dir} ...")
+            try:
+                shutil.rmtree(sys_brick_dir)
+            except:
+                raise Exception(f"Cannot remove {sys_brick_dir}")
+
+        # install the brick in sys folder
+        if not os.path.exists(sys_brick_dir):
             Logger.info(
                 f"Cloning brick '{name}' version '{version}' from {brick_info['repositoryUrl']}.")
-            self.git_clone(url=repo_path, dest_dir=repo_dir,
+            self.git_clone(url=repo_path, dest_dir=sys_brick_dir,
                            repo_name=name, parent_name=parent_name, version=version)
 
-        if not os.path.exists(repo_dir):
-            raise Exception(
-                f"Brick package {name} version {version} could not be installed.")
+        # check if the brick is installed
+        if not os.path.exists(sys_brick_dir):
+            error = f"Brick package {name} version {version} could not be installed."
+            # if the brick exists in user folder, only log the error
+            if os.path.exists(user_brick_dir):
+                Logger.error(
+                    f"Brick '{name}' version '{version}' is already installed in the user bricks folder.")
+            else:
+                raise Exception(error)
 
         self._installed_brick_packages.append(name)
 
+        # for the rest, use brick in user dir if it exists
+        brick_dir = user_brick_dir if os.path.exists(
+            user_brick_dir) else sys_brick_dir
+
         # return the sub settings so the sub dependencies can be installed
-        return SettingsReader(os.path.join(repo_dir, self.SETTING_JSON_FILE))
+        return SettingsReader(os.path.join(brick_dir, self.SETTING_JSON_FILE))
 
     def git_clone(self, url: str, dest_dir: str, repo_name: str, parent_name: str, version: str = None) -> None:
         # Try to clone the repository 3 times if it fails
@@ -394,8 +395,6 @@ class GPM():
         if not os.path.exists(vs_code_folder):
             os.mkdir(vs_code_folder)
 
-
-
         # always override the extensions.json file
         extensions_dest = os.path.join(vs_code_folder, 'extensions.json')
         shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, 'extensions.json'),
@@ -496,7 +495,6 @@ class GPM():
         for extension in extensions["recommendations"]:
             Logger.info(f"Installing extension {extension} ...")
             os.system(f"/home/.openvscode-server/bin/openvscode-server code --install-extension {extension}")
-
 
     def install_notebook_template(self):
 
