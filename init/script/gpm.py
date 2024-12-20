@@ -1,7 +1,4 @@
-# LICENSE
-# This software is the exclusive property of Gencovery SAS.
-# The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
-# About us: https://gencovery.com
+
 
 import json
 import os
@@ -96,7 +93,8 @@ class GPM():
         self.create_folder_if_not_exists(self.APP_BRICK_FOLDER)
         self.create_folder_if_not_exists(self.EXTERNAL_LIB_FOLDER)
 
-        Logger.info(f"Initializing GPM with env mode: {env_mode} using settings file: {settings_file_path}")
+        Logger.info(
+            f"Initializing GPM with env mode: {env_mode} using settings file: {settings_file_path}")
         self.settings_file_path = settings_file_path
 
         # Check that the env mode is valid GLAB or CODELAB
@@ -118,6 +116,8 @@ class GPM():
 
     def init_all(self):
 
+        Logger.log_progress("Installing bricks", 0)
+
         try:
             self.install_git_packages_and_bricks([self.config_reader])
 
@@ -127,6 +127,8 @@ class GPM():
         except Exception as err:
             Logger.error(f"Error while installing git packages: {err}")
             raise err
+        
+        Logger.log_progress("Installing bricks dependencies", 10)
 
         try:
             # install all the pip packages
@@ -136,6 +138,8 @@ class GPM():
             # even if packages are no installed
             if self.env_mode == 'GLAB':
                 raise err
+            
+        Logger.log_progress("Starting lab", 90)
 
         self.configure_settings_json()
         self.configure_vscode()
@@ -307,7 +311,8 @@ class GPM():
             # Really important, update the settings.json file with main config info so the bricks will be loaded on start
             settings_file = os.path.join(
                 self.APP_BRICK_FOLDER, self.SETTING_JSON_FILE)
-            Logger.info(f"Generating settings.json file at {settings_file} ...")
+            Logger.info(
+                f"Generating settings.json file at {settings_file} ...")
 
             settings = {
                 "name": self.config_reader.get_name(),
@@ -433,9 +438,12 @@ class GPM():
                 with open(settings_path, 'r', encoding='UTF-8') as file:
                     settings = json.load(file)
             except Exception as err:
-                Logger.error(f"Error during parsing of the vscode settings file : {err}.")
-                Logger.error("Moving the existing file to settings_backup.json and creating a new one ...")
-                shutil.move(settings_path, os.path.join(self.get_vs_code_setting_folder(), "settings_backup.json"))
+                Logger.error(
+                    f"Error during parsing of the vscode settings file : {err}.")
+                Logger.error(
+                    "Moving the existing file to settings_backup.json and creating a new one ...")
+                shutil.move(settings_path, os.path.join(
+                    self.get_vs_code_setting_folder(), "settings_backup.json"))
                 # create a new settings file
                 settings = self._generate_vs_code_settings_json(settings_path)
                 return
@@ -451,7 +459,8 @@ class GPM():
 
         # set all the brick src paths in the extraPaths
         brick_infos = self.list_all_brick_paths()
-        new_paths: List[str] = [os.path.join(brick_path, self.SOURCE_FOLDER) for brick_path in brick_infos.values()]
+        new_paths: List[str] = [os.path.join(
+            brick_path, self.SOURCE_FOLDER) for brick_path in brick_infos.values()]
 
         # add the existing path that are not brick path (added manually by the user)
         for existing_path in existing_paths:
@@ -476,7 +485,8 @@ class GPM():
 
     def _generate_vs_code_settings_json(self, settings_path: str) -> dict:
         # copy the settings.json file only if it does not exist
-        shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, 'settings.json'), settings_path)
+        shutil.copyfile(os.path.join(
+            self.VS_CODE_DEFAULT_CONFIG_PATH, 'settings.json'), settings_path)
 
         # load the settings file into a dict
         with open(settings_path, 'r', encoding='UTF-8') as file:
@@ -494,7 +504,8 @@ class GPM():
         # install the extensions
         for extension in extensions["recommendations"]:
             Logger.info(f"Installing extension {extension} ...")
-            os.system(f"/home/.openvscode-server/bin/openvscode-server code --install-extension {extension}")
+            os.system(
+                f"/home/.openvscode-server/bin/openvscode-server code --install-extension {extension}")
 
     def install_notebook_template(self):
 

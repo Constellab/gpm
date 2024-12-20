@@ -1,7 +1,3 @@
-# LICENSE
-# This software is the exclusive property of Gencovery SAS.
-# The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
-# About us: https://gencovery.com
 
 
 import json
@@ -131,7 +127,8 @@ class SettingsReader:
 
     def read_settings(self) -> SettingsFile:
         if not os.path.exists(self.settings_file_path):
-            raise Exception(f"Cannot find the config file '{self.settings_file_path}'.")
+            raise Exception(
+                f"Cannot find the config file '{self.settings_file_path}'.")
         with open(self.settings_file_path, 'r', encoding="utf-8") as f:
             try:
                 config = json.load(f)
@@ -143,4 +140,5 @@ class SettingsReader:
                 return config
 
             except Exception as err:
-                raise Exception("Cannot parse the config file. Please check file config file.") from err
+                raise Exception(
+                    "Cannot parse the config file. Please check file config file.") from err

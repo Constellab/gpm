@@ -1,7 +1,3 @@
-# LICENSE
-# This software is the exclusive property of Gencovery SAS.
-# The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
-# About us: https://gencovery.com
 
 
 import os
@@ -43,7 +39,8 @@ class CommunityService:
         )
 
         if response.status_code != 200:
-            raise Exception(f"Error while getting brick {brick_name} from community api: {response.text}")
+            raise Exception(
+                f"Error while getting brick {brick_name} from community api: {response.text}")
 
         return response.json()
 

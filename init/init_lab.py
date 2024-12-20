@@ -1,7 +1,4 @@
-# LICENSE
-# This software is the exclusive property of Gencovery SAS.
-# The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
-# About us: https://gencovery.com
+
 
 import click
 from script.gpm import GPM
@@ -16,6 +13,7 @@ from script.gpm import GPM
 def install(ctx, env_mode: str = None):
     gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH, env_mode=env_mode)
     gpm.init_all()
+
 
 if __name__ == "__main__":
     install()

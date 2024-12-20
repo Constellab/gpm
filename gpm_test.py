@@ -1,7 +1,4 @@
-# LICENSE
-# This software is the exclusive property of Gencovery SAS.
-# The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
-# About us: https://gencovery.com
+
 
 import json
 import os
@@ -37,23 +34,27 @@ class TestGpm(IsolatedAsyncioTestCase):
 
         # check that gws_core was cloned
         gws_core_brick_path = os.path.join(gpm.SYS_BRICKS_FOLDER, "gws_core")
-        gws_core_settings_path = os.path.join(gws_core_brick_path, "settings.json")
+        gws_core_settings_path = os.path.join(
+            gws_core_brick_path, "settings.json")
         self.assertTrue(os.path.exists(gws_core_settings_path))
 
         # check that gws_biota was cloned
         gws_biota_brick_path = os.path.join(gpm.SYS_BRICKS_FOLDER, "gws_biota")
-        gws_biota_settings_path = os.path.join(gws_biota_brick_path, "settings.json")
+        gws_biota_settings_path = os.path.join(
+            gws_biota_brick_path, "settings.json")
         self.assertTrue(os.path.exists(gws_biota_settings_path))
 
         # check that brendapy was cloned
-        brendapy_readme_path = os.path.join(gpm.EXTERNAL_LIB_FOLDER, "brendapy", "README.md")
+        brendapy_readme_path = os.path.join(
+            gpm.EXTERNAL_LIB_FOLDER, "brendapy", "README.md")
         self.assertTrue(os.path.exists(brendapy_readme_path))
 
         # Check that pip dependecies of biota are installed
         self.assertIsNotNone(importlib.find_loader('pronto'))
 
         # Check that the information file is created
-        info_file_path = os.path.join(gws_core_brick_path, GPM.GIT_INSTALLATION_FILE)
+        info_file_path = os.path.join(
+            gws_core_brick_path, GPM.GIT_INSTALLATION_FILE)
         self.assertTrue(os.path.exists(info_file_path))
         with open(info_file_path, 'r') as f:
             info: BrickInstalationInfo = json.load(f)
@@ -76,25 +77,31 @@ class TestGpm(IsolatedAsyncioTestCase):
         # test other methods
         brick_paths = gpm.list_all_brick_paths()
         self.assertEqual(len(brick_paths), 2)
-        self.assertTrue(gws_core_brick_path in [brick for brick in brick_paths.values()])
-        self.assertTrue(gws_biota_brick_path in [brick for brick in brick_paths.values()])
+        self.assertTrue(gws_core_brick_path in [
+                        brick for brick in brick_paths.values()])
+        self.assertTrue(gws_biota_brick_path in [
+                        brick for brick in brick_paths.values()])
 
         # Check the app start is well configured
         sys_app_path = os.path.join(gpm.SYS_WORKSPACE_DIR, "app")
         self.assertTrue(os.path.exists(sys_app_path))
-        self.assertTrue(os.path.exists(os.path.join(sys_app_path, "settings.json")))
+        self.assertTrue(os.path.exists(
+            os.path.join(sys_app_path, "settings.json")))
 
-        setting_reader = SettingsReader(os.path.join(sys_app_path, "settings.json"))
+        setting_reader = SettingsReader(
+            os.path.join(sys_app_path, "settings.json"))
         # check that the gws_biota is listed
         package = setting_reader.get_brick_packages()
-        self.assertEqual(len([x for x in package if x["name"] == "gws_biota"]), 1)
+        self.assertEqual(
+            len([x for x in package if x["name"] == "gws_biota"]), 1)
 
     def test_codelab(self):
 
         __cdir__ = os.path.dirname(os.path.abspath(__file__))
         GPM.LAB_WORKSPACE_DIR = os.path.join(__cdir__, "tests/build/lab")
         GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "tests/config.json")
-        GPM.VS_CODE_DEFAULT_CONFIG_PATH = os.path.join(__cdir__, ".vs-code-server-config")
+        GPM.VS_CODE_DEFAULT_CONFIG_PATH = os.path.join(
+            __cdir__, ".vs-code-server-config")
 
         # clean up the workspace
         if os.path.exists(GPM.LAB_WORKSPACE_DIR):
@@ -106,10 +113,14 @@ class TestGpm(IsolatedAsyncioTestCase):
 
         # check that all the vscode config file are created
         self.assertTrue(os.path.exists(gpm.get_vs_code_settings_file_path()))
-        self.assertTrue(os.path.exists(os.path.join(gpm.get_vs_code_setting_folder(), 'extensions.json')))
-        self.assertTrue(os.path.exists(os.path.join(gpm.get_vs_code_setting_folder(), 'launch.json')))
-        self.assertTrue(os.path.exists(os.path.join(gpm.USER_WORKSPACE_DIR, '.pylintrc')))
-        self.assertTrue(os.path.exists(os.path.join(gpm.USER_WORKSPACE_DIR, 'pylint_init.py')))
+        self.assertTrue(os.path.exists(os.path.join(
+            gpm.get_vs_code_setting_folder(), 'extensions.json')))
+        self.assertTrue(os.path.exists(os.path.join(
+            gpm.get_vs_code_setting_folder(), 'launch.json')))
+        self.assertTrue(os.path.exists(os.path.join(
+            gpm.USER_WORKSPACE_DIR, '.pylintrc')))
+        self.assertTrue(os.path.exists(os.path.join(
+            gpm.USER_WORKSPACE_DIR, 'pylint_init.py')))
 
         with open(gpm.get_vs_code_settings_file_path(), 'r') as f:
             # load json file

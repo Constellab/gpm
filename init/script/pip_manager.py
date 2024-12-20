@@ -1,7 +1,4 @@
-# LICENSE
-# This software is the exclusive property of Gencovery SAS.
-# The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
-# About us: https://gencovery.com
+
 
 import os
 import subprocess
@@ -69,7 +66,8 @@ class PipManager:
 
         _packages_with_version.sort()
 
-        cmd = ["python3", "-m", "pip", "install", *_packages_with_version, "--extra-index-url", source]
+        cmd = ["python3", "-m", "pip", "install", *
+               _packages_with_version, "--extra-index-url", source]
         Logger.info(f"Installing pip packages : '{' '.join(cmd)}'")
         self._run_proc(cmd)
 

@@ -1,7 +1,4 @@
-# LICENSE
-# This software is the exclusive property of Gencovery SAS.
-# The use and distribution of this software is prohibited without the prior consent of Gencovery SAS.
-# About us: https://gencovery.com
+
 
 from typing import List, Literal, TypedDict, Optional
 
@@ -20,6 +17,7 @@ class InstalledPackage(TypedDict):
 
     path: str
 
+
 class PackageLock():
 
     packages: List[InstalledPackage]
@@ -29,7 +27,6 @@ class PackageLock():
 
     def add_package(self, package: InstalledPackage):
         self.packages.append(package)
-
 
     def is_installed(self, package_name: str) -> bool:
         for package in self.packages:
@@ -80,4 +77,3 @@ class PackageLock():
             "git_hash": None,
             "path": path
         })
-
