@@ -15,9 +15,12 @@ class PipManager:
 
     _installed_packages_version: List[str] = []
 
-    def __init__(self):
+    logger: Logger = None
+
+    def __init__(self, logger: Logger):
         self.packages = []
         self._installed_packages_version = []
+        self.logger = logger
 
     def add_packages(self, packages: List[PackageInfo]) -> None:
         """ Add a list of packages to the list of packages to install """
@@ -68,12 +71,12 @@ class PipManager:
 
         cmd = ["python3", "-m", "pip", "install", *
                _packages_with_version, "--extra-index-url", source]
-        Logger.info(f"Installing pip packages : '{' '.join(cmd)}'")
+        self.logger.info(f"Installing pip packages : '{' '.join(cmd)}'")
         self._run_proc(cmd)
 
         self._installed_packages_version.extend(_packages_with_version)
 
-        Logger.info("Pip packages successfully insalled")
+        self.logger.info("Pip packages successfully insalled")
 
     def _run_proc(self, cmd, cwd=None) -> bool:
         if cwd:
@@ -83,7 +86,7 @@ class PipManager:
             subprocess.check_call(cmd, cwd=cwd)
             return True
         except Exception as err:
-            Logger.error("Error during pip instalation")
+            self.logger.error("Error during pip instalation")
             raise err
 
     def get_installed_packages_version(self) -> List[str]:

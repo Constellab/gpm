@@ -69,6 +69,8 @@ class GPM():
 
     env_mode: EnvMode = None
 
+    logger: Logger = None
+
     def __init__(self, settings_file_path: str, env_mode: EnvMode):
         self.SYS_WORKSPACE_DIR: str = os.path.join(
             self.LAB_WORKSPACE_DIR, '.sys')
@@ -93,7 +95,10 @@ class GPM():
         self.create_folder_if_not_exists(self.APP_BRICK_FOLDER)
         self.create_folder_if_not_exists(self.EXTERNAL_LIB_FOLDER)
 
-        Logger.info(
+        start_log_file_path = os.path.join(self.SYS_WORKSPACE_DIR, 'start-log.json')
+        self.logger = Logger(start_log_file_path)
+
+        self.logger.info(
             f"Initializing GPM with env mode: {env_mode} using settings file: {settings_file_path}")
         self.settings_file_path = settings_file_path
 
@@ -107,7 +112,7 @@ class GPM():
 
         self.env_mode = env_mode
 
-        self.pip_manager = PipManager()
+        self.pip_manager = PipManager(self.logger)
         self._installed_git_packages: list = []
         self._installed_brick_packages: list = []
 
@@ -115,31 +120,33 @@ class GPM():
         self.package_lock = PackageLock()
 
     def init_all(self):
+        self.logger.info("[Starting lab]")
 
-        Logger.log_progress("Installing bricks", 0)
+        self.logger.log_progress("Installing bricks", 0)
 
         try:
             self.install_git_packages_and_bricks([self.config_reader])
 
             git_packages = self._installed_git_packages
             git_packages.sort()
-            Logger.info(f"Installed git packages:\n{git_packages}")
+            self.logger.info(f"Installed git packages:\n{git_packages}")
         except Exception as err:
-            Logger.error(f"Error while installing git packages: {err}")
+            self.logger.main_error(f"Error while installing git packages. {err}")
             raise err
-        
-        Logger.log_progress("Installing bricks dependencies", 10)
+
+        self.logger.log_progress("Installing bricks dependencies", 10)
 
         try:
             # install all the pip packages
             self.pip_manager.install_packages()
         except Exception as err:
+            self.logger.main_error(f"Error while installing pip packages. {err}")
             # in codelab, ignore the error so it start the CODELAB
             # even if packages are no installed
             if self.env_mode == 'GLAB':
                 raise err
-            
-        Logger.log_progress("Starting lab", 90)
+
+        self.logger.log_progress("Starting lab", 90)
 
         self.configure_settings_json()
         self.configure_vscode()
@@ -153,7 +160,7 @@ class GPM():
 
         # install git and pip packages
         for settings_reader in settings_readers:
-            Logger.info(
+            self.logger.info(
                 f"Installing git packages for '{settings_reader.get_name()}' brick")
             self._install_git_packages(settings_reader)
 
@@ -176,7 +183,7 @@ class GPM():
             version = package.get("version", "")
             source_url = package.get("source").strip("/")
             repo_path = f"{source_url}/{repo_name}.git"
-            Logger.info(f"Cloning git repository '{repo_path}:{version}' ... ")
+            self.logger.info(f"Cloning git repository '{repo_path}:{version}' ... ")
 
             # replace the variable name with the values (including credentials)
             repo_path = self.format_url(
@@ -193,7 +200,7 @@ class GPM():
         repo_dir = os.path.join(self.EXTERNAL_LIB_FOLDER, repo_name)
 
         if os.path.exists(repo_dir):
-            Logger.info(f"Removing '{repo_dir}'")
+            self.logger.info(f"Removing '{repo_dir}'")
             try:
                 shutil.rmtree(repo_dir)
             except:
@@ -209,7 +216,7 @@ class GPM():
         sub_settings_readers: List[SettingsReader] = []
 
         for settings_reader in settings_readers:
-            Logger.info(
+            self.logger.info(
                 f"Installing bricks dependencies for '{settings_reader.get_name()}' brick")
 
             # get all the bricks packages
@@ -241,7 +248,7 @@ class GPM():
 
         # remove brick in sys folder
         if os.path.exists(sys_brick_dir):
-            Logger.info(f"Removing {sys_brick_dir} ...")
+            self.logger.info(f"Removing {sys_brick_dir} ...")
             try:
                 shutil.rmtree(sys_brick_dir)
             except:
@@ -249,7 +256,7 @@ class GPM():
 
         # install the brick in sys folder
         if not os.path.exists(sys_brick_dir):
-            Logger.info(
+            self.logger.info(
                 f"Cloning brick '{name}' version '{version}' from {brick_info['repositoryUrl']}.")
             self.git_clone(url=repo_path, dest_dir=sys_brick_dir,
                            repo_name=name, parent_name=parent_name, version=version)
@@ -259,7 +266,7 @@ class GPM():
             error = f"Brick package {name} version {version} could not be installed."
             # if the brick exists in user folder, only log the error
             if os.path.exists(user_brick_dir):
-                Logger.error(
+                self.logger.error(
                     f"Brick '{name}' version '{version}' is already installed in the user bricks folder.")
             else:
                 raise Exception(error)
@@ -286,9 +293,9 @@ class GPM():
                     repo = Repo.clone_from(url=url, to_path=dest_dir, depth=1)
                 break
             except Exception as err:
-                Logger.info(
+                self.logger.info(
                     f"Couldn't clone the repository '{repo_name}' with version '{version}'. Error: {err}")
-                Logger.info("Waiting 3 secs and retry ...")
+                self.logger.info("Waiting 3 secs and retry ...")
                 time.sleep(3)
                 nb_retry += 1
                 if nb_retry >= 3:
@@ -311,7 +318,7 @@ class GPM():
             # Really important, update the settings.json file with main config info so the bricks will be loaded on start
             settings_file = os.path.join(
                 self.APP_BRICK_FOLDER, self.SETTING_JSON_FILE)
-            Logger.info(
+            self.logger.info(
                 f"Generating settings.json file at {settings_file} ...")
 
             settings = {
@@ -324,7 +331,7 @@ class GPM():
                 json.dump(settings, file, indent=4)
 
         except Exception as err:
-            Logger.error(f"Error while creating the app entrypoint: {err}")
+            self.logger.error(f"Error while creating the app entrypoint: {err}")
             raise err
 
     def format_url(self, string: str, variables: Dict[str, str]) -> str:
@@ -394,7 +401,7 @@ class GPM():
         if self.env_mode != 'CODELAB':
             return
 
-        Logger.info("Configuring VS Code ...")
+        self.logger.info("Configuring VS Code ...")
 
         vs_code_folder = self.get_vs_code_setting_folder()
         if not os.path.exists(vs_code_folder):
@@ -419,28 +426,28 @@ class GPM():
         self._config_vs_code_settings_json()
         self.install_notebook_template()
         self._install_vscode_extensions(extensions_dest)
-        Logger.info("VS Code configured !")
+        self.logger.info("VS Code configured !")
 
     def _config_vs_code_settings_json(self) -> None:
         """Configure the vscode settings.json file to add the bricks to the python path
         """
-        Logger.info("Configuring VS Code settings.json file")
+        self.logger.info("Configuring VS Code settings.json file")
         settings_path = self.get_vs_code_settings_file_path()
 
         # load the settings file into a dict
         settings: dict = None
         if not os.path.exists(settings_path):
-            Logger.info('Creating a new vscode settings file')
+            self.logger.info('Creating a new vscode settings file')
             settings = self._generate_vs_code_settings_json(settings_path)
         else:
-            Logger.info('Reading the existing vscode settings file')
+            self.logger.info('Reading the existing vscode settings file')
             try:
                 with open(settings_path, 'r', encoding='UTF-8') as file:
                     settings = json.load(file)
             except Exception as err:
-                Logger.error(
+                self.logger.error(
                     f"Error during parsing of the vscode settings file : {err}.")
-                Logger.error(
+                self.logger.error(
                     "Moving the existing file to settings_backup.json and creating a new one ...")
                 shutil.move(settings_path, os.path.join(
                     self.get_vs_code_setting_folder(), "settings_backup.json"))
@@ -448,7 +455,7 @@ class GPM():
                 settings = self._generate_vs_code_settings_json(settings_path)
                 return
 
-        Logger.info("Adding the bricks to the python path ...")
+        self.logger.info("Adding the bricks to the python path ...")
         # init the extra paths if not already done
         if 'python.autoComplete.extraPaths' not in settings \
                 or not isinstance(settings['python.autoComplete.extraPaths'], list):
@@ -474,12 +481,12 @@ class GPM():
         settings['python.autoComplete.extraPaths'] = new_paths
 
         try:
-            Logger.info('Writting the vscode settings file ...')
+            self.logger.info('Writting the vscode settings file ...')
             # write the settings file
             with open(settings_path, 'w', encoding='UTF-8') as file:
                 json.dump(settings, file, indent=2)
         except Exception as err:
-            Logger.error(
+            self.logger.error(
                 f"Error during writting the vscode settings file : {err}")
             return
 
@@ -495,7 +502,7 @@ class GPM():
     def _install_vscode_extensions(self, extension_file_path: str) -> None:
         """Install the vscode extensions
         """
-        Logger.info("Installing vscode extensions ...")
+        self.logger.info("Installing vscode extensions ...")
         # load the settings file into a dict
         extensions: dict = None
         with open(extension_file_path, 'r', encoding='UTF-8') as file:
@@ -503,13 +510,13 @@ class GPM():
 
         # install the extensions
         for extension in extensions["recommendations"]:
-            Logger.info(f"Installing extension {extension} ...")
+            self.logger.info(f"Installing extension {extension} ...")
             os.system(
                 f"/home/.openvscode-server/bin/openvscode-server code --install-extension {extension}")
 
     def install_notebook_template(self):
 
-        Logger.info("Installing notebook template ...")
+        self.logger.info("Installing notebook template ...")
 
         __cdir__ = os.path.dirname(os.path.abspath(__file__))
         src_notebook_dir = os.path.abspath(
@@ -518,7 +525,7 @@ class GPM():
         tempalate_dir = os.path.join(self.NOTEBOOK_FOLDER, "template")
         if os.path.exists(tempalate_dir):
             # override only the env.py file
-            Logger.info(f"Updating {tempalate_dir} ...")
+            self.logger.info(f"Updating {tempalate_dir} ...")
             shutil.copyfile(
                 os.path.join(src_notebook_dir, "env.py"),
                 os.path.join(tempalate_dir, "env.py")

@@ -1,8 +1,10 @@
 
 
+import json
 import os
 from typing import Literal, Optional, TypedDict
-import requests
+
+from requests import Response, get
 
 
 class CommunityBrick(TypedDict):
@@ -33,16 +35,28 @@ class CommunityService:
         if api_key is not None:
             headers["X-Api-Key"] = api_key
 
-        response = requests.get(
+        response = get(
             f"{CommunityService._get_api_url()}/brick/central/name/{brick_name}/{verison}",
             headers=headers
         )
 
         if response.status_code != 200:
-            raise Exception(
-                f"Error while getting brick {brick_name} from community api: {response.text}")
+            error = CommunityService.handle_error(response)
+            raise Exception(error)
 
         return response.json()
+
+    @staticmethod
+    def handle_error(response: Response) -> str:
+        try:
+            error_json = response.json()
+
+            if 'detail' in error_json:
+                return error_json['detail']
+
+            return response.text
+        except Exception:
+            return response.text
 
     @staticmethod
     def _get_api_url() -> str:

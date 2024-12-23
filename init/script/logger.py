@@ -1,31 +1,88 @@
 
 
-from datetime import datetime
 import sys
+from datetime import datetime
+from json import dump, load
+import traceback
+from typing import List, Optional, TypedDict
+
+
+class ProgressObject(TypedDict):
+    percent: float
+    message: str
+
+
+class LogFileObject(TypedDict):
+    progress: Optional[ProgressObject]
+    main_errors: List[str]
+    errors: List[str]
 
 
 class Logger:
 
-    @classmethod
-    def info(cls, msg: str) -> None:
-        cls._log(msg, "INFO")
+    log_file_path: str = None
 
-    @classmethod
-    def error(cls, msg)-> None:
-        cls._log(msg, "ERROR")
-        
-    @classmethod
-    def log_progress(cls, msg: str, percent: int)-> None:
-        cls._log(f"[PROGRESS]{percent}%[PROGRESS] {msg}", "INFO")
-        
+    def __init__(self, log_file_path: str):
+        self.log_file_path = log_file_path
+        self._dump_log_file({
+            "progress": None,
+            "main_errors": [],
+            "errors": []
+        })
 
-    @classmethod
-    def _log(cls, msg: str, type_: str)-> None:
+    def _dump_log_file(self, log_file_object: LogFileObject) -> None:
+        with open(self.log_file_path, "w+", encoding='UTF-8') as f:
+            dump(log_file_object, f)
+
+    def _load_log_file(self) -> LogFileObject:
+        try:
+            with open(self.log_file_path, "r", encoding='UTF-8') as f:
+                return load(f)
+        except Exception:
+            return {
+                "progress": None,
+                "main_errors": [],
+                "errors": []
+            }
+
+    def info(self, msg: str) -> None:
+        self._log(msg, "INFO")
+
+    def error(self, msg) -> None:
+        self._log(msg, "ERROR")
+
+        log_file = self._load_log_file()
+        log_file["errors"].append(msg)
+        self._dump_log_file(log_file)
+
+    def main_error(self, msg) -> None:
+        """
+        Log an error message to the main output, it can be read by lab manager
+        """
+        self._log(f"{msg}", "ERROR")
+
+        # Get the stack trace
+        stack_trace = traceback.format_exc()
+
+        log_file = self._load_log_file()
+        log_file["main_errors"].append(msg)
+        log_file["errors"].append(f"{msg}\n{stack_trace}")
+        self._dump_log_file(log_file)
+
+    def log_progress(self, msg: str, percent: int) -> None:
+        self._log(f"{percent}% {msg}", "INFO")
+
+        log_file = self._load_log_file()
+        log_file["progress"] = {
+            "percent": percent,
+            "message": msg
+        }
+        self._dump_log_file(log_file)
+
+    def _log(self, msg: str, type_: str) -> None:
         if type_ == "ERROR":
             sys.stderr.write(
                 f"{type_} - {datetime.now().isoformat()} - {msg}")
         else:
             # get the date in UTC format
             print(f"{type_} - {datetime.now().isoformat()} - {msg}")
-
-        #
