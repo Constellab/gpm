@@ -58,6 +58,9 @@ class GPM():
     # path where the default config for vs code is stored (it need to be copied to the user workspace)
     VS_CODE_DEFAULT_CONFIG_PATH = "/.vs-code-server-config"
 
+    INSTALL_DEPENDENCIES_PROGRESS_START: float = 10.0
+    INSTALL_DEPENDENCIES_PROGRESS_END: float = 90.0
+
     config_reader: SettingsReader = None
     package_lock: PackageLock
 
@@ -112,7 +115,8 @@ class GPM():
 
         self.env_mode = env_mode
 
-        self.pip_manager = PipManager(self.logger)
+        self.pip_manager = PipManager(self.logger, self.INSTALL_DEPENDENCIES_PROGRESS_START,
+                                      self.INSTALL_DEPENDENCIES_PROGRESS_END)
         self._installed_git_packages: list = []
         self._installed_brick_packages: list = []
 
@@ -134,7 +138,7 @@ class GPM():
             self.logger.main_error(f"Error while installing git packages. {err}")
             raise err
 
-        self.logger.log_progress("Installing bricks dependencies", 10)
+        self.logger.log_progress("Installing bricks dependencies", self.INSTALL_DEPENDENCIES_PROGRESS_START)
 
         try:
             # install all the pip packages
@@ -146,7 +150,7 @@ class GPM():
             if self.env_mode == 'GLAB':
                 raise err
 
-        self.logger.log_progress("Starting lab", 90)
+        self.logger.log_progress("Starting lab", self.INSTALL_DEPENDENCIES_PROGRESS_END)
 
         self.configure_settings_json()
         self.configure_vscode()

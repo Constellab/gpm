@@ -1,11 +1,11 @@
 
 
-import os
+import select
 import subprocess
 from typing import Dict, List
 
-from .logger import Logger
 from .config_reader import PackageInfo
+from .logger import Logger
 
 
 class PipManager:
@@ -17,10 +17,39 @@ class PipManager:
 
     logger: Logger = None
 
-    def __init__(self, logger: Logger):
+    # values to normalize the PipManager progress to the global progress
+    global_progress_start: float
+    global_progress_end: float
+
+    # current step of the pip manager
+    # from 0 to 100 based on pip manager progress
+    current_progress: float = 0.0
+    download_finished: bool = False
+
+    disable_cache: bool
+    log_progress: bool
+
+    PROGRESS_TEXT: str = "Installing bricks dependencies"
+    # The message indicating that a package is being downloaded is formatted as follows:
+    # "Downloading pandas-2.2.2*"
+    DOWNLOADING_PACKAGE_TEXT: str = "Downloading "
+
+    # we consider the downloads takes 80% and installation takes 20% of the progress
+    DOWLOADING_END_TEXT: str = "Installing collected packages"
+    DOWNLOADING_END_PROGRESS: float = 80.0
+
+    # Number of lines in the log for a package to be considered as downloaded
+    NUMBER_OF_PACKAGE_LOG_LINES: int = 2
+
+    def __init__(self, logger: Logger, global_progress_start: float, global_progress_end: float,
+                 disable_cache: bool = False, log_progress: bool = False) -> None:
         self.packages = []
         self._installed_packages_version = []
         self.logger = logger
+        self.global_progress_start = global_progress_start
+        self.global_progress_end = global_progress_end
+        self.disable_cache = disable_cache
+        self.log_progress = log_progress
 
     def add_packages(self, packages: List[PackageInfo]) -> None:
         """ Add a list of packages to the list of packages to install """
@@ -37,6 +66,9 @@ class PipManager:
 
     def install_packages(self) -> None:
         """ Install all packages in the list """
+
+        # reset the progress
+        self.current_progress = 0.0
 
         # group packages by source
         packages_by_source: Dict[str, List[PackageInfo]] = {}
@@ -70,24 +102,103 @@ class PipManager:
         _packages_with_version.sort()
 
         cmd = ["python3", "-m", "pip", "install", *
-               _packages_with_version, "--extra-index-url", source]
+               _packages_with_version, "--extra-index-url", source.strip()]
+
+        if self.disable_cache:
+            cmd.append("--no-cache-dir")
+
         self.logger.info(f"Installing pip packages : '{' '.join(cmd)}'")
-        self._run_proc(cmd)
+        self._run_cmd(cmd, package_count=len(packages))
 
         self._installed_packages_version.extend(_packages_with_version)
 
         self.logger.info("Pip packages successfully insalled")
 
-    def _run_proc(self, cmd, cwd=None) -> bool:
-        if cwd:
-            if not os.path.exists(cwd):
-                os.makedirs(cwd)
+    def _run_cmd(self, cmd: List[str], package_count: int) -> bool:
+        self.download_finished = False
+
+        # set the install ratio if there is multiple source, multiple install commands are trigger
+        install_ratio = package_count / len(self.packages)
+
         try:
-            subprocess.check_call(cmd, cwd=cwd)
+            proc = subprocess.Popen(
+                cmd,
+                stdout=subprocess.PIPE,
+            )
+
+            reads = [proc.stdout.fileno()]
+            while True:
+                # return the list of file descriptors that are ready to be read
+                ret = select.select(reads, [], [])
+
+                has_read: bool = False
+
+                for file_no in ret[0]:
+
+                    if file_no == proc.stdout.fileno():
+                        read = proc.stdout.readline()
+                        if read:
+                            self._handle_output(read.decode("utf-8"), install_ratio, package_count)
+                            has_read = True
+
+                poll = proc.poll()
+
+                # stop if the process has finished and there is no more data to read
+                # we need to check if there is no more data to read because the process can be finished but there is still data in the buffer (if long log at the end)
+                if poll is not None and not has_read:
+                    break
             return True
         except Exception as err:
             self.logger.error("Error during pip instalation")
             raise err
+
+    def _handle_output(self, output: str, install_ratio: float, package_count: int) -> None:
+        self.logger.info(output)
+
+        if self.download_finished:
+            return
+
+        output = output.strip()
+        # if we detect the step end text, we move to the next step
+        if output.startswith(self.DOWLOADING_END_TEXT):
+            # we add the remaining progress to reach 100%
+            add_progress = (100 - self.DOWNLOADING_END_PROGRESS) * install_ratio
+            self._update_progress(add_progress)
+            self.download_finished = True
+            return
+
+        # if we detect the line of a package, we update the progress
+        if output.startswith(self.DOWNLOADING_PACKAGE_TEXT):
+
+            # get the text after "Downloading "
+            after_text = output[len(self.DOWNLOADING_PACKAGE_TEXT):]
+
+            # if the text after is one of the package name, we update the progress
+            for package in self.packages:
+                if after_text.startswith(package['name']):
+                    # number of line to consider all package as downloaded
+                    total_required_lines = package_count * self.NUMBER_OF_PACKAGE_LOG_LINES
+                    # When we rach the last package downloaded, the progress should be at 80%
+                    downloaded_package_ratio = self.DOWNLOADING_END_PROGRESS / 100
+
+                    # we get the percentage of 1 package of the total number of packages
+                    # then we apply the different ratio to get the progress
+                    add_progress = (1 / (total_required_lines)
+                                    ) * 100 * downloaded_package_ratio * install_ratio
+
+                    self._update_progress(add_progress)
+                    return
+
+    def _update_progress(self, progress_add: float) -> None:
+        self.current_progress += progress_add
+        # normalise progress base on global_progress_start and global_progress_end
+        normalized_progress = self._normalize_progress(
+            self.current_progress, self.global_progress_start, self.global_progress_end)
+        # we skip the log print to avoid polluting the logs
+        self.logger.log_progress(self.PROGRESS_TEXT, int(normalized_progress), log_in_console=self.log_progress)
+
+    def _normalize_progress(self, progress: float, progress_start: float, progress_end: float) -> float:
+        return progress_start + ((progress / 100) * (progress_end - progress_start))
 
     def get_installed_packages_version(self) -> List[str]:
         packages = self._installed_packages_version

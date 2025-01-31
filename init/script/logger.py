@@ -1,9 +1,9 @@
 
 
 import sys
+import traceback
 from datetime import datetime
 from json import dump, load
-import traceback
 from typing import List, Optional, TypedDict
 
 
@@ -69,8 +69,9 @@ class Logger:
         log_file["errors"].append(f"{msg}\n{stack_trace}")
         self._dump_log_file(log_file)
 
-    def log_progress(self, msg: str, percent: int) -> None:
-        self._log(f"{percent}% {msg}", "INFO")
+    def log_progress(self, msg: str, percent: int, log_in_console: bool = True) -> None:
+        if log_in_console:
+            self._log(f"{percent}% {msg}", "INFO")
 
         log_file = self._load_log_file()
         log_file["progress"] = {
@@ -80,6 +81,8 @@ class Logger:
         self._dump_log_file(log_file)
 
     def _log(self, msg: str, type_: str) -> None:
+        if msg.endswith("\n"):
+            msg = msg[:-1]
         if type_ == "ERROR":
             sys.stderr.write(
                 f"{type_} - {datetime.now().isoformat()} - {msg}")
