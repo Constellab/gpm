@@ -8,8 +8,8 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 ENV TZ=UTC
 
 # don't name it PIP_VERSION because it will be overwritten by pip
-ENV CUSTOM_PIP_VERSION 24.0
-ENV CUSTOM_MAMBA_VERSION 24.1.2-0
+ENV CUSTOM_PIP_VERSION=25.0.1
+ENV CUSTOM_MAMBA_VERSION=24.11.3-2
 
 # install python v 3.10 & base packages
 RUN apt-get -y update && \
@@ -26,7 +26,7 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python3 get-pip.py "pip==${CUSTOM_PIP_VERSION}" && \
     python3 -m pip install --upgrade setuptools 
 # install pipenv
-RUN pip install pipenv==2024.0.1
+RUN pip install pipenv==2024.4.1
 
 # Installing conda and mamba
 # Info from https://github.com/conda-forge/miniforge#mambaforge
