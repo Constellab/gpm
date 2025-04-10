@@ -4,7 +4,7 @@ FROM $IMAGE
 LABEL maintainer="Admin <admin@gencovery.com>"
 
 # Choose version from https://github.com/gitpod-io/openvscode-server
-ARG RELEASE_TAG=openvscode-server-v1.96.4
+ARG RELEASE_TAG=openvscode-server-v1.98.2
 ARG RELEASE_ORG="gitpod-io"
 ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
 
@@ -13,6 +13,8 @@ WORKDIR /home
 
 RUN apt update && \
     apt install -y git wget && \
+    # install ssh server
+    apt install -y openssh-server && \
     rm -rf /var/lib/apt/lists/* && \
     pip install mypy==1.14.1 pylint==3.3.4 autopep8==2.3.2
 
@@ -45,6 +47,10 @@ RUN if [ -z "${RELEASE_TAG}" ]; then \
     mv -f ${RELEASE_TAG}-linux-${arch} ${OPENVSCODE_SERVER_ROOT} && \
     cp ${OPENVSCODE_SERVER_ROOT}/bin/remote-cli/openvscode-server ${OPENVSCODE_SERVER_ROOT}/bin/remote-cli/code && \
     rm -f ${RELEASE_TAG}-linux-${arch}.tar.gz
+
+# Configure SSH server, to allow remote access from VsCode
+RUN mkdir -p /etc/ssh
+COPY ./dockerfile/codelab/sshd_config /etc/ssh/sshd_config
 
 WORKDIR /lab/user/
 

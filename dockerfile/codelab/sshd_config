@@ -1,0 +1,39 @@
+# SSH Server Configuration
+# File to configure the ssh server so it is possible to connect to the container
+# with SSH and use it with VS Code Remote
+Port 2222
+ListenAddress 0.0.0.0
+
+# Authentication
+PermitRootLogin yes
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitEmptyPasswords no
+ChallengeResponseAuthentication no
+
+# TCP Forwarding - Essential for VS Code Remote
+AllowTcpForwarding yes
+GatewayPorts no
+X11Forwarding no
+
+# Various settings
+Subsystem sftp internal-sftp
+UseDNS no
+PrintMotd no
+AcceptEnv LANG LC_*
+
+# Required for proper interactive sessions with VS Code
+PermitTTY yes
+
+# Allow client to pass environment variables
+AcceptEnv *
+PermitUserEnvironment yes
+
+# Keep connections alive
+ClientAliveInterval 60
+ClientAliveCountMax 10
+
+# Permit the server to listen on localhost for server-to-server connections
+# This is needed for VS Code's port forwarding
+GatewayPorts clientspecified
+PermitTunnel yes
