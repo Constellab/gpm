@@ -464,6 +464,10 @@ class GPM():
         if 'python.autoComplete.extraPaths' not in settings \
                 or not isinstance(settings['python.autoComplete.extraPaths'], list):
             settings['python.autoComplete.extraPaths'] = []
+        
+        if 'python.analysis.extraPaths' not in settings \
+                or not isinstance(settings['python.analysis.extraPaths'], list):
+            settings['python.analysis.extraPaths'] = []
 
         # add the brick paths to the extra paths
         existing_paths: List[str] = settings['python.autoComplete.extraPaths']
@@ -483,6 +487,7 @@ class GPM():
             if not found:
                 new_paths.append(existing_path)
         settings['python.autoComplete.extraPaths'] = new_paths
+        settings['python.analysis.extraPaths'] = new_paths
 
         try:
             self.logger.info('Writting the vscode settings file ...')

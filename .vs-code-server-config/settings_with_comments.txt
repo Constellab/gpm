@@ -29,6 +29,7 @@
   // the paths to the bricks are dynamically added by gpm
   // so vscode knows where to find the bricks
   "python.autoComplete.extraPaths": [],
+  "python.analysis.extraPaths": [],
   
   // linting rules it takes the rules of .pylintrc file
   "python.linting.pylintPath": "/usr/local/bin/pylint",
