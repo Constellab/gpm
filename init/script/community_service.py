@@ -36,7 +36,7 @@ class CommunityService:
             headers["X-Api-Key"] = api_key
 
         response = get(
-            f"{CommunityService._get_api_url()}/brick/central/name/{brick_name}/{verison}",
+            f"{CommunityService._get_api_url()}/brick/space/name/{brick_name}/{verison}",
             headers=headers
         )
 
