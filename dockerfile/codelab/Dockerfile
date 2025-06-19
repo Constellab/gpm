@@ -4,7 +4,7 @@ FROM $IMAGE
 LABEL maintainer="Admin <admin@gencovery.com>"
 
 # Choose version from https://github.com/gitpod-io/openvscode-server
-ARG RELEASE_TAG=openvscode-server-v1.98.2
+ARG RELEASE_TAG=openvscode-server-v1.99.3
 ARG RELEASE_ORG="gitpod-io"
 ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
 
@@ -16,7 +16,7 @@ RUN apt update && \
     # install ssh server
     apt install -y openssh-server && \
     rm -rf /var/lib/apt/lists/* && \
-    pip install mypy==1.14.1 pylint==3.3.4 autopep8==2.3.2
+    pip install mypy==1.16.1 pylint==3.3.7 autopep8==2.3.2
 
 # Set UTC timezone for the docker
 ENV TZ=UTC \
