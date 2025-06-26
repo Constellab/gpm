@@ -1,6 +1,6 @@
 # Dockerfile to build an image to work on lab (gws_core, gws_biota)
 # with vscode remote containers
-FROM glab:latest
+FROM constellab/glab:latest
 
 # Configure python
 RUN pip install mypy pylint autopep8

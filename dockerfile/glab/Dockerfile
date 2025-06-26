@@ -36,7 +36,7 @@ RUN curl -L https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_
     bash mamba_install.sh -b -p /opt/conda && \
     # enable conda and mamba in bash
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
-    echo ". /opt/conda/etc/profile.d/mamba.sh" >> ~/.bashrc && \
+    mamba shell init && \
     rm mamba_install.sh
 
 # install gws dependencies
