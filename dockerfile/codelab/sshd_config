@@ -29,6 +29,13 @@ PermitTTY yes
 AcceptEnv *
 PermitUserEnvironment yes
 
+# Ensure login shell is used for SSH sessions to load profile scripts
+# This ensures /etc/profile.d/ scripts are executed
+PermitUserRC yes
+
+# Use environment file for SSH sessions
+PermitUserEnvironment yes
+
 # Keep connections alive
 ClientAliveInterval 60
 ClientAliveCountMax 10

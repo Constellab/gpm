@@ -20,46 +20,29 @@ fi
 # Create new profile script with environment variables
 echo "#!/bin/bash" > "$PROFILE_FILE"
 echo "# Generated environment variables for codelab container" >> "$PROFILE_FILE"
+echo "# Auto-generated on $(date)" >> "$PROFILE_FILE"
 echo "" >> "$PROFILE_FILE"
 
-# Add all environment variables directly to the profile script
-echo "export LAB_ID=\"${LAB_ID}\"" >> "$PROFILE_FILE"
-echo "export LAB_NAME=\"${LAB_NAME}\"" >> "$PROFILE_FILE"
-echo "export LAB_MODE=\"${LAB_MODE}\"" >> "$PROFILE_FILE"
-echo "export LAB_ENVIRONMENT=\"${LAB_ENVIRONMENT}\"" >> "$PROFILE_FILE"
-echo "export LAB_PROD_API_URL=\"${LAB_PROD_API_URL}\"" >> "$PROFILE_FILE"
-echo "export LAB_DEV_API_URL=\"${LAB_DEV_API_URL}\"" >> "$PROFILE_FILE"
-echo "export SPACE_API_KEY=\"${SPACE_API_KEY}\"" >> "$PROFILE_FILE"
-echo "export SPACE_API_URL=\"${SPACE_API_URL}\"" >> "$PROFILE_FILE"
-echo "export SPACE_FRONT_URL=\"${SPACE_FRONT_URL}\"" >> "$PROFILE_FILE"
-echo "export FRONT_URL=\"${FRONT_URL}\"" >> "$PROFILE_FILE"
-echo "export FRONT_VERSION=\"${FRONT_VERSION}\"" >> "$PROFILE_FILE"
-echo "export GPU=\"${GPU}\"" >> "$PROFILE_FILE"
-echo "export VIRTUAL_HOST=\"${VIRTUAL_HOST}\"" >> "$PROFILE_FILE"
-echo "export BIOTA_BIODATA_DIR=\"${BIOTA_BIODATA_DIR}\"" >> "$PROFILE_FILE"
-echo "export OPENAI_API_KEY=\"${OPENAI_API_KEY}\"" >> "$PROFILE_FILE"
-echo "export COMMUNITY_API_URL=\"${COMMUNITY_API_URL}\"" >> "$PROFILE_FILE"
-echo "export COMMUNITY_FRONT_URL=\"${COMMUNITY_FRONT_URL}\"" >> "$PROFILE_FILE"
-echo "export COMMUNITY_API_KEY=\"${COMMUNITY_API_KEY}\"" >> "$PROFILE_FILE"
-echo "export GWS_CORE_DB_HOST=\"${GWS_CORE_DB_HOST}\"" >> "$PROFILE_FILE"
-echo "export GWS_CORE_DB_USER=\"${GWS_CORE_DB_USER}\"" >> "$PROFILE_FILE"
-echo "export GWS_CORE_DB_PASSWORD=\"${GWS_CORE_DB_PASSWORD}\"" >> "$PROFILE_FILE"
-echo "export GWS_CORE_DB_NAME=\"${GWS_CORE_DB_NAME}\"" >> "$PROFILE_FILE"
-echo "export GWS_CORE_DB_PORT=\"${GWS_CORE_DB_PORT}\"" >> "$PROFILE_FILE"
-echo "export GWS_TEST_DB_HOST=\"${GWS_TEST_DB_HOST}\"" >> "$PROFILE_FILE"
-echo "export GWS_TEST_DB_USER=\"${GWS_TEST_DB_USER}\"" >> "$PROFILE_FILE"
-echo "export GWS_TEST_DB_PASSWORD=\"${GWS_TEST_DB_PASSWORD}\"" >> "$PROFILE_FILE"
-echo "export GWS_TEST_DB_NAME=\"${GWS_TEST_DB_NAME}\"" >> "$PROFILE_FILE"
-echo "export GWS_TEST_DB_PORT=\"${GWS_TEST_DB_PORT}\"" >> "$PROFILE_FILE"
-echo "export GWS_BIOTA_DB_HOST=\"${GWS_BIOTA_DB_HOST}\"" >> "$PROFILE_FILE"
-echo "export GWS_BIOTA_DB_USER=\"${GWS_BIOTA_DB_USER}\"" >> "$PROFILE_FILE"
-echo "export GWS_BIOTA_DB_PASSWORD=\"${GWS_BIOTA_DB_PASSWORD}\"" >> "$PROFILE_FILE"
-echo "export GWS_BIOTA_DB_NAME=\"${GWS_BIOTA_DB_NAME}\"" >> "$PROFILE_FILE"
-echo "export GWS_BIOTA_DB_PORT=\"${GWS_BIOTA_DB_PORT}\"" >> "$PROFILE_FILE"
-echo "export STREAMLIT_APP_SERVER_PORT=\"${STREAMLIT_APP_SERVER_PORT}\"" >> "$PROFILE_FILE"
-echo "export STREAMLIT_APP_SERVER_HOST=\"${STREAMLIT_APP_SERVER_HOST}\"" >> "$PROFILE_FILE"
+# Export all current environment variables
+env | while IFS='=' read -r key value; do
+    # Escape quotes in the value
+    escaped_value=$(printf '%s\n' "$value" | sed 's/"/\\"/g')
+    echo "export $key=\"$escaped_value\"" >> "$PROFILE_FILE"
+done
 
 # Make the profile script executable
 chmod +x "$PROFILE_FILE"
 
 echo "Created environment profile at $PROFILE_FILE"
+
+# Create/update .bashrc for root user to source the profile
+# .bashrc modification - Ensures the profile script is sourced even in non-login interactive shells
+if [ ! -f "/root/.bashrc" ] || ! grep -q "codelab-environment.sh" "/root/.bashrc"; then
+    echo "" >> "/root/.bashrc"
+    echo "# Source codelab environment variables" >> "/root/.bashrc"
+    echo "if [ -f /etc/profile.d/codelab-environment.sh ]; then" >> "/root/.bashrc"
+    echo "    source /etc/profile.d/codelab-environment.sh" >> "/root/.bashrc"
+    echo "fi" >> "/root/.bashrc"
+fi
+
+echo "SSH environment configured successfully"
