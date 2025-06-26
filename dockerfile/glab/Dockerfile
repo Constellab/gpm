@@ -34,10 +34,12 @@ RUN pip install pipenv==2025.0.3
 # Info from https://github.com/conda-forge/miniforge#mambaforge
 RUN curl -L https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_MAMBA_VERSION}/Miniforge3-${CUSTOM_MAMBA_VERSION}-$(uname)-$(uname -m).sh -o mamba_install.sh && \
     bash mamba_install.sh -b -p /opt/conda && \
-    # enable conda and mamba in bash
+    # enable conda in bash
     echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc && \
-    mamba shell init && \
+    # enable mamba in bash
+    /opt/conda/bin/mamba shell init --shell bash && \
     rm mamba_install.sh
+
 
 # install gws dependencies
 RUN python3 -m pip install  click==8.2.1 \
