@@ -50,7 +50,7 @@ RUN if [ -z "${RELEASE_TAG}" ]; then \
 
 # Configure SSH server, to allow remote access from VsCode
 RUN mkdir -p /etc/ssh
-COPY ./dockerfile/codelab/sshd_config /etc/ssh/sshd_config
+COPY ./dockerfile/codelab/sshd_config /tmp/sshd_config
 
 WORKDIR /lab/user/
 

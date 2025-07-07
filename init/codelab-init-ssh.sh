@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Copy the ssh config in the correct location
+# we use copy here because the /etc/ssh directory is mounted from the host
+# and we want to ensure that the sshd_config file is always up to date
+echo "Copying SSH configuration..."
+cp /tmp/sshd_config /etc/ssh/sshd_config
+
 # Create profile script to source environment variables during SSH login
 # With this, the environment vairbale defined in the docker-compose file are available
 # when logging in ssh. 
