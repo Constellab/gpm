@@ -6,6 +6,16 @@
 echo "Copying SSH configuration..."
 cp /tmp/sshd_config /etc/ssh/sshd_config
 
+# Generate host keys if they don't exist
+if [ ! -f /etc/ssh/ssh_host_rsa_key ]; then
+    echo "Generating SSH host keys..."
+    ssh-keygen -A
+fi
+
+# Ensure correct permissions
+chmod 600 /etc/ssh/ssh_host_*_key
+chmod 644 /etc/ssh/ssh_host_*_key.pub
+
 # Create profile script to source environment variables during SSH login
 # With this, the environment vairbale defined in the docker-compose file are available
 # when logging in ssh. 
