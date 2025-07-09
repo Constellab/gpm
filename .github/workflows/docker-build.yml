@@ -61,6 +61,17 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
           organization: ${{ env.ORGANIZATION }}
           push_description: true
+
+      - uses: ./.github/actions/docker-build-and-push
+        with:
+          container_name: "dev-env"
+          source_image: ${{ env.ORGANIZATION }}/glab:${{ github.ref_name }}
+          version: ${{ github.ref_name }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          organization: ${{ env.ORGANIZATION }}
+          push_description: true
+    
     
 
   # Build the GPU images, container tagged with gpu-[version]
