@@ -4,9 +4,9 @@
 
 <br/>
 
-# 👋 Welcome to Glab 
+# 👋 Welcome to Lab Dev Env
 
-```glab``` is a [Constellab](https://constellab.io) container developped by [Gencovery](https://gencovery.com/). It installs the Constellab bricks in the lab and then runs the python api.
+```lab-dev-env``` is a [Constellab](https://constellab.io) container developped by [Gencovery](https://gencovery.com/). It contains a pre-configured environment to develop locally the data lab.
 
 ## 🚀 What is Constellab?
 
@@ -18,10 +18,12 @@
 
 ## ✅ Features
 
-This container is installed and runned by the [lab-manager](https://hub.docker.com/r/constellab/lab-manager). It installs the bricks of the data lab, then run the api. 
- 
+This container is installed and runned by the [lab-manager](https://hub.docker.com/r/constellab/lab-manager).
 
-To view more information about the lab architecture [here](https://constellab.community/bricks/gws_core/latest/doc/architecture/7a8ec82f-f9d3-4f22-98cc-ee604a0e6b07) 
+📋 Here is the list of the main features:
+- Preconfigured python development environment
+- POssibility to develop gws_core or other bricks locally
+ 
 
 ## 📄 Documentation
 
@@ -31,10 +33,7 @@ To view more information about the lab architecture [here](https://constellab.co
 
 ## 🛠️ Installation
 
-To run this container, you need to run the [lab-manager](https://hub.docker.com/r/constellab/lab-manager) container first. 
-
-Then from [Constellab](https://constellab.space) space, you can configure your lab and run the glab.
-
+To run this container, we recommend using the repository [lab-configurer](https://github.com/Constellab/lab-configurer) and run the docker-compose file inside the local directory.
 
 ## 🤗 Community
 
@@ -46,7 +45,7 @@ Then from [Constellab](https://constellab.space) space, you can configure your l
 
 ## 🌎 License
 
-```glab``` is completely free and open-source and licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
+```lab-dev-env``` is completely free and open-source and licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
 
 <br/>
 
