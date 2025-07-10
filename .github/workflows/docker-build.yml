@@ -64,7 +64,7 @@ jobs:
 
       - uses: ./.github/actions/docker-build-and-push
         with:
-          container_name: "dev-env"
+          container_name: "lab-dev-env"
           source_image: ${{ env.ORGANIZATION }}/glab:${{ github.ref_name }}
           version: ${{ github.ref_name }}
           username: ${{ secrets.DOCKER_USERNAME }}
