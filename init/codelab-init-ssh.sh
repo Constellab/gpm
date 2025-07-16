@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# To debug ssh server run : 
+# Stop the current SSH service
+# > service ssh stop
+# Run in debug mode (will show logs in real-time)
+# > /usr/sbin/sshd -D -d
+# End debug
+
 # Copy the ssh config in the correct location
 # we use copy here because the /etc/ssh directory is mounted from the host
 # and we want to ensure that the sshd_config file is always up to date
