@@ -16,7 +16,7 @@ ENV CUSTOM_MAMBA_VERSION=25.3.0-3
 # install python v 3.10 & base packages
 RUN apt-get -y update && \
     apt-get -y install python3.10 python3-distutils && \
-    apt-get -y install git curl zip unzip bzip2 wget rsync && \
+    apt-get -y install git curl zip unzip bzip2 wget rsync nginx && \
     # It is needed to install hdmedians which is a dependency of scikit-bio
     # build essential install g++ and gcc which are commonly needed
     apt-get -y install gcc libpq-dev python3-dev build-essential && \
