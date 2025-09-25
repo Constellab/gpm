@@ -19,7 +19,7 @@ Use the VsCode testing extension and run test gpm tests.
 Testing the glab image locally : ```docker build -t glab:latest -f ./dockerfile/glab/Dockerfile .```
 Testing the codelab image locally : ```docker build -t local-codelab -f ./dockerfile/codelab/Dockerfile .```
 
-Coding using the dev-env image : ```docker build -t local-dev-env -f ./dockerfile/dev-env/Dockerfile .```
+Coding using the dev-env image : ```docker build -t lab-dev-env -f ./dockerfile/lab-dev-env/Dockerfile .```
 
 To run and tests the images, see lab-configurer repository.
 
