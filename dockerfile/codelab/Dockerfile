@@ -16,8 +16,8 @@ USER root
 
 RUN apt update && \
     apt install -y git wget && \
-    # install ssh server
-    apt install -y openssh-server && \
+    # install ssh server and rsyslog for logging
+    apt install -y openssh-server rsyslog && \
     pip install --user mypy==1.16.1 pylint==3.3.7 autopep8==2.3.2 && \
     rm -rf /var/lib/apt/lists/*
 
@@ -54,6 +54,7 @@ RUN if [ -z "${RELEASE_TAG}" ]; then \
 # Configure SSH server, to allow remote access from VsCode
 RUN mkdir -p /etc/ssh
 COPY ./dockerfile/codelab/sshd_config /tmp/sshd_config
+COPY ./dockerfile/codelab/rsyslog.conf /etc/rsyslog.conf
 
 WORKDIR /lab/user/
 

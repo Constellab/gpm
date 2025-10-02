@@ -23,8 +23,18 @@ fi
 chmod 600 /etc/ssh/ssh_host_*_key
 chmod 644 /etc/ssh/ssh_host_*_key.pub
 
+# Start rsyslog for SSH logging
+echo "Starting rsyslog service..."
+# Create log file first
+touch /var/log/auth.log
+chmod 640 /var/log/auth.log
+/usr/sbin/rsyslogd
+
 echo "Starting SSH server..."
 service ssh start
+
+# Verify SSH is logging
+echo "SSH server started. Logs available at /var/log/auth.log"
 
 # Create profile script to export container environment variables for SSH sessions
 # This preserves app configuration from docker-compose while letting SSH set user-specific vars
