@@ -61,10 +61,10 @@ class SettingsReader:
         self.settings = self.read_settings()
 
     def get_name(self) -> str:
-        return self.settings["name"]
+        return self.settings.get("name", "")
 
     def get_variables(self) -> Dict[str, str]:
-        return self.settings["variables"]
+        return self.settings.get("variables", {})
 
     def get_environment(self) -> SettingFileEnv:
         return self.settings.get("environment", {})

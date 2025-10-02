@@ -4,7 +4,7 @@ FROM $IMAGE
 LABEL maintainer="Admin <admin@gencovery.com>"
 
 # Choose version from https://github.com/gitpod-io/openvscode-server
-ARG RELEASE_TAG=openvscode-server-v1.99.3
+ARG RELEASE_TAG=openvscode-server-v1.103.1
 ARG RELEASE_ORG="gitpod-io"
 ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
 
@@ -18,8 +18,7 @@ RUN apt update && \
     apt install -y git wget && \
     # install ssh server
     apt install -y openssh-server && \
-    rm -rf /var/lib/apt/lists/* && \
-    pip install mypy==1.16.1 pylint==3.3.7 autopep8==2.3.2
+    rm -rf /var/lib/apt/lists/*
 
 # Set UTC timezone for the docker
 ENV TZ=UTC \
@@ -55,17 +54,15 @@ RUN if [ -z "${RELEASE_TAG}" ]; then \
 RUN mkdir -p /etc/ssh
 COPY ./dockerfile/codelab/sshd_config /tmp/sshd_config
 
-# Create working directory and set ownership
-RUN mkdir -p /lab/user && \
-    chown -R labuser:labuser /lab
-
 WORKDIR /lab/user/
 
-COPY ./.vs-code-server-config/ /.vs-code-server-config/
-RUN chown -R labuser:labuser /.vs-code-server-config/
+COPY --chown=labuser:labuser  ./.vs-code-server-config/ /.vs-code-server-config/
 
 # Switch back to labuser for runtime
 USER labuser
+
+# Install Python packages as labuser
+RUN pip install --user mypy==1.16.1 pylint==3.3.7 autopep8==2.3.2
 
 EXPOSE 8080
 

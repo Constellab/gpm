@@ -12,8 +12,8 @@ elif [ "$1" == "--run-codelab" ]; then
     # Source the conda and mamba profiles
     # This is necessary to ensure conda and mamba commands are available in the environment
     # otherwise the codelab-init-ssh.sh breaks the 'bash -c "mamba"' command.
-    source /opt/conda/etc/profile.d/conda.sh
-    source /opt/conda/etc/profile.d/mamba.sh
+    source /home/labuser/conda/etc/profile.d/conda.sh
+    source /home/labuser/conda/etc/profile.d/mamba.sh
 
     sudo bash /init-lab/codelab-init-ssh.sh
     
