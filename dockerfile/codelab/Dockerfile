@@ -18,6 +18,7 @@ RUN apt update && \
     apt install -y git wget && \
     # install ssh server
     apt install -y openssh-server && \
+    pip install --user mypy==1.16.1 pylint==3.3.7 autopep8==2.3.2 && \
     rm -rf /var/lib/apt/lists/*
 
 # Set UTC timezone for the docker
@@ -60,9 +61,6 @@ COPY --chown=labuser:labuser  ./.vs-code-server-config/ /.vs-code-server-config/
 
 # Switch back to labuser for runtime
 USER labuser
-
-# Install Python packages as labuser
-RUN pip install --user mypy==1.16.1 pylint==3.3.7 autopep8==2.3.2
 
 EXPOSE 8080
 

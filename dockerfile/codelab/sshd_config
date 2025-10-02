@@ -8,8 +8,9 @@ ListenAddress 0.0.0.0
 SyslogFacility AUTH
 LogLevel INFO
 
-# Authentication
+# Authentication - Only allow labuser to login
 PermitRootLogin no
+AllowUsers labuser
 PubkeyAuthentication yes
 PasswordAuthentication no
 PermitEmptyPasswords no
@@ -29,16 +30,9 @@ AcceptEnv LANG LC_*
 # Required for proper interactive sessions with VS Code
 PermitTTY yes
 
-# Allow client to pass environment variables
-AcceptEnv *
-PermitUserEnvironment yes
-
-# Ensure login shell is used for SSH sessions to load profile scripts
-# This ensures /etc/profile.d/ scripts are executed
-PermitUserRC yes
-
-# Use environment file for SSH sessions
-PermitUserEnvironment yes
+# Don't accept all client environment variables (security risk)
+# Only accept locale settings
+AcceptEnv LANG LC_*
 
 # Keep connections alive
 ClientAliveInterval 60

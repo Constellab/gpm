@@ -23,8 +23,29 @@ RUN apt-get -y update && \
     # create a symlink to python3 so python command will use python3
     ln -s $(which python3) /usr/local/bin/python
 
-EXPOSE 3000
+# install pip system-wide (as root) so it's available to all users
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python3 get-pip.py "pip==${CUSTOM_PIP_VERSION}" && \
+    python3 -m pip install --upgrade setuptools && \
+    rm get-pip.py
 
+# Installing conda and mamba system-wide (as root)
+# Info from https://github.com/conda-forge/miniforge#mambaforge
+RUN curl -L https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_MAMBA_VERSION}/Miniforge3-${CUSTOM_MAMBA_VERSION}-$(uname)-$(uname -m).sh -o mamba_install.sh && \
+    bash mamba_install.sh -b -p /opt/conda && \
+    rm mamba_install.sh && \
+    /opt/conda/bin/conda init bash && \
+    /opt/conda/bin/mamba shell init --shell bash
+
+# Add conda to PATH at the end so system Python 3.10 takes precedence
+# Users can still activate conda environments when needed
+ENV PATH="$PATH:/opt/conda/bin"
+
+# install pipenv and gws dependencies system-wide (as root)
+RUN pip install pipenv==2025.0.3 \
+                click==8.2.1 \
+                GitPython==3.1.44 \
+                requests==2.32.4
 
 # Create non-root user matching host ubuntu user
 ARG USER_ID=1000
@@ -38,30 +59,8 @@ RUN groupadd -g ${GROUP_ID} labuser && \
 USER labuser
 WORKDIR /home/labuser
 
-# Installing conda and mamba as labuser
-# Info from https://github.com/conda-forge/miniforge#mambaforge
-RUN curl -L https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_MAMBA_VERSION}/Miniforge3-${CUSTOM_MAMBA_VERSION}-$(uname)-$(uname -m).sh -o mamba_install.sh && \
-    bash mamba_install.sh -b -p /home/labuser/conda && \
-    rm mamba_install.sh
-
-# install pip as labuser
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python3 get-pip.py --user "pip==${CUSTOM_PIP_VERSION}" && \
-    python3 -m pip install --user --upgrade setuptools && \
-    rm get-pip.py
-
-# Add user's local bin to PATH
+# Add user's local bin to PATH for any user-installed packages
 ENV PATH="/home/labuser/.local/bin:${PATH}"
-
-# install pipenv and gws dependencies as labuser
-RUN pip install --user pipenv==2025.0.3 \
-                       click==8.2.1 \
-                       GitPython==3.1.44 \
-                       requests==2.32.4
-
-# Enable conda and mamba for labuser
-RUN echo ". /home/labuser/conda/etc/profile.d/conda.sh" >> /home/labuser/.bashrc && \
-    /home/labuser/conda/bin/mamba shell init --shell bash
 
 
 COPY --chown=labuser:labuser ./init /init-lab
@@ -70,6 +69,8 @@ RUN chmod +x /init-lab/entrypoint.sh && \
     sed -i -e 's/\r$//' /init-lab/entrypoint.sh && \
     sed -i -e 's/\r$//' /init-lab/init_lab.sh && \
     sed -i -e 's/\r$//' /init-lab/clean.sh
+
+EXPOSE 3000
 
 ENTRYPOINT [ "/init-lab/entrypoint.sh" ]
 CMD [ "--run-glab" ]
