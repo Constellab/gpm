@@ -23,6 +23,10 @@ fi
 chmod 600 /etc/ssh/ssh_host_*_key
 chmod 644 /etc/ssh/ssh_host_*_key.pub
 
+# Unlock labuser account (SSH uses public key auth, not passwords)
+# Change ! to * in shadow file to unlock without password
+sed -i 's/^labuser:!/labuser:*/' /etc/shadow
+
 # Start rsyslog for SSH logging
 echo "Starting rsyslog service..."
 # Create log file first

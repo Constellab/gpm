@@ -52,9 +52,15 @@ RUN if [ -z "${RELEASE_TAG}" ]; then \
     rm -f ${RELEASE_TAG}-linux-${arch}.tar.gz
 
 # Configure SSH server, to allow remote access from VsCode
-RUN mkdir -p /etc/ssh
+RUN mkdir -p /etc/ssh && \
+    # Create locale file to avoid PAM env warnings
+    touch /etc/default/locale && \
+    echo "LANG=C.UTF-8" > /etc/default/locale
 COPY ./dockerfile/codelab/sshd_config /tmp/sshd_config
+# Configure rsyslog for SSH logging (disables imklog for containers)
 COPY ./dockerfile/codelab/rsyslog.conf /etc/rsyslog.conf
+# Configure PAM limits to avoid core dump warnings in containers
+COPY ./dockerfile/codelab/limits.conf /etc/security/limits.conf
 
 WORKDIR /lab/user/
 
