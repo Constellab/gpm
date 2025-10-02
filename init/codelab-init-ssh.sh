@@ -27,6 +27,10 @@ chmod 644 /etc/ssh/ssh_host_*_key.pub
 # Change ! to * in shadow file to unlock without password
 sed -i 's/^labuser:!/labuser:*/' /etc/shadow
 
+# Disable pam_limits to avoid core dump errors in containers
+sed -i 's/^session.*pam_limits.so/# &/' /etc/pam.d/sudo 2>/dev/null || true
+sed -i 's/^session.*pam_limits.so/# &/' /etc/pam.d/common-session 2>/dev/null || true
+
 # Start rsyslog for SSH logging
 echo "Starting rsyslog service..."
 # Create log file first

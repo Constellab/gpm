@@ -59,8 +59,6 @@ RUN mkdir -p /etc/ssh && \
 COPY ./dockerfile/codelab/sshd_config /tmp/sshd_config
 # Configure rsyslog for SSH logging (disables imklog for containers)
 COPY ./dockerfile/codelab/rsyslog.conf /etc/rsyslog.conf
-# Configure PAM limits to avoid core dump warnings in containers
-COPY ./dockerfile/codelab/limits.conf /etc/security/limits.conf
 
 WORKDIR /lab/user/
 
