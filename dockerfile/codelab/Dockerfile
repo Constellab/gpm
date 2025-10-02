@@ -11,6 +11,9 @@ ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
 # Dockerfile from https://github.com/gitpod-io/openvscode-releases/blob/main/Dockerfile
 WORKDIR /home
 
+# Switch to root for apt install and system configuration
+USER root
+
 RUN apt update && \
     apt install -y git wget && \
     # install ssh server
@@ -52,9 +55,17 @@ RUN if [ -z "${RELEASE_TAG}" ]; then \
 RUN mkdir -p /etc/ssh
 COPY ./dockerfile/codelab/sshd_config /tmp/sshd_config
 
+# Create working directory and set ownership
+RUN mkdir -p /lab/user && \
+    chown -R labuser:labuser /lab
+
 WORKDIR /lab/user/
 
 COPY ./.vs-code-server-config/ /.vs-code-server-config/
+RUN chown -R labuser:labuser /.vs-code-server-config/
+
+# Switch back to labuser for runtime
+USER labuser
 
 EXPOSE 8080
 

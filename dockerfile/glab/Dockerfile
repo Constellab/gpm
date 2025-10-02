@@ -55,5 +55,24 @@ RUN chmod +x /init-lab/entrypoint.sh && \
     sed -i -e 's/\r$//' /init-lab/init_lab.sh && \
     sed -i -e 's/\r$//' /init-lab/clean.sh
 
+# Create non-root user matching host ubuntu user
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+
+# Create group and user, then change ownership of necessary directories
+RUN groupadd -g ${GROUP_ID} labuser && \
+    useradd -m -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash labuser && \
+    # give sudo permission to labuser
+    apt-get -y install sudo && \
+    echo "labuser ALL=(ALL) NOPASSWD: ALL" >> /etc/sudoers && \
+    chown -R labuser:labuser /init-lab && \
+    chown -R labuser:labuser /opt/conda && \
+    # Enable conda and mamba for labuser
+    echo ". /opt/conda/etc/profile.d/conda.sh" >> /home/labuser/.bashrc && \
+    su labuser -c "/opt/conda/bin/mamba shell init --shell bash" && \
+    chown labuser:labuser /home/labuser/.bashrc
+
+USER labuser
+
 ENTRYPOINT [ "/init-lab/entrypoint.sh" ]
 CMD [ "--run-glab" ]

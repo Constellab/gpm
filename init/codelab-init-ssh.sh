@@ -58,14 +58,17 @@ chmod +x "$PROFILE_FILE"
 
 echo "Created environment profile at $PROFILE_FILE"
 
-# Create/update .bashrc for root user to source the profile
+# Create/update .bashrc for labuser to source the profile
 # .bashrc modification - Ensures the profile script is sourced even in non-login interactive shells
-if [ ! -f "/root/.bashrc" ] || ! grep -q "codelab-environment.sh" "/root/.bashrc"; then
-    echo "" >> "/root/.bashrc"
-    echo "# Source codelab environment variables" >> "/root/.bashrc"
-    echo "if [ -f /etc/profile.d/codelab-environment.sh ]; then" >> "/root/.bashrc"
-    echo "    source /etc/profile.d/codelab-environment.sh" >> "/root/.bashrc"
-    echo "fi" >> "/root/.bashrc"
+USER_HOME="/home/labuser"
+if [ ! -f "$USER_HOME/.bashrc" ] || ! grep -q "codelab-environment.sh" "$USER_HOME/.bashrc"; then
+    echo "" >> "$USER_HOME/.bashrc"
+    echo "# Source codelab environment variables" >> "$USER_HOME/.bashrc"
+    echo "if [ -f /etc/profile.d/codelab-environment.sh ]; then" >> "$USER_HOME/.bashrc"
+    echo "    source /etc/profile.d/codelab-environment.sh" >> "$USER_HOME/.bashrc"
+    echo "fi" >> "$USER_HOME/.bashrc"
+    # Ensure correct ownership
+    chown labuser:labuser "$USER_HOME/.bashrc"
 fi
 
 echo "SSH environment configured successfully"

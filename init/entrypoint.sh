@@ -15,7 +15,7 @@ elif [ "$1" == "--run-codelab" ]; then
     source /opt/conda/etc/profile.d/conda.sh
     source /opt/conda/etc/profile.d/mamba.sh
 
-    bash /init-lab/codelab-init-ssh.sh
+    sudo bash /init-lab/codelab-init-ssh.sh
     
     # codelab
     bash /init-lab/init_lab.sh CODELAB
