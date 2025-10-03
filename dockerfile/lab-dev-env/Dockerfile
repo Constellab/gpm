@@ -3,6 +3,8 @@
 ARG IMAGE="constellab/glab:latest"
 FROM $IMAGE
 
+USER labuser
+
 # Configure python
 RUN pip install mypy pylint autopep8
 
