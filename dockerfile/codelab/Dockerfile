@@ -60,12 +60,12 @@ COPY ./dockerfile/codelab/sshd_config /tmp/sshd_config
 # Configure rsyslog for SSH logging (disables imklog for containers)
 COPY ./dockerfile/codelab/rsyslog.conf /etc/rsyslog.conf
 
+# Switch back to labuser for runtime
+USER labuser
+
 WORKDIR /lab/user/
 
 COPY --chown=labuser:labuser  ./.vs-code-server-config/ /.vs-code-server-config/
-
-# Switch back to labuser for runtime
-USER labuser
 
 EXPOSE 8080
 
