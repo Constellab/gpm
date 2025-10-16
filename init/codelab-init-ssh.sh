@@ -45,9 +45,10 @@ service ssh start
 echo "SSH server started. Logs available at /var/log/auth.log"
 
 # Export container environment variables for SSH sessions
-# Using SSH's native PermitUserEnvironment feature for simpler configuration
+# Using both SSH's PermitUserEnvironment and .bashrc for VS Code compatibility
 USER_HOME="/home/labuser"
 ENV_FILE="$USER_HOME/.ssh/environment"
+BASHRC_ENV="$USER_HOME/.bashrc_docker_env"
 
 echo "Configuring SSH environment variables..."
 
@@ -55,14 +56,47 @@ echo "Configuring SSH environment variables..."
 mkdir -p "$USER_HOME/.ssh"
 chmod 700 "$USER_HOME/.ssh"
 
-# Export non-user-specific environment variables to SSH environment file
-# SSH loads this file automatically when PermitUserEnvironment is enabled
-# Note: This script must run as root during container startup to capture Docker env vars
+# Export non-user-specific environment variables
+# Format 1: SSH environment file (KEY=VALUE format)
+# Format 2: Bashrc sourcing file (export KEY="VALUE" format)
 env | grep -vE '^(HOME|USER|LOGNAME|MAIL|SHELL|PWD|OLDPWD|SHLVL|_)=' > "$ENV_FILE"
+
+# Create a bash-compatible version for VS Code Remote SSH
+echo "# Docker container environment variables" > "$BASHRC_ENV"
+echo "# Auto-generated on $(date)" >> "$BASHRC_ENV"
+while IFS='=' read -r key value; do
+    if [ -n "$key" ]; then
+        # Escape quotes in value
+        escaped_value=$(printf '%s\n' "$value" | sed 's/"/\\"/g')
+        echo "export $key=\"$escaped_value\"" >> "$BASHRC_ENV"
+    fi
+done < "$ENV_FILE"
+
+# Source the environment file from .bashrc if not already present
+if [ -f "$USER_HOME/.bashrc" ]; then
+    if ! grep -q ".bashrc_docker_env" "$USER_HOME/.bashrc"; then
+        echo "" >> "$USER_HOME/.bashrc"
+        echo "# Source Docker container environment variables" >> "$USER_HOME/.bashrc"
+        echo "if [ -f ~/.bashrc_docker_env ]; then" >> "$USER_HOME/.bashrc"
+        echo "    source ~/.bashrc_docker_env" >> "$USER_HOME/.bashrc"
+        echo "fi" >> "$USER_HOME/.bashrc"
+    fi
+else
+    # Create .bashrc if it doesn't exist
+    echo "# Source Docker container environment variables" > "$USER_HOME/.bashrc"
+    echo "if [ -f ~/.bashrc_docker_env ]; then" >> "$USER_HOME/.bashrc"
+    echo "    source ~/.bashrc_docker_env" >> "$USER_HOME/.bashrc"
+    echo "fi" >> "$USER_HOME/.bashrc"
+fi
 
 # Set correct permissions and ownership
 chmod 600 "$ENV_FILE"
-chown -R labuser:labuser "$USER_HOME/.ssh"
+chmod 644 "$BASHRC_ENV"
+chown labuser:labuser "$USER_HOME/.ssh/environment"
+chown labuser:labuser "$BASHRC_ENV"
+chown labuser:labuser "$USER_HOME/.bashrc"
 
-echo "SSH environment configured at $ENV_FILE"
+echo "SSH environment configured:"
+echo "  - ~/.ssh/environment (for regular SSH)"
+echo "  - ~/.bashrc_docker_env (for VS Code Remote)"
 echo "Captured $(wc -l < "$ENV_FILE") environment variables"
