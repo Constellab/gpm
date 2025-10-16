@@ -45,34 +45,53 @@ service ssh start
 echo "SSH server started. Logs available at /var/log/auth.log"
 
 # Export container environment variables for SSH sessions
-# Using both SSH's PermitUserEnvironment and .bashrc for VS Code compatibility
+# Using shell profile approach (.bash_profile and .bashrc) for reliability
 USER_HOME="/home/labuser"
-ENV_FILE="$USER_HOME/.ssh/environment"
 BASHRC_ENV="$USER_HOME/.bashrc_docker_env"
 
 echo "Configuring SSH environment variables..."
 
-# Create .ssh directory if it doesn't exist
+# Create .ssh directory if it doesn't exist (needed for SSH keys)
 mkdir -p "$USER_HOME/.ssh"
 chmod 700 "$USER_HOME/.ssh"
 
-# Export non-user-specific environment variables
-# Format 1: SSH environment file (KEY=VALUE format)
-# Format 2: Bashrc sourcing file (export KEY="VALUE" format)
-env | grep -vE '^(HOME|USER|LOGNAME|MAIL|SHELL|PWD|OLDPWD|SHLVL|_)=' > "$ENV_FILE"
-
-# Create a bash-compatible version for VS Code Remote SSH
+# Create bash environment file with all container environment variables
 echo "# Docker container environment variables" > "$BASHRC_ENV"
 echo "# Auto-generated on $(date)" >> "$BASHRC_ENV"
-while IFS='=' read -r key value; do
+echo "" >> "$BASHRC_ENV"
+
+# Add PATH from current environment to preserve container's PATH configuration
+CUSTOM_PATH="/home/labuser/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/conda/bin"
+echo "export PATH=\"$CUSTOM_PATH\"" >> "$BASHRC_ENV"
+
+# Export all non-user-specific environment variables
+env | grep -vE '^(HOME|USER|LOGNAME|MAIL|SHELL|PWD|OLDPWD|SHLVL|PATH|_)=' | while IFS='=' read -r key value; do
     if [ -n "$key" ]; then
         # Escape quotes in value
         escaped_value=$(printf '%s\n' "$value" | sed 's/"/\\"/g')
         echo "export $key=\"$escaped_value\"" >> "$BASHRC_ENV"
     fi
-done < "$ENV_FILE"
+done
 
-# Source the environment file from .bashrc if not already present
+# Source the environment file from .bash_profile (for login shells like SSH)
+# This ensures environment is loaded for SSH sessions
+if [ -f "$USER_HOME/.bash_profile" ]; then
+    if ! grep -q ".bashrc_docker_env" "$USER_HOME/.bash_profile"; then
+        echo "" >> "$USER_HOME/.bash_profile"
+        echo "# Source Docker container environment variables" >> "$USER_HOME/.bash_profile"
+        echo "if [ -f ~/.bashrc_docker_env ]; then" >> "$USER_HOME/.bash_profile"
+        echo "    source ~/.bashrc_docker_env" >> "$USER_HOME/.bash_profile"
+        echo "fi" >> "$USER_HOME/.bash_profile"
+    fi
+else
+    # Create .bash_profile if it doesn't exist
+    echo "# Source Docker container environment variables" > "$USER_HOME/.bash_profile"
+    echo "if [ -f ~/.bashrc_docker_env ]; then" >> "$USER_HOME/.bash_profile"
+    echo "    source ~/.bashrc_docker_env" >> "$USER_HOME/.bash_profile"
+    echo "fi" >> "$USER_HOME/.bash_profile"
+fi
+
+# Also add to .bashrc for interactive non-login shells (like VS Code terminals)
 if [ -f "$USER_HOME/.bashrc" ]; then
     if ! grep -q ".bashrc_docker_env" "$USER_HOME/.bashrc"; then
         echo "" >> "$USER_HOME/.bashrc"
@@ -90,13 +109,15 @@ else
 fi
 
 # Set correct permissions and ownership
-chmod 600 "$ENV_FILE"
 chmod 644 "$BASHRC_ENV"
-chown labuser:labuser "$USER_HOME/.ssh/environment"
 chown labuser:labuser "$BASHRC_ENV"
-chown labuser:labuser "$USER_HOME/.bashrc"
+[ -f "$USER_HOME/.bash_profile" ] && chown labuser:labuser "$USER_HOME/.bash_profile"
+[ -f "$USER_HOME/.bashrc" ] && chown labuser:labuser "$USER_HOME/.bashrc"
+
+# Count environment variables (excluding the header comments and PATH)
+VAR_COUNT=$(grep -c "^export" "$BASHRC_ENV" || echo "0")
 
 echo "SSH environment configured:"
-echo "  - ~/.ssh/environment (for regular SSH)"
-echo "  - ~/.bashrc_docker_env (for VS Code Remote)"
-echo "Captured $(wc -l < "$ENV_FILE") environment variables"
+echo "  - ~/.bashrc_docker_env sourced by .bash_profile (SSH login shells)"
+echo "  - ~/.bashrc_docker_env sourced by .bashrc (interactive shells)"
+echo "Exported $VAR_COUNT environment variables (including PATH)"

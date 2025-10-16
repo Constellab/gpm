@@ -36,9 +36,6 @@ PermitTTY yes
 # Only accept locale settings
 AcceptEnv LANG LC_*
 
-# Allow container environment variables to be preserved for SSH sessions
-PermitUserEnvironment yes
-
 # Keep connections alive
 ClientAliveInterval 60
 ClientAliveCountMax 10

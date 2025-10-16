@@ -58,6 +58,31 @@
       "request": "launch",
       "program": "/lab/.sys/bricks/gws_core/gws_cli/gws_cli/main_cli.py",
       "console": "integratedTerminal"
+    },
+    {
+      "args": [
+        "streamlit",
+        "run",
+        "${input:streamlitConfigFilePath}",
+        "--enable-debugger"
+      ],
+      "name": "Streamlit run and debug",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "/lab/.sys/bricks/gws_core/gws_cli/gws_cli/main_cli.py",
+      "console": "integratedTerminal"
+    },
+    {
+      "args": [
+        "reflex",
+        "run",
+        "${input:reflexConfigFilePath}"
+      ],
+      "name": "Reflex run",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "/lab/.sys/bricks/gws_core/gws_cli/gws_cli/main_cli.py",
+      "console": "integratedTerminal"
     }
   ],
   "inputs": [
@@ -75,6 +100,16 @@
       "id": "brickName",
       "type": "promptString",
       "description": "Name of the brick that contains the tests file."
+    },
+    {
+      "id": "streamlitConfigFilePath",
+      "type": "promptString",
+      "description": "Path to the streamlit dev config file"
+    },
+    {
+      "id": "reflexConfigFilePath",
+      "type": "promptString",
+      "description": "Path to the reflex dev config file"
     }
   ]
 }
