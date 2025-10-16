@@ -1,6 +1,4 @@
 {
-  "extensions.autoCheckUpdates": false,
-  "extensions.autoUpdate": false,
   "workbench.editor.enablePreview": false,
   "git.ignoreMissingGitWarning": true,
   "diffEditor.ignoreTrimWhitespace": false,
@@ -14,34 +12,38 @@
     // actions run on save
     "editor.codeActionsOnSave": {
       // reoaganize imports on save
-      "source.organizeImports": true
+      "source.organizeImports": 'explicit'
     },
     // remove trailling whitespace on save
-    "files.trimTrailingWhitespace": true
+    "files.trimTrailingWhitespace": true,
+    "editor.defaultFormatter": "ms-python.autopep8",
   },
   
   
   // python formatting (indentation)
-  "python.formatting.provider": "autopep8",
-  "python.formatting.autopep8Path": "/usr/local/bin/autopep8",
-  "python.formatting.autopep8Args": ["--max-line-length", "120", "--experimental"],
+  "autopep8.path": [
+    "/home/labuser/.local/bin/autopep8"
+  ],
+  "autopep8.args": [
+    "--max-line-length",
+    "120",
+    "--experimental"
+  ],
 
-  // the paths to the bricks are dynamically added by gpm
-  // so vscode knows where to find the bricks
-  "python.autoComplete.extraPaths": [],
-  "python.analysis.extraPaths": [],
-  
   // linting rules it takes the rules of .pylintrc file
-  "python.linting.pylintPath": "/usr/local/bin/pylint",
-  "python.linting.enabled": true,
-  "python.linting.pylintEnabled": true,
-  "python.linting.pylintUseMinimalCheckers": false,
-  "python.linting.lintOnSave": true,
+  "pylint.path": [
+    "/home/labuser/.local/bin/pylint"
+  ],
+  "pylint.args": [
+    "--rcfile=${workspaceFolder}/.pylintrc"
+  ],
   
   // activate mypy to have type hint checking
-  "python.linting.mypyEnabled": true,
-  "python.linting.mypyPath": "/usr/local/bin/mypy",
-  "python.linting.mypyArgs": [
+  "mypy-type-checker.path": [
+    "/home/labuser/.local/bin/mypy"
+  ],
+  "mypy-type-checker.importStrategy": "fromEnvironment",
+  "mypy-type-checker.args": [
     "--config-file=${workspaceFolder}/.mypy.ini"
   ],
 
@@ -50,5 +52,10 @@
   "git-graph.maxDepthOfRepoSearch": 2,
 
   // Doc String
-  "autoDocstring.docstringFormat": "sphinx"
+  "autoDocstring.docstringFormat": "sphinx",
+
+  // the paths to the bricks are dynamically added by gpm
+  // so vscode knows where to find the bricks
+  "python.autoComplete.extraPaths": [],
+  "python.analysis.extraPaths": []
 }
