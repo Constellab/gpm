@@ -10,8 +10,10 @@ if [ "$1" == "--run-glab" ]; then
 
     exec bash -c "source /init-lab/clean.sh && gws server run --settings-path /lab/.sys/app/settings.json"
 elif [ "$1" == "--run-codelab" ]; then
-    sudo bash /init-lab/codelab-init-ssh.sh
-    
+    # Run SSH init as root (requires sudo since entrypoint may run as labuser)
+    # Use sudo -E to preserve all environment variables
+    sudo -E bash /init-lab/codelab-init-ssh.sh
+
     # codelab
     bash /init-lab/init_lab.sh CODELAB
     
