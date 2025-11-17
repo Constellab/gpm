@@ -11,7 +11,7 @@ ENV TZ=UTC
 # version from https://pypi.org/project/pip/
 ENV CUSTOM_PIP_VERSION=25.3
 # Version from https://github.com/conda-forge/miniforge/releases
-ENV CUSTOM_MAMBA_VERSION=25.9.1
+ENV CUSTOM_MAMBA_VERSION=25.9.1-0
 
 # install python v 3.10 & base packages
 RUN apt-get -y update && \
