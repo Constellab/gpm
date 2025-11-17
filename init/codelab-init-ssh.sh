@@ -7,6 +7,12 @@
 # > /usr/sbin/sshd -D -d
 # End debug
 
+# Ensure /lab directory structure exists with correct permissions
+# This fixes permissions when /lab is mounted as a volume (volumes are created as root)
+echo "Ensuring /lab/user directory exists with correct permissions..."
+mkdir -p /lab/user
+chown -R labuser:labuser /lab
+
 # Copy the ssh config in the correct location
 # we use copy here because the /etc/ssh directory is mounted from the host
 # and we want to ensure that the sshd_config file is always up to date
