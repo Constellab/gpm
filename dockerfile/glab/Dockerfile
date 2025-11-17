@@ -9,9 +9,9 @@ ENV TZ=UTC
 
 # don't name it PIP_VERSION because it will be overwritten by pip
 # version from https://pypi.org/project/pip/
-ENV CUSTOM_PIP_VERSION=25.2
+ENV CUSTOM_PIP_VERSION=25.3
 # Version from https://github.com/conda-forge/miniforge/releases
-ENV CUSTOM_MAMBA_VERSION=25.3.1-0
+ENV CUSTOM_MAMBA_VERSION=25.9.1
 
 # install python v 3.10 & base packages
 RUN apt-get -y update && \
@@ -42,10 +42,10 @@ RUN curl -L https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_
 ENV PATH="$PATH:/opt/conda/bin"
 
 # install pipenv and gws dependencies system-wide (as root)
-RUN pip install pipenv==2025.0.3 \
-                click==8.2.1 \
-                GitPython==3.1.44 \
-                requests==2.32.4
+RUN pip install pipenv==2025.0.4 \
+                click==8.3.1 \
+                GitPython==3.1.45 \
+                requests==2.32.5
 
 # Create non-root user matching host ubuntu user
 ARG USER_ID=1000

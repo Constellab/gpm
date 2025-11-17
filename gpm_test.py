@@ -1,15 +1,16 @@
 
 
+import importlib
 import json
 import os
 import shutil
 import subprocess
 from unittest import IsolatedAsyncioTestCase
+
 from init.script.config_reader import SettingsReader
 from init.script.gpm import GPM, BrickInstalationInfo
-import importlib
 
-GWS_CORE_VERSION = "0.6.2"
+GWS_CORE_VERSION = "0.8.0"
 
 
 class TestGpm(IsolatedAsyncioTestCase):
@@ -100,8 +101,6 @@ class TestGpm(IsolatedAsyncioTestCase):
         __cdir__ = os.path.dirname(os.path.abspath(__file__))
         GPM.LAB_WORKSPACE_DIR = os.path.join(__cdir__, "tests/build/lab")
         GPM.CONFIG_FILE_PATH = os.path.join(__cdir__, "tests/config.json")
-        GPM.VS_CODE_DEFAULT_CONFIG_PATH = os.path.join(
-            __cdir__, ".vs-code-server-config")
 
         # clean up the workspace
         if os.path.exists(GPM.LAB_WORKSPACE_DIR):
@@ -110,26 +109,6 @@ class TestGpm(IsolatedAsyncioTestCase):
         gpm = GPM(settings_file_path=GPM.CONFIG_FILE_PATH, env_mode='CODELAB')
 
         gpm.init_all()
-
-        # check that all the vscode config file are created
-        self.assertTrue(os.path.exists(gpm.get_vs_code_settings_file_path()))
-        self.assertTrue(os.path.exists(os.path.join(
-            gpm.get_vs_code_setting_folder(), 'extensions.json')))
-        self.assertTrue(os.path.exists(os.path.join(
-            gpm.get_vs_code_setting_folder(), 'launch.json')))
-        self.assertTrue(os.path.exists(os.path.join(
-            gpm.USER_WORKSPACE_DIR, '.pylintrc')))
-        self.assertTrue(os.path.exists(os.path.join(
-            gpm.USER_WORKSPACE_DIR, 'pylint_init.py')))
-
-        with open(gpm.get_vs_code_settings_file_path(), 'r') as f:
-            # load json file
-            settings = json.load(f)
-
-            self.assertTrue(os.path.join(gpm.SYS_BRICKS_FOLDER, 'gws_core', 'src')
-                            in settings['python.autoComplete.extraPaths'])
-            self.assertTrue(os.path.join(gpm.SYS_BRICKS_FOLDER, 'gws_biota', 'src')
-                            in settings['python.autoComplete.extraPaths'])
 
         # test to move the brick to non hidden folder
         gws_core_path = os.path.join(gpm.SYS_BRICKS_FOLDER, 'gws_core')
@@ -143,30 +122,3 @@ class TestGpm(IsolatedAsyncioTestCase):
         # re-install gws_core but as it is in the user brick folder, it should not be updated
         gpm.install_brick("gws_core", GWS_CORE_VERSION, 'app')
         self.assertFalse(os.path.exists(readme))
-
-        ############################## NOTEBOOK TESTS ##############################
-        # Check that the notebook is well configured
-        template_path = os.path.join(gpm.NOTEBOOK_FOLDER, "template")
-        self.assertTrue(os.path.exists(template_path))
-
-        env_file_path = os.path.join(template_path, "env.py")
-        jupyter_file_path = os.path.join(template_path, "template.ipynb")
-        self.assertTrue(os.path.exists(env_file_path))
-        self.assertTrue(os.path.exists(jupyter_file_path))
-
-        # clear env file path and jypyter file path
-        with open(env_file_path, 'w') as f:
-            f.write("")
-        with open(jupyter_file_path, 'w') as f:
-            f.write("")
-
-        # test reinstall notebook and check that there is no error
-        gpm.install_notebook_template()
-
-        # check that only the env file was override and is not empty
-        self.assertTrue(os.path.exists(env_file_path))
-        self.assertTrue(os.path.exists(jupyter_file_path))
-        with open(env_file_path, 'r') as f:
-            self.assertTrue(len(f.read()) > 0)
-        with open(jupyter_file_path, 'r') as f:
-            self.assertTrue(len(f.read()) == 0)

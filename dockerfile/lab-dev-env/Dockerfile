@@ -8,7 +8,5 @@ USER labuser
 # Configure python
 RUN pip install mypy pylint autopep8
 
-COPY ./.vs-code-server-config/ /.vs-code-server-config/
-
 ENTRYPOINT [ "/init-lab/entrypoint.sh" ]
 CMD [ "--run-local" ]

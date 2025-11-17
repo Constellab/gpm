@@ -16,11 +16,6 @@ from .logger import Logger
 from .package_lock import PackageLock
 from .pip_manager import PipManager
 
-# ####################################################################
-#
-# GPM class
-#
-# ####################################################################
 EnvMode = Literal['GLAB', 'CODELAB']
 
 
@@ -55,9 +50,6 @@ class GPM():
     GIT_INSTALLATION_FILE = ".gws-git-installation.json"
 
     SOURCE_FOLDER: str = 'src'
-    # path where the default config for vs code is stored (it need to be copied to the user workspace)
-    VS_CODE_DEFAULT_CONFIG_PATH = "/.vs-code-server-config"
-
     INSTALL_DEPENDENCIES_PROGRESS_START: float = 10.0
     INSTALL_DEPENDENCIES_PROGRESS_END: float = 90.0
 
@@ -153,7 +145,6 @@ class GPM():
         self.logger.log_progress("Starting lab", self.INSTALL_DEPENDENCIES_PROGRESS_END)
 
         self.configure_settings_json()
-        self.configure_vscode()
 
     def install_git_packages_and_bricks(self, settings_readers: List[SettingsReader]) -> None:
         """Recursive method to install pip and git packages. The sub packages are installed after the main packages.
@@ -382,7 +373,7 @@ class GPM():
     def get_bricks_in_folder(self, path: str) -> Dict[str, str]:
         """return a list of all the bricks in the provided folder
         """
-        brick_paths: {} = {}
+        brick_paths = {}
         for brick_folder in os.listdir(path):
             brick_path = os.path.join(path, brick_folder)
             if self.folder_is_brick(brick_path):
@@ -400,154 +391,6 @@ class GPM():
     def create_folder_if_not_exists(self, path: str) -> None:
         if not os.path.exists(path):
             os.makedirs(path)
-
-    def configure_vscode(self) -> None:
-        if self.env_mode != 'CODELAB':
-            return
-
-        self.logger.info("Configuring VS Code ...")
-
-        vs_code_folder = self.get_vs_code_setting_folder()
-        if not os.path.exists(vs_code_folder):
-            os.mkdir(vs_code_folder)
-
-        # always override the extensions.json file
-        extensions_dest = os.path.join(vs_code_folder, 'extensions.json')
-        shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, 'extensions.json'),
-                        extensions_dest)
-        # always override the launch.json file
-        shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, 'launch.json'),
-                        os.path.join(vs_code_folder, 'launch.json'))
-
-        # copy the pylint files
-        shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, '.pylintrc'),
-                        os.path.join(self.USER_WORKSPACE_DIR, '.pylintrc'))
-        shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, '.mypy.ini'),
-                        os.path.join(self.USER_WORKSPACE_DIR, '.mypy.ini'))
-        shutil.copyfile(os.path.join(self.VS_CODE_DEFAULT_CONFIG_PATH, 'pylint_init.py'),
-                        os.path.join(self.USER_WORKSPACE_DIR, 'pylint_init.py'))
-
-        self._config_vs_code_settings_json()
-        self.install_notebook_template()
-        self._install_vscode_extensions(extensions_dest)
-        self.logger.info("VS Code configured !")
-
-    def _config_vs_code_settings_json(self) -> None:
-        """Configure the vscode settings.json file to add the bricks to the python path
-        """
-        self.logger.info("Configuring VS Code settings.json file")
-        settings_path = self.get_vs_code_settings_file_path()
-
-        # load the settings file into a dict
-        settings: dict = None
-        if not os.path.exists(settings_path):
-            self.logger.info('Creating a new vscode settings file')
-            settings = self._generate_vs_code_settings_json(settings_path)
-        else:
-            self.logger.info('Reading the existing vscode settings file')
-            try:
-                with open(settings_path, 'r', encoding='UTF-8') as file:
-                    settings = json.load(file)
-            except Exception as err:
-                self.logger.error(
-                    f"Error during parsing of the vscode settings file : {err}.")
-                self.logger.error(
-                    "Moving the existing file to settings_backup.json and creating a new one ...")
-                shutil.move(settings_path, os.path.join(
-                    self.get_vs_code_setting_folder(), "settings_backup.json"))
-                # create a new settings file
-                settings = self._generate_vs_code_settings_json(settings_path)
-                return
-
-        self.logger.info("Adding the bricks to the python path ...")
-        # init the extra paths if not already done
-        if 'python.autoComplete.extraPaths' not in settings \
-                or not isinstance(settings['python.autoComplete.extraPaths'], list):
-            settings['python.autoComplete.extraPaths'] = []
-        
-        if 'python.analysis.extraPaths' not in settings \
-                or not isinstance(settings['python.analysis.extraPaths'], list):
-            settings['python.analysis.extraPaths'] = []
-
-        # add the brick paths to the extra paths
-        existing_paths: List[str] = settings['python.autoComplete.extraPaths']
-
-        # set all the brick src paths in the extraPaths
-        brick_infos = self.list_all_brick_paths()
-        new_paths: List[str] = [os.path.join(
-            brick_path, self.SOURCE_FOLDER) for brick_path in brick_infos.values()]
-
-        # add the existing path that are not brick path (added manually by the user)
-        for existing_path in existing_paths:
-            found = False
-            for brick_name in brick_infos.keys():
-                if brick_name in existing_path:
-                    found = True
-                    break
-            if not found:
-                new_paths.append(existing_path)
-        settings['python.autoComplete.extraPaths'] = new_paths
-        settings['python.analysis.extraPaths'] = new_paths
-
-        try:
-            self.logger.info('Writting the vscode settings file ...')
-            # write the settings file
-            with open(settings_path, 'w', encoding='UTF-8') as file:
-                json.dump(settings, file, indent=2)
-        except Exception as err:
-            self.logger.error(
-                f"Error during writting the vscode settings file : {err}")
-            return
-
-    def _generate_vs_code_settings_json(self, settings_path: str) -> dict:
-        # copy the settings.json file only if it does not exist
-        shutil.copyfile(os.path.join(
-            self.VS_CODE_DEFAULT_CONFIG_PATH, 'settings.json'), settings_path)
-
-        # load the settings file into a dict
-        with open(settings_path, 'r', encoding='UTF-8') as file:
-            return json.load(file)
-
-    def _install_vscode_extensions(self, extension_file_path: str) -> None:
-        """Install the vscode extensions
-        """
-        self.logger.info("Installing vscode extensions ...")
-        # load the settings file into a dict
-        extensions: dict = None
-        with open(extension_file_path, 'r', encoding='UTF-8') as file:
-            extensions = json.load(file)
-
-        # install the extensions
-        for extension in extensions["recommendations"]:
-            self.logger.info(f"Installing extension {extension} ...")
-            os.system(
-                f"/home/.openvscode-server/bin/openvscode-server code --install-extension {extension}")
-
-    def install_notebook_template(self):
-
-        self.logger.info("Installing notebook template ...")
-
-        __cdir__ = os.path.dirname(os.path.abspath(__file__))
-        src_notebook_dir = os.path.abspath(
-            os.path.join(__cdir__, '..', "notebook_template"))
-
-        tempalate_dir = os.path.join(self.NOTEBOOK_FOLDER, "template")
-        if os.path.exists(tempalate_dir):
-            # override only the env.py file
-            self.logger.info(f"Updating {tempalate_dir} ...")
-            shutil.copyfile(
-                os.path.join(src_notebook_dir, "env.py"),
-                os.path.join(tempalate_dir, "env.py")
-            )
-
-        else:
-            shutil.copytree(src_notebook_dir, tempalate_dir)
-
-    def get_vs_code_setting_folder(self) -> str:
-        return os.path.join(self.USER_WORKSPACE_DIR, ".vscode")
-
-    def get_vs_code_settings_file_path(self) -> str:
-        return os.path.join(self.get_vs_code_setting_folder(), "settings.json")
 
     def create_git_installation_file(self, name: str, path: str, parent_name: str,
                                      git_hash: str, version: str = None) -> None:

@@ -4,7 +4,7 @@ FROM $IMAGE
 LABEL maintainer="Admin <admin@gencovery.com>"
 
 # Choose version from https://github.com/gitpod-io/openvscode-server
-ARG RELEASE_TAG=openvscode-server-v1.103.1
+ARG RELEASE_TAG=openvscode-server-v1.105.1
 ARG RELEASE_ORG="gitpod-io"
 ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
 
@@ -18,7 +18,7 @@ RUN apt update && \
     apt install -y git wget && \
     # install ssh server and rsyslog for logging
     apt install -y openssh-server rsyslog && \
-    pip install --user mypy==1.16.1 pylint==3.3.7 autopep8==2.3.2 && \
+    pip install --user pylint==4.0.3 autopep8==2.3.2 && \
     rm -rf /var/lib/apt/lists/*
 
 # Set UTC timezone for the docker
@@ -64,8 +64,6 @@ COPY ./dockerfile/codelab/rsyslog.conf /etc/rsyslog.conf
 USER labuser
 
 WORKDIR /lab/user/
-
-COPY --chown=labuser:labuser  ./.vs-code-server-config/ /.vs-code-server-config/
 
 EXPOSE 8080
 
