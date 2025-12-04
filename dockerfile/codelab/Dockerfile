@@ -18,7 +18,7 @@ RUN apt update && \
     apt install -y git wget && \
     # install ssh server and rsyslog for logging
     apt install -y openssh-server rsyslog && \
-    pip install --user pylint==4.0.3 autopep8==2.3.2 && \
+    pip install --user ruff==0.14.7 && \
     rm -rf /var/lib/apt/lists/*
 
 # Set UTC timezone for the docker
