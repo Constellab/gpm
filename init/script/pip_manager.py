@@ -2,7 +2,6 @@
 
 import select
 import subprocess
-from typing import Dict, List
 
 from .config_reader import PackageInfo
 from .logger import Logger
@@ -11,9 +10,9 @@ from .logger import Logger
 class PipManager:
     """ Class to store pip packages to install and install them at the end of the installation process """
 
-    packages: List[PackageInfo] = []
+    packages: list[PackageInfo] = []
 
-    _installed_packages_version: List[str] = []
+    _installed_packages_version: list[str] = []
 
     logger: Logger = None
 
@@ -51,7 +50,7 @@ class PipManager:
         self.disable_cache = disable_cache
         self.log_progress = log_progress
 
-    def add_packages(self, packages: List[PackageInfo]) -> None:
+    def add_packages(self, packages: list[PackageInfo]) -> None:
         """ Add a list of packages to the list of packages to install """
 
         for package in packages:
@@ -71,7 +70,7 @@ class PipManager:
         self.current_progress = 0.0
 
         # group packages by source
-        packages_by_source: Dict[str, List[PackageInfo]] = {}
+        packages_by_source: dict[str, list[PackageInfo]] = {}
 
         for package in self.packages:
             if package["source"] not in packages_by_source:
@@ -83,10 +82,10 @@ class PipManager:
         for source, packages in packages_by_source.items():
             self._install_packages_for_source(source, packages)
 
-    def _install_packages_for_source(self, source: str, packages: List[PackageInfo]) -> None:
+    def _install_packages_for_source(self, source: str, packages: list[PackageInfo]) -> None:
         """ Install all packages for a given source """
 
-        _packages_with_version: List[str] = []
+        _packages_with_version: list[str] = []
 
         for package in packages:
             name = package['name']
@@ -114,7 +113,7 @@ class PipManager:
 
         self.logger.info("Pip packages successfully insalled")
 
-    def _run_cmd(self, cmd: List[str], package_count: int) -> bool:
+    def _run_cmd(self, cmd: list[str], package_count: int) -> bool:
         self.download_finished = False
 
         # set the install ratio if there is multiple source, multiple install commands are trigger
@@ -200,7 +199,7 @@ class PipManager:
     def _normalize_progress(self, progress: float, progress_start: float, progress_end: float) -> float:
         return progress_start + ((progress / 100) * (progress_end - progress_start))
 
-    def get_installed_packages_version(self) -> List[str]:
+    def get_installed_packages_version(self) -> list[str]:
         packages = self._installed_packages_version
         packages.sort()
         return packages

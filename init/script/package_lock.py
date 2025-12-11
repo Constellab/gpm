@@ -1,6 +1,6 @@
 
 
-from typing import List, Literal, TypedDict, Optional
+from typing import Literal, TypedDict
 
 
 class InstalledPackage(TypedDict):
@@ -13,14 +13,14 @@ class InstalledPackage(TypedDict):
     is_hidden: bool
 
     # if git, the hash of the commit
-    git_hash: Optional[str]
+    git_hash: str | None
 
     path: str
 
 
-class PackageLock():
+class PackageLock:
 
-    packages: List[InstalledPackage]
+    packages: list[InstalledPackage]
 
     def __init__(self):
         self.packages = []

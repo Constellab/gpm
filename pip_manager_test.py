@@ -2,7 +2,6 @@
 
 import os
 import subprocess
-from typing import List
 from unittest import IsolatedAsyncioTestCase
 
 from init.script.config_reader import PackageInfo
@@ -19,7 +18,7 @@ class TestPipManager(IsolatedAsyncioTestCase):
 
     def test_pip_manager(self):
 
-        packages: List[PackageInfo] = [{
+        packages: list[PackageInfo] = [{
             'name': 'numpy',
             'version': '1.26.4',
             'source': 'https://pypi.python.org/simple'

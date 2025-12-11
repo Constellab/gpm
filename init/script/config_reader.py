@@ -2,7 +2,7 @@
 
 import json
 import os
-from typing import TypedDict, Dict, List
+from typing import TypedDict
 
 
 class BrickPackage(TypedDict):
@@ -16,7 +16,7 @@ class PipPackage(TypedDict):
 
 class PipChanel(TypedDict):
     source: str
-    packages: List[PipPackage]
+    packages: list[PipPackage]
 
 
 class GitPackage(TypedDict):
@@ -27,19 +27,19 @@ class GitPackage(TypedDict):
 
 class GitChanel(TypedDict):
     source: str
-    packages: List[GitPackage]
+    packages: list[GitPackage]
 
 
 class SettingFileEnv(TypedDict):
-    bricks: List[BrickPackage]
-    git: List[GitChanel]
-    pip: List[PipChanel]
-    variables: Dict[str, str]
+    bricks: list[BrickPackage]
+    git: list[GitChanel]
+    pip: list[PipChanel]
+    variables: dict[str, str]
 
 
 class SettingsFile(TypedDict):
     name: str
-    variables: Dict[str, str]
+    variables: dict[str, str]
     environment: SettingFileEnv
 
 
@@ -63,20 +63,20 @@ class SettingsReader:
     def get_name(self) -> str:
         return self.settings.get("name", "")
 
-    def get_variables(self) -> Dict[str, str]:
+    def get_variables(self) -> dict[str, str]:
         return self.settings.get("variables", {})
 
     def get_environment(self) -> SettingFileEnv:
         return self.settings.get("environment", {})
 
-    def get_environment_variables(self) -> Dict[str, str]:
+    def get_environment_variables(self) -> dict[str, str]:
         return self.get_environment().get("variables", {})
 
     ################################## Brick ##################################
 
-    def get_brick_packages(self) -> List[BrickPackage]:
+    def get_brick_packages(self) -> list[BrickPackage]:
         """ Retrieve the list of bricks from bricks section and git and pip old section"""
-        bricks: List[BrickPackage] = self.get_environment().get("bricks", [])
+        bricks: list[BrickPackage] = self.get_environment().get("bricks", [])
 
         # add bricks from git section
         bricks.extend(self._get_git_packages(is_brick=True))
@@ -85,15 +85,15 @@ class SettingsReader:
 
     ################################## Packages ##################################
 
-    def get_pip_channels(self) -> List[PipChanel]:
+    def get_pip_channels(self) -> list[PipChanel]:
         return self.get_environment().get("pip", [])
 
-    def get_git_channels(self) -> List[GitChanel]:
+    def get_git_channels(self) -> list[GitChanel]:
         return self.get_environment().get("git", [])
 
-    def get_pip_packages(self) -> List[PackageInfo]:
+    def get_pip_packages(self) -> list[PackageInfo]:
         """ Retrieve the list of all packages from git and pip sections"""
-        packages: List[PackageInfo] = []
+        packages: list[PackageInfo] = []
 
         for pip_channel in self.get_pip_channels():
             for pip_package in pip_channel["packages"]:
@@ -105,12 +105,12 @@ class SettingsReader:
 
         return packages
 
-    def get_git_packages(self) -> List[PackageInfo]:
+    def get_git_packages(self) -> list[PackageInfo]:
         return self._get_git_packages(is_brick=False)
 
-    def _get_git_packages(self, is_brick: bool) -> List[PackageInfo]:
+    def _get_git_packages(self, is_brick: bool) -> list[PackageInfo]:
         """ Retrieve the list of bricks from git section. This is for old version of config file."""
-        bricks: List[PackageInfo] = []
+        bricks: list[PackageInfo] = []
 
         for git_channel in self.get_git_channels():
             for git_package in git_channel["packages"]:
@@ -129,7 +129,7 @@ class SettingsReader:
         if not os.path.exists(self.settings_file_path):
             raise Exception(
                 f"Cannot find the config file '{self.settings_file_path}'.")
-        with open(self.settings_file_path, 'r', encoding="utf-8") as f:
+        with open(self.settings_file_path, encoding="utf-8") as f:
             try:
                 config = json.load(f)
                 if not config.get("environment"):

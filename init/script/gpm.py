@@ -6,7 +6,7 @@ import re
 import shutil
 import time
 from datetime import datetime
-from typing import Dict, List, Literal, Optional, TypedDict
+from typing import Literal, TypedDict
 
 from git import Repo
 
@@ -24,13 +24,13 @@ class BrickInstalationInfo(TypedDict):
     name: str
     version: str
     parent_name: str
-    git_hash: Optional[str]
+    git_hash: str | None
     package_type: Literal["pip", "git"]
     path: str
     created_at: str
 
 
-class GPM():
+class GPM:
     """
     Package manager
     """
@@ -146,7 +146,7 @@ class GPM():
 
         self.configure_settings_json()
 
-    def install_git_packages_and_bricks(self, settings_readers: List[SettingsReader]) -> None:
+    def install_git_packages_and_bricks(self, settings_readers: list[SettingsReader]) -> None:
         """Recursive method to install pip and git packages. The sub packages are installed after the main packages.
 
         :param settings_readers: _description_
@@ -207,8 +207,8 @@ class GPM():
             raise Exception(
                 f"Git package '{repo_name}' version '{version}' could not be installed.")
 
-    def install_bricks(self, settings_readers: List[SettingsReader]) -> None:
-        sub_settings_readers: List[SettingsReader] = []
+    def install_bricks(self, settings_readers: list[SettingsReader]) -> None:
+        sub_settings_readers: list[SettingsReader] = []
 
         for settings_reader in settings_readers:
             self.logger.info(
@@ -329,7 +329,7 @@ class GPM():
             self.logger.error(f"Error while creating the app entrypoint: {err}")
             raise err
 
-    def format_url(self, string: str, variables: Dict[str, str]) -> str:
+    def format_url(self, string: str, variables: dict[str, str]) -> str:
         if not string:
             return string
 
@@ -358,7 +358,7 @@ class GPM():
 
         return string
 
-    def list_all_brick_paths(self) -> Dict[str, str]:
+    def list_all_brick_paths(self) -> dict[str, str]:
         """ return a list of all the bricks in the user and sys folder
         Where key = brick_name and value = brick_path"""
 
@@ -370,7 +370,7 @@ class GPM():
                 user_bricks[brick_name] = brick_path
         return user_bricks
 
-    def get_bricks_in_folder(self, path: str) -> Dict[str, str]:
+    def get_bricks_in_folder(self, path: str) -> dict[str, str]:
         """return a list of all the bricks in the provided folder
         """
         brick_paths = {}

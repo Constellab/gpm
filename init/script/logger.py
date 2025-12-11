@@ -4,7 +4,7 @@ import sys
 import traceback
 from datetime import datetime
 from json import dump, load
-from typing import List, Optional, TypedDict
+from typing import TypedDict
 
 
 class ProgressObject(TypedDict):
@@ -13,9 +13,9 @@ class ProgressObject(TypedDict):
 
 
 class LogFileObject(TypedDict):
-    progress: Optional[ProgressObject]
-    main_errors: List[str]
-    errors: List[str]
+    progress: ProgressObject | None
+    main_errors: list[str]
+    errors: list[str]
 
 
 class Logger:
@@ -36,7 +36,7 @@ class Logger:
 
     def _load_log_file(self) -> LogFileObject:
         try:
-            with open(self.log_file_path, "r", encoding='UTF-8') as f:
+            with open(self.log_file_path, encoding='UTF-8') as f:
                 return load(f)
         except Exception:
             return {

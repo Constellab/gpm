@@ -17,7 +17,7 @@ class TestGpm(IsolatedAsyncioTestCase):
 
     def test_glab(self):
 
-        subprocess.run(["pip", "uninstall", 'pronto', "-y"])
+        subprocess.run(["pip", "uninstall", 'pronto', "-y"], check=False)
         # Check that pronto is not installed
         self.assertIsNone(importlib.find_loader('pronto'))
 
@@ -57,7 +57,7 @@ class TestGpm(IsolatedAsyncioTestCase):
         info_file_path = os.path.join(
             gws_core_brick_path, GPM.GIT_INSTALLATION_FILE)
         self.assertTrue(os.path.exists(info_file_path))
-        with open(info_file_path, 'r') as f:
+        with open(info_file_path) as f:
             info: BrickInstalationInfo = json.load(f)
             self.assertEqual(info['version'], GWS_CORE_VERSION)
             self.assertEqual(info['name'], "gws_core")

@@ -1,34 +1,29 @@
 {
-  "python.testing.unittestArgs": [
-    "-v",
-    "-s",
-    ".",
-    "-p",
-    "*_test.py"
-  ],
-  "python.testing.pytestEnabled": false,
-  "python.testing.unittestEnabled": true,
-  // add environment variable TEST=OK to the test
-  "python.envFile": "${workspaceFolder}/.env",
-  // custom config for python
+  "workbench.editor.enablePreview": false,
+  "git.ignoreMissingGitWarning": true,
+  "diffEditor.ignoreTrimWhitespace": false,
+  "workbench.editor.revealIfOpen": true,
+  "editor.minimap.enabled": false,
+  "python.defaultInterpreterPath": "/usr/bin/python3",
   "[python]": {
-    // format the code on save
     "editor.formatOnSave": true,
-    // actions run on save
     "editor.codeActionsOnSave": {
-      "source.organizeImports": "explicit"
+      "source.fixAll": "explicit"
     },
-    // remove trailling whitespace on save
     "files.trimTrailingWhitespace": true,
-    "editor.defaultFormatter": "ms-python.autopep8",
+    "editor.defaultFormatter": "charliermarsh.ruff"
   },
-
-  // python formatting (indentation)
-  "autopep8.path": ["/usr/local/bin/autopep8"],
-  "autopep8.args": ["--max-line-length", "120", "--experimental"],
-
-  // activate pylint
-  "pylint.path": ["/usr/local/bin/pylint"],
-  "pylint.args":["--rcfile=${workspaceFolder}/.pylintrc"],
-
+  "ruff.configurationPreference": "filesystemFirst",
+  "python.languageServer": "Pylance",
+  "python.analysis.typeCheckingMode": "basic",
+  "python.analysis.diagnosticMode": "openFilesOnly",
+  "python.analysis.indexing": true,
+  "python.analysis.autoImportCompletions": true,
+  "python.analysis.importFormat": "absolute",
+  "python.autoComplete.extraPaths": [
+    "/lab/user/bricks/gws_core/src/gws_core/apps/reflex/_gws_reflex"
+  ],
+  "python.analysis.extraPaths": [
+    "/lab/user/bricks/gws_core/src/gws_core/apps/reflex/_gws_reflex"
+  ]
 }

@@ -1,8 +1,7 @@
 
 
-import json
 import os
-from typing import Literal, Optional, TypedDict
+from typing import Literal, TypedDict
 
 from requests import Response, get
 
@@ -71,7 +70,7 @@ class CommunityService:
         return api_url
 
     @staticmethod
-    def _get_api_key() -> Optional[str]:
+    def _get_api_key() -> str | None:
         """
         Get the api key
         """
