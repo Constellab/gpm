@@ -5,8 +5,5 @@ FROM $IMAGE
 
 USER labuser
 
-# Configure python
-RUN pip install mypy pylint autopep8
-
 ENTRYPOINT [ "/init-lab/entrypoint.sh" ]
 CMD [ "--run-local" ]
