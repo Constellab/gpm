@@ -63,8 +63,9 @@ COPY ./dockerfile/codelab/rsyslog.conf /etc/rsyslog.conf
 # Duplicate of glab but it is useful to have it here for clarity and cache control
 COPY --chown=labuser:labuser ./init /init-lab
 
-RUN chmod +x /init-lab/entrypoint.sh && \
-    sed -i -e 's/\r$//' /init-lab/entrypoint.sh && \
+RUN chmod +x /init-lab/entrypoint-codelab.sh /init-lab/codelab-init-ssh.sh && \
+    sed -i -e 's/\r$//' /init-lab/entrypoint-codelab.sh && \
+    sed -i -e 's/\r$//' /init-lab/codelab-init-ssh.sh && \
     sed -i -e 's/\r$//' /init-lab/init_lab.sh && \
     sed -i -e 's/\r$//' /init-lab/clean.sh
 
@@ -75,6 +76,5 @@ WORKDIR /lab/user/
 
 EXPOSE 8080
 
-ENTRYPOINT [ "/init-lab/entrypoint.sh" ]
-CMD [ "--run-codelab" ]
+ENTRYPOINT [ "/init-lab/entrypoint-codelab.sh" ]
 

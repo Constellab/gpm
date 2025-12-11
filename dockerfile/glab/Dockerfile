@@ -65,12 +65,11 @@ ENV PATH="/home/labuser/.local/bin:${PATH}"
 
 COPY --chown=labuser:labuser ./init /init-lab
 
-RUN chmod +x /init-lab/entrypoint.sh && \
-    sed -i -e 's/\r$//' /init-lab/entrypoint.sh && \
+RUN chmod +x /init-lab/entrypoint-glab.sh && \
+    sed -i -e 's/\r$//' /init-lab/entrypoint-glab.sh && \
     sed -i -e 's/\r$//' /init-lab/init_lab.sh && \
     sed -i -e 's/\r$//' /init-lab/clean.sh
 
 EXPOSE 3000
 
-ENTRYPOINT [ "/init-lab/entrypoint.sh" ]
-CMD [ "--run-glab" ]
+ENTRYPOINT [ "/init-lab/entrypoint-glab.sh" ]
