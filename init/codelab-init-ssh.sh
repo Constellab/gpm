@@ -71,7 +71,7 @@ CUSTOM_PATH="/home/labuser/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/
 echo "export PATH=\"$CUSTOM_PATH\"" >> "$BASHRC_ENV"
 
 # Export all non-user-specific environment variables
-env | grep -vE '^(HOME|USER|LOGNAME|MAIL|SHELL|PWD|OLDPWD|SHLVL|PATH|_)=' | while IFS='=' read -r key value; do
+env | grep -vE '^(HOME|USER|LOGNAME|MAIL|SHELL|PWD|OLDPWD|SHLVL|PATH|_|SUDO_GID|SUDO_UID|SUDO_USER|SUDO_COMMAND|HOSTNAME|TERM)=' | while IFS='=' read -r key value; do
     if [ -n "$key" ]; then
         # Escape quotes in value
         escaped_value=$(printf '%s\n' "$value" | sed 's/"/\\"/g')
