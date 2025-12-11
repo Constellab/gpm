@@ -1,5 +1,3 @@
-
-
 import sys
 import traceback
 from datetime import datetime
@@ -19,31 +17,22 @@ class LogFileObject(TypedDict):
 
 
 class Logger:
-
-    log_file_path: str = None
+    log_file_path: str
 
     def __init__(self, log_file_path: str):
         self.log_file_path = log_file_path
-        self._dump_log_file({
-            "progress": None,
-            "main_errors": [],
-            "errors": []
-        })
+        self._dump_log_file({"progress": None, "main_errors": [], "errors": []})
 
     def _dump_log_file(self, log_file_object: LogFileObject) -> None:
-        with open(self.log_file_path, "w+", encoding='UTF-8') as f:
+        with open(self.log_file_path, "w+", encoding="UTF-8") as f:
             dump(log_file_object, f)
 
     def _load_log_file(self) -> LogFileObject:
         try:
-            with open(self.log_file_path, encoding='UTF-8') as f:
+            with open(self.log_file_path, encoding="UTF-8") as f:
                 return load(f)
         except Exception:
-            return {
-                "progress": None,
-                "main_errors": [],
-                "errors": []
-            }
+            return {"progress": None, "main_errors": [], "errors": []}
 
     def info(self, msg: str) -> None:
         self._log(msg, "INFO")
@@ -69,23 +58,19 @@ class Logger:
         log_file["errors"].append(f"{msg}\n{stack_trace}")
         self._dump_log_file(log_file)
 
-    def log_progress(self, msg: str, percent: int, log_in_console: bool = True) -> None:
+    def log_progress(self, msg: str, percent: float, log_in_console: bool = True) -> None:
         if log_in_console:
             self._log(f"{percent}% {msg}", "INFO")
 
         log_file = self._load_log_file()
-        log_file["progress"] = {
-            "percent": percent,
-            "message": msg
-        }
+        log_file["progress"] = {"percent": percent, "message": msg}
         self._dump_log_file(log_file)
 
     def _log(self, msg: str, type_: str) -> None:
         if msg.endswith("\n"):
             msg = msg[:-1]
         if type_ == "ERROR":
-            sys.stderr.write(
-                f"{type_} - {datetime.now().isoformat()} - {msg}")
+            sys.stderr.write(f"{type_} - {datetime.now().isoformat()} - {msg}")
         else:
             # get the date in UTC format
             print(f"{type_} - {datetime.now().isoformat()} - {msg}")

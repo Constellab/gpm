@@ -31,10 +31,10 @@ class GitChanel(TypedDict):
 
 
 class SettingFileEnv(TypedDict):
-    bricks: list[BrickPackage]
-    git: list[GitChanel]
-    pip: list[PipChanel]
-    variables: dict[str, str]
+    bricks: list[BrickPackage] | None
+    git: list[GitChanel] | None
+    pip: list[PipChanel] | None
+    variables: dict[str, str] | None
 
 
 class SettingsFile(TypedDict):
