@@ -2,6 +2,7 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import time
 from datetime import datetime
 from typing import Literal, TypedDict
@@ -142,6 +143,14 @@ class GPM:
         self.logger.log_progress("Starting lab", self.INSTALL_DEPENDENCIES_PROGRESS_END)
 
         self.configure_settings_json()
+
+        self.logger.info("Calling brick hooks...")
+        try:
+            self.call_brick_hooks()
+        except Exception as err:
+            self.logger.error(f"Error while calling brick hooks. {err}")
+            # Don't fail the initialization if hooks fail
+            pass
 
     def install_git_packages_and_bricks(self, settings_readers: list[SettingsReader]) -> None:
         """Recursive method to install pip and git packages. The sub packages are installed after the main packages.
@@ -417,3 +426,62 @@ class GPM:
         git_installation_file = os.path.join(path, self.GIT_INSTALLATION_FILE)
         with open(git_installation_file, "w", encoding="UTF-8") as file:
             json.dump(brick_installation, file, indent=2)
+
+    def call_brick_hooks(self) -> None:
+        """Call post-install hooks for all installed bricks"""
+
+        executed_bricks: set[str] = set()
+
+        # Call hooks for user bricks first
+        self.logger.info("Calling brick hooks in /lab/user/bricks ...")
+        self._call_hooks_in_folder(self.USER_BRICKS_FOLDER, executed_bricks)
+
+        # Call hooks for sys bricks (skip if already executed in user bricks)
+        self.logger.info("Calling brick hooks in /lab/.sys/bricks ...")
+        self._call_hooks_in_folder(self.SYS_BRICKS_FOLDER, executed_bricks)
+
+        self.logger.info("Brick hooks called.")
+
+    def _call_hooks_in_folder(self, bricks_folder: str, executed_bricks: set[str]) -> None:
+        """Call post-install hooks for bricks in a specific folder"""
+
+        if not os.path.exists(bricks_folder):
+            self.logger.info(f"Bricks folder {bricks_folder} does not exist, skipping hooks.")
+            return
+
+        # Check only direct subdirectories of bricks_folder
+        for brick_name in os.listdir(bricks_folder):
+            brick_path = os.path.join(bricks_folder, brick_name)
+
+            # Skip if not a directory
+            if not os.path.isdir(brick_path):
+                continue
+
+            # Skip if this brick's hooks were already executed
+            if brick_name in executed_bricks:
+                self.logger.info(f"Skipping hooks for '{brick_name}' in {bricks_folder}, already executed in user bricks.")
+                continue
+
+            hooks_dir = os.path.join(brick_path, ".hooks")
+
+            if os.path.isdir(hooks_dir):
+                # Check for post-install.py
+                py_hook = os.path.join(hooks_dir, "post-install.py")
+                if os.path.isfile(py_hook):
+                    self.logger.info(f"Executing Python hook: {py_hook}")
+                    try:
+                        subprocess.run(["python3", py_hook], check=True)
+                    except subprocess.CalledProcessError as err:
+                        self.logger.error(f"Error executing Python hook {py_hook}: {err}")
+
+                # Check for post-install.sh
+                sh_hook = os.path.join(hooks_dir, "post-install.sh")
+                if os.path.isfile(sh_hook):
+                    self.logger.info(f"Executing Bash hook: {sh_hook}")
+                    try:
+                        subprocess.run(["bash", sh_hook], check=True)
+                    except subprocess.CalledProcessError as err:
+                        self.logger.error(f"Error executing Bash hook {sh_hook}: {err}")
+
+                # Mark this brick as executed
+                executed_bricks.add(brick_name)
