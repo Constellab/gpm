@@ -1,0 +1,1 @@
+unset COMMUNITY_API_KEY
