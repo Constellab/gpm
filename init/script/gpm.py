@@ -116,23 +116,29 @@ class GPM:
 
         self.logger.log_progress("Installing bricks", 0)
 
+        # Step 1: Install all git packages and bricks recursively (no pip dependencies collected)
         try:
             self.install_git_packages_and_bricks([self.config_reader])
 
             git_packages = self._installed_git_packages
             git_packages.sort()
             self.logger.info(f"Installed git packages:\n{git_packages}")
+
+            brick_packages = self._installed_brick_packages
+            brick_packages.sort()
+            self.logger.info(f"Installed brick packages:\n{brick_packages}")
         except Exception as err:
-            self.logger.main_error(f"Error while installing git packages. {err}")
+            self.logger.main_error(f"Error while installing git packages and bricks. {err}")
             raise err
 
         self.logger.log_progress(
             "Installing bricks dependencies", self.INSTALL_DEPENDENCIES_PROGRESS_START
         )
 
+        # Step 2: Collect and install pip dependencies from all installed bricks
+        # Priority: user folder first, then .sys folder
         try:
-            # install all the pip packages
-            self.pip_manager.install_packages()
+            self.collect_and_install_pip_dependencies()
         except Exception as err:
             self.logger.main_error(f"Error while installing pip packages. {err}")
             # in codelab, ignore the error so it start the CODELAB
@@ -153,21 +159,19 @@ class GPM:
             pass
 
     def install_git_packages_and_bricks(self, settings_readers: list[SettingsReader]) -> None:
-        """Recursive method to install pip and git packages. The sub packages are installed after the main packages.
+        """Recursive method to install git packages and bricks. The sub packages are installed after the main packages.
+        This method only clones repositories and bricks, it does NOT collect pip dependencies.
 
         :param settings_readers: _description_
         :type settings_readers: List[SettingsReader]
         """
 
-        # install git and pip packages
+        # install git packages (no pip dependencies collected here)
         for settings_reader in settings_readers:
             self.logger.info(f"Installing git packages for '{settings_reader.get_name()}' brick")
             self._install_git_packages(settings_reader)
 
-            # store the pip packages to install them later
-            self.pip_manager.add_packages(settings_reader.get_pip_packages())
-
-        # install bricks
+        # install bricks recursively
         self.install_bricks(settings_readers)
 
     def _install_git_packages(self, settings_reader: SettingsReader) -> None:
@@ -219,9 +223,7 @@ class GPM:
         sub_settings_readers: list[SettingsReader] = []
 
         for settings_reader in settings_readers:
-            self.logger.info(
-                f"Installing bricks dependencies for '{settings_reader.get_name()}' brick"
-            )
+            self.logger.info(f"Installing bricks for '{settings_reader.get_name()}' brick")
 
             # get all the bricks packages
             for brick in settings_reader.get_brick_packages():
@@ -289,6 +291,47 @@ class GPM:
 
         # return the sub settings so the sub dependencies can be installed
         return SettingsReader(os.path.join(brick_dir, self.SETTING_JSON_FILE))
+
+    def collect_and_install_pip_dependencies(self) -> None:
+        """Collect pip dependencies from all installed bricks and install them.
+        Prioritizes bricks in user folder over .sys folder.
+        """
+        self.logger.info("Collecting pip dependencies from all installed bricks...")
+
+        # Get all bricks from both user and sys folders
+        all_bricks = self.list_all_brick_paths()
+
+        self.logger.info(f"Found {len(all_bricks)} bricks to process for dependencies")
+
+        # Collect pip packages from each brick
+        for brick_name, brick_path in all_bricks.items():
+            settings_file = os.path.join(brick_path, self.SETTING_JSON_FILE)
+
+            if not os.path.exists(settings_file):
+                self.logger.error(
+                    f"Settings file not found for brick '{brick_name}' at {settings_file}"
+                )
+                continue
+
+            try:
+                brick_reader = SettingsReader(settings_file)
+                pip_packages = brick_reader.get_pip_packages()
+
+                if pip_packages:
+                    self.logger.info(
+                        f"Adding {len(pip_packages)} pip packages from brick '{brick_name}' (from {brick_path})"
+                    )
+                    self.pip_manager.add_packages(pip_packages)
+                else:
+                    self.logger.info(f"No pip packages found for brick '{brick_name}'")
+            except Exception as err:
+                self.logger.error(f"Error reading settings for brick '{brick_name}': {err}")
+                # Continue with other bricks even if one fails
+                continue
+
+        # Install all collected pip packages
+        self.logger.info("Installing all collected pip dependencies...")
+        self.pip_manager.install_packages()
 
     def git_clone(
         self, url: str, dest_dir: str, repo_name: str, parent_name: str, version: str | None = None
@@ -377,6 +420,7 @@ class GPM:
 
     def list_all_brick_paths(self) -> dict[str, str]:
         """return a list of all the bricks in the user and sys folder
+        With user bricks taking priority over sys bricks.
         Where key = brick_name and value = brick_path"""
 
         user_bricks = self.get_bricks_in_folder(self.USER_BRICKS_FOLDER)
@@ -459,7 +503,9 @@ class GPM:
 
             # Skip if this brick's hooks were already executed
             if brick_name in executed_bricks:
-                self.logger.info(f"Skipping hooks for '{brick_name}' in {bricks_folder}, already executed in user bricks.")
+                self.logger.info(
+                    f"Skipping hooks for '{brick_name}' in {bricks_folder}, already executed in user bricks."
+                )
                 continue
 
             hooks_dir = os.path.join(brick_path, ".hooks")
