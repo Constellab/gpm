@@ -141,6 +141,12 @@ coverage.xml
 .pytest_cache/
 cover/
 
+# Test artifacts and build directory
+tests/.build/
+tests/tmp/
+test.log
+*.log
+
 # Translations
 *.mo
 *.pot

@@ -21,9 +21,50 @@
   "python.analysis.autoImportCompletions": true,
   "python.analysis.importFormat": "absolute",
   "python.autoComplete.extraPaths": [
+    "${workspaceFolder}",
     "/lab/user/bricks/gws_core/src/gws_core/apps/reflex/_gws_reflex"
   ],
   "python.analysis.extraPaths": [
+    "${workspaceFolder}",
     "/lab/user/bricks/gws_core/src/gws_core/apps/reflex/_gws_reflex"
-  ]
+  ],
+  "terminal.integrated.env.linux": {
+    "PYTHONPATH": "${workspaceFolder}"
+  },
+  "terminal.integrated.env.osx": {
+    "PYTHONPATH": "${workspaceFolder}"
+  },
+  "terminal.integrated.env.windows": {
+    "PYTHONPATH": "${workspaceFolder}"
+  },
+  // Testing Configuration
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestArgs": [
+    "-v",
+    "-s",
+    "--tb=short",
+    "--color=yes",
+    "--capture=no"
+  ],
+  "python.testing.cwd": "${workspaceFolder}",
+  "python.testing.autoTestDiscoverOnSaveEnabled": true,
+  // Test Explorer UI
+  "testExplorer.useNativeTesting": true,
+  "testing.openTesting": "neverOpen",
+  // Exclude patterns for file watcher
+  "files.watcherExclude": {
+    "**/.git/objects/**": true,
+    "**/.git/subtree-cache/**": true,
+    "**/node_modules/**": true,
+    "**/.hg/store/**": true,
+    "**/tests/.build/**": true,
+    "**/__pycache__/**": true,
+    "**/.pytest_cache/**": true
+  },
+  // File associations
+  "files.associations": {
+    "pytest.ini": "ini",
+    "**/tests/**/*.py": "python"
+  }
 }

@@ -1,5 +1,3 @@
-
-
 import select
 import subprocess
 
@@ -8,13 +6,13 @@ from .logger import Logger
 
 
 class PipManager:
-    """ Class to store pip packages to install and install them at the end of the installation process """
+    """Class to store pip packages to install and install them at the end of the installation process"""
 
-    packages: list[PackageInfo] = []
+    packages: list[PackageInfo]
 
-    _installed_packages_version: list[str] = []
+    _installed_packages_version: list[str]
 
-    logger: Logger = None
+    logger: Logger
 
     # values to normalize the PipManager progress to the global progress
     global_progress_start: float
@@ -22,8 +20,8 @@ class PipManager:
 
     # current step of the pip manager
     # from 0 to 100 based on pip manager progress
-    current_progress: float = 0.0
-    download_finished: bool = False
+    current_progress: float
+    download_finished: bool
 
     disable_cache: bool
     log_progress: bool
@@ -40,8 +38,14 @@ class PipManager:
     # Number of lines in the log for a package to be considered as downloaded
     NUMBER_OF_PACKAGE_LOG_LINES: int = 2
 
-    def __init__(self, logger: Logger, global_progress_start: float, global_progress_end: float,
-                 disable_cache: bool = False, log_progress: bool = False) -> None:
+    def __init__(
+        self,
+        logger: Logger,
+        global_progress_start: float,
+        global_progress_end: float,
+        disable_cache: bool = False,
+        log_progress: bool = False,
+    ) -> None:
         self.packages = []
         self._installed_packages_version = []
         self.logger = logger
@@ -49,22 +53,38 @@ class PipManager:
         self.global_progress_end = global_progress_end
         self.disable_cache = disable_cache
         self.log_progress = log_progress
+        self.current_progress = 0.0
+        self.download_finished = False
 
     def add_packages(self, packages: list[PackageInfo]) -> None:
-        """ Add a list of packages to the list of packages to install """
+        """Add a list of packages to the list of packages to install"""
 
         for package in packages:
             self.add_package(package)
 
     def add_package(self, package: PackageInfo) -> None:
-        """ Add a package to the list of packages to install """
+        """Add a package to the list of packages to install"""
 
         # check if package is already in the list
-        if not any([package["name"] == p["name"] for p in self.packages]):
-            self.packages.append(package)
+        existing = next((p for p in self.packages if p["name"] == package["name"]), None)
+
+        if existing:
+            existing_version = existing.get("version", "")
+            new_version = package.get("version", "")
+
+            # If versions differ, log a warning about the conflict
+            if existing_version != new_version:
+                self.logger.info(
+                    f"Package version conflict detected for '{package['name']}': "
+                    f"already have version '{existing_version}', ignoring new version '{new_version}'. "
+                    f"Consider using version ranges (e.g., '>=2.31.0,<3.0.0') instead of pinned versions."
+                )
+            return
+
+        self.packages.append(package)
 
     def install_packages(self) -> None:
-        """ Install all packages in the list """
+        """Install all packages in the list"""
 
         # reset the progress
         self.current_progress = 0.0
@@ -83,16 +103,17 @@ class PipManager:
             self._install_packages_for_source(source, packages)
 
     def _install_packages_for_source(self, source: str, packages: list[PackageInfo]) -> None:
-        """ Install all packages for a given source """
+        """Install all packages for a given source"""
 
         _packages_with_version: list[str] = []
 
         for package in packages:
-            name = package['name']
-            version = package.get('version', '')
-            if version:
-                if version[0] not in [">", "<", "="]:
-                    version = "==" + version
+            name = package["name"]
+            version = package.get("version", "")
+            # Only add == prefix if version doesn't already have a comparator
+            # This supports both pinned versions (2.31.0) and ranges (>=2.31.0,<3.0.0)
+            if version and version[0] not in [">", "<", "=", "~", "!"]:
+                version = "==" + version
             _packages_with_version.append(f"{name}{version}")
 
         if not _packages_with_version:
@@ -100,8 +121,15 @@ class PipManager:
 
         _packages_with_version.sort()
 
-        cmd = ["python3", "-m", "pip", "install", *
-               _packages_with_version, "--extra-index-url", source.strip()]
+        cmd = [
+            "python3",
+            "-m",
+            "pip",
+            "install",
+            *_packages_with_version,
+            "--extra-index-url",
+            source.strip(),
+        ]
 
         if self.disable_cache:
             cmd.append("--no-cache-dir")
@@ -133,7 +161,6 @@ class PipManager:
                 has_read: bool = False
 
                 for file_no in ret[0]:
-
                     if file_no == proc.stdout.fileno():
                         read = proc.stdout.readline()
                         if read:
@@ -168,13 +195,12 @@ class PipManager:
 
         # if we detect the line of a package, we update the progress
         if output.startswith(self.DOWNLOADING_PACKAGE_TEXT):
-
             # get the text after "Downloading "
-            after_text = output[len(self.DOWNLOADING_PACKAGE_TEXT):]
+            after_text = output[len(self.DOWNLOADING_PACKAGE_TEXT) :]
 
             # if the text after is one of the package name, we update the progress
             for package in self.packages:
-                if after_text.startswith(package['name']):
+                if after_text.startswith(package["name"]):
                     # number of line to consider all package as downloaded
                     total_required_lines = package_count * self.NUMBER_OF_PACKAGE_LOG_LINES
                     # When we rach the last package downloaded, the progress should be at 80%
@@ -182,8 +208,12 @@ class PipManager:
 
                     # we get the percentage of 1 package of the total number of packages
                     # then we apply the different ratio to get the progress
-                    add_progress = (1 / (total_required_lines)
-                                    ) * 100 * downloaded_package_ratio * install_ratio
+                    add_progress = (
+                        (1 / (total_required_lines))
+                        * 100
+                        * downloaded_package_ratio
+                        * install_ratio
+                    )
 
                     self._update_progress(add_progress)
                     return
@@ -192,11 +222,16 @@ class PipManager:
         self.current_progress += progress_add
         # normalise progress base on global_progress_start and global_progress_end
         normalized_progress = self._normalize_progress(
-            self.current_progress, self.global_progress_start, self.global_progress_end)
+            self.current_progress, self.global_progress_start, self.global_progress_end
+        )
         # we skip the log print to avoid polluting the logs
-        self.logger.log_progress(self.PROGRESS_TEXT, int(normalized_progress), log_in_console=self.log_progress)
+        self.logger.log_progress(
+            self.PROGRESS_TEXT, int(normalized_progress), log_in_console=self.log_progress
+        )
 
-    def _normalize_progress(self, progress: float, progress_start: float, progress_end: float) -> float:
+    def _normalize_progress(
+        self, progress: float, progress_start: float, progress_end: float
+    ) -> float:
         return progress_start + ((progress / 100) * (progress_end - progress_start))
 
     def get_installed_packages_version(self) -> list[str]:

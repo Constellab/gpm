@@ -1,3 +1,5 @@
 GitPython==3.1.43
 requests==2.31.0
 ruff
+pytest>=7.0.0
+pytest-asyncio>=0.21.0

@@ -4,15 +4,81 @@ This repository allows managing Gencovery Web Services packages. It is used to c
 
 * Shell script ```init_lab.sh``` is run by the dockerfile entrypoint
 
-* Python script ```init_lab.py``` is called by the ```init_lab.sh``` and allows pulling and intalling from Pip and Git any library described in an environment file ```config.json``` as given in folder ```tests/config.json```
+* Python script ```init_lab.py``` is called by the ```init_lab.sh``` and allows pulling and intalling from Pip and Git any library described in an environment file ```config.json``` as given in folder ```tests/fixtures/config.json```
 
 ## Testing
 
-For testing, install dependencies with ```pip install -r requirements.txt```
+### Setup
 
-Create a .env file at project root with COMMUNITY_API_URL and COMMUNITY_API_KEY (optional) env variables to test the git pull.
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-Use the VsCode testing extension and run test gpm tests. 
+2. Create a `.env` file at project root with the following variables (optional for git pull tests):
+   ```
+   COMMUNITY_API_URL=<your_api_url>
+   COMMUNITY_API_KEY=<your_api_key>
+   ```
+
+### Running Tests
+
+The project uses pytest for testing. Tests are organized in a standard structure:
+
+```
+tests/
+├── unit/              # Unit tests
+├── integration/       # Integration tests
+├── fixtures/          # Test data and configuration
+└── conftest.py        # Shared fixtures
+```
+
+**Run all tests:**
+```bash
+pytest
+```
+
+**Run specific test categories:**
+```bash
+# Run only unit tests
+pytest -m unit
+
+# Run only integration tests
+pytest -m integration
+
+# Run tests in a specific file
+pytest tests/unit/test_gpm.py
+
+# Run tests with verbose output
+pytest -v
+
+# Run tests with coverage report (requires pytest-cov)
+pytest --cov=init --cov-report=html
+```
+
+**Run tests in VS Code:**
+- Use the Testing sidebar (flask icon)
+- Tests are automatically discovered based on the `pytest.ini` configuration
+- Click individual tests or test classes to run them
+
+### Test Markers
+
+Tests are automatically marked based on their location and can also use custom markers:
+
+- `@pytest.mark.unit` - Unit tests (auto-applied to tests/unit/*)
+- `@pytest.mark.integration` - Integration tests (auto-applied to tests/integration/*)
+- `@pytest.mark.slow` - Slow-running tests
+- `@pytest.mark.requires_network` - Tests requiring network access
+- `@pytest.mark.requires_git` - Tests requiring git operations
+
+**Filter tests by markers:**
+```bash
+# Skip slow tests
+pytest -m "not slow"
+
+# Run only network tests
+pytest -m requires_network
+``` 
 
 ## Testing the docker images
 

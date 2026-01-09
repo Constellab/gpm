@@ -1,8 +1,9 @@
+"""Unit tests for PipManager."""
 
 import importlib.util
-import os
 import subprocess
-from unittest import IsolatedAsyncioTestCase
+
+import pytest
 from unittest.mock import MagicMock
 
 from init.script.config_reader import PackageInfo
@@ -10,17 +11,32 @@ from init.script.logger import Logger
 from init.script.pip_manager import PipManager
 
 
-class TestPipManager(IsolatedAsyncioTestCase):
+@pytest.fixture
+def mock_logger():
+    """Create a mock logger for testing."""
+    return MagicMock(spec=Logger)
 
-    log_file_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), "test.log")
 
-    def test_pip_manager(self):
-        """Test basic pip package installation with pinned versions"""
+@pytest.fixture
+def pip_manager(mock_logger):
+    """Create a PipManager instance for testing."""
+    return PipManager(mock_logger, 0, 100)
+
+
+class TestPipManagerInstallation:
+    """Tests for pip package installation."""
+
+    @pytest.mark.slow
+    @pytest.mark.requires_network
+    def test_install_pinned_versions(self, tmp_path):
+        """Test basic pip package installation with pinned versions."""
+        log_file_path = tmp_path / "test.log"
+        logger = Logger(str(log_file_path))
 
         packages: list[PackageInfo] = [
             {"name": "numpy", "version": "1.26.4", "source": "https://pypi.python.org/simple"},
             {"name": "pandas", "version": "2.2.2", "source": "https://pypi.python.org/simple"},
-            # simulate a second source
+            # Simulate a second source
             {
                 "name": "simplejson",
                 "version": "3.19.2",
@@ -28,25 +44,26 @@ class TestPipManager(IsolatedAsyncioTestCase):
             },
         ]
 
-        # Uninstall packages
+        # Uninstall packages first
         packages_to_uninstall = [package["name"] for package in packages]
         cmd = ["pip", "uninstall"] + packages_to_uninstall + ["-y"]
         subprocess.check_call(cmd)
 
-        logger = Logger(self.log_file_path)
-
         pip_manager = PipManager(logger, 0, 100, disable_cache=True, log_progress=True)
         pip_manager.add_packages(packages)
-
         pip_manager.install_packages()
 
         # Verify packages are installed
-        self.assertIsNotNone(importlib.util.find_spec("numpy"))
-        self.assertIsNotNone(importlib.util.find_spec("pandas"))
-        self.assertIsNotNone(importlib.util.find_spec("simplejson"))
+        assert importlib.util.find_spec("numpy") is not None
+        assert importlib.util.find_spec("pandas") is not None
+        assert importlib.util.find_spec("simplejson") is not None
 
-    def test_pip_manager_with_version_ranges(self):
-        """Test pip package installation with flexible version ranges"""
+    @pytest.mark.slow
+    @pytest.mark.requires_network
+    def test_install_version_ranges(self, tmp_path):
+        """Test pip package installation with flexible version ranges."""
+        log_file_path = tmp_path / "test.log"
+        logger = Logger(str(log_file_path))
 
         packages: list[PackageInfo] = [
             # Use version ranges instead of pinned versions
@@ -61,30 +78,28 @@ class TestPipManager(IsolatedAsyncioTestCase):
         cmd = ["pip", "uninstall"] + packages_to_uninstall + ["-y"]
         subprocess.run(cmd, check=False)  # Don't fail if packages aren't installed
 
-        logger = Logger(self.log_file_path)
-
         pip_manager = PipManager(logger, 0, 100, disable_cache=True, log_progress=True)
         pip_manager.add_packages(packages)
-
-        # This should work - pip will resolve to compatible versions
         pip_manager.install_packages()
 
         # Verify packages are installed
-        self.assertIsNotNone(importlib.util.find_spec("certifi"))
-        self.assertIsNotNone(importlib.util.find_spec("charset_normalizer"))
-        self.assertIsNotNone(importlib.util.find_spec("idna"))
+        assert importlib.util.find_spec("certifi") is not None
+        assert importlib.util.find_spec("charset_normalizer") is not None
+        assert importlib.util.find_spec("idna") is not None
 
         # Verify the installed packages are in the expected ranges
         installed_versions = pip_manager.get_installed_packages_version()
-        self.assertTrue(any("certifi" in pkg for pkg in installed_versions))
-        self.assertTrue(any("charset-normalizer" in pkg or "charset_normalizer" in pkg for pkg in installed_versions))
-        self.assertTrue(any("idna" in pkg for pkg in installed_versions))
+        assert any("certifi" in pkg for pkg in installed_versions)
+        assert any("charset-normalizer" in pkg or "charset_normalizer" in pkg for pkg in installed_versions)
+        assert any("idna" in pkg for pkg in installed_versions)
 
-    def test_version_conflict_detection(self):
-        """Test that version conflicts are detected and logged"""
 
-        logger = MagicMock(spec=Logger)
-        pip_manager = PipManager(logger, 0, 100)
+class TestPipManagerVersionConflicts:
+    """Tests for version conflict detection."""
+
+    def test_version_conflict_detection(self, mock_logger):
+        """Test that version conflicts are detected and logged."""
+        pip_manager = PipManager(mock_logger, 0, 100)
 
         # Add first package with version 2.31.0
         package1: PackageInfo = {
@@ -103,23 +118,21 @@ class TestPipManager(IsolatedAsyncioTestCase):
         pip_manager.add_package(package2)
 
         # Verify only one package is in the list
-        self.assertEqual(len(pip_manager.packages), 1)
-        self.assertEqual(pip_manager.packages[0]["version"], "2.31.0")
+        assert len(pip_manager.packages) == 1
+        assert pip_manager.packages[0]["version"] == "2.31.0"
 
         # Verify warning was logged
-        logger.info.assert_called_once()
-        warning_message = logger.info.call_args[0][0]
-        self.assertIn("Package version conflict detected", warning_message)
-        self.assertIn("requests", warning_message)
-        self.assertIn("2.31.0", warning_message)
-        self.assertIn("2.28.0", warning_message)
-        self.assertIn("version ranges", warning_message)
+        mock_logger.info.assert_called_once()
+        warning_message = mock_logger.info.call_args[0][0]
+        assert "Package version conflict detected" in warning_message
+        assert "requests" in warning_message
+        assert "2.31.0" in warning_message
+        assert "2.28.0" in warning_message
+        assert "version ranges" in warning_message
 
-    def test_no_conflict_same_version(self):
-        """Test that no warning is logged when same version is added twice"""
-
-        logger = MagicMock(spec=Logger)
-        pip_manager = PipManager(logger, 0, 100)
+    def test_no_conflict_same_version(self, mock_logger):
+        """Test that no warning is logged when same version is added twice."""
+        pip_manager = PipManager(mock_logger, 0, 100)
 
         # Add same package with same version twice
         package: PackageInfo = {
@@ -131,17 +144,35 @@ class TestPipManager(IsolatedAsyncioTestCase):
         pip_manager.add_package(package)
 
         # Verify only one package is in the list
-        self.assertEqual(len(pip_manager.packages), 1)
+        assert len(pip_manager.packages) == 1
 
         # Verify no warning was logged
-        logger.info.assert_not_called()
+        mock_logger.info.assert_not_called()
 
-    def test_version_range_support(self):
-        """Test that version ranges are handled correctly"""
+    def test_multiple_packages_no_conflict(self, mock_logger):
+        """Test that multiple different packages can be added without conflict."""
+        pip_manager = PipManager(mock_logger, 0, 100)
 
-        logger = MagicMock(spec=Logger)
-        pip_manager = PipManager(logger, 0, 100)
+        packages: list[PackageInfo] = [
+            {"name": "requests", "version": ">=2.31.0,<3.0.0", "source": "https://pypi.python.org/simple"},
+            {"name": "numpy", "version": ">=1.24.0,<2.0.0", "source": "https://pypi.python.org/simple"},
+            {"name": "pandas", "version": ">=2.0.0,<3.0.0", "source": "https://pypi.python.org/simple"},
+        ]
 
+        pip_manager.add_packages(packages)
+
+        # Verify all packages are in the list
+        assert len(pip_manager.packages) == 3
+
+        # Verify no warnings were logged
+        mock_logger.info.assert_not_called()
+
+
+class TestPipManagerVersionFormatting:
+    """Tests for version formatting."""
+
+    def test_version_range_support(self, mock_logger):
+        """Test that version ranges are handled correctly."""
         test_cases = [
             # (input_version, expected_output)
             ("2.31.0", "==2.31.0"),  # Pinned version gets ==
@@ -161,7 +192,7 @@ class TestPipManager(IsolatedAsyncioTestCase):
             }
 
             # Create a new pip_manager for each test to avoid conflicts
-            test_pip_manager = PipManager(logger, 0, 100)
+            test_pip_manager = PipManager(mock_logger, 0, 100)
             test_pip_manager.add_package(package)
 
             # Get the formatted package string
@@ -183,39 +214,32 @@ class TestPipManager(IsolatedAsyncioTestCase):
 
             if expected_output:
                 expected_full = f"{package['name']}{expected_output}"
-                self.assertEqual(
-                    formatted_packages[0],
-                    expected_full,
-                    f"Failed for input '{input_version}': expected '{expected_full}', got '{formatted_packages[0]}'",
-                )
+                assert formatted_packages[0] == expected_full, \
+                    f"Failed for input '{input_version}': expected '{expected_full}', got '{formatted_packages[0]}'"
             else:
-                self.assertEqual(formatted_packages[0], package["name"])
+                assert formatted_packages[0] == package["name"]
 
-    def test_multiple_packages_no_conflict(self):
-        """Test that multiple different packages can be added without conflict"""
+    def test_empty_version_handling(self, mock_logger):
+        """Test that packages without version are handled correctly."""
+        pip_manager = PipManager(mock_logger, 0, 100)
 
-        logger = MagicMock(spec=Logger)
-        pip_manager = PipManager(logger, 0, 100)
+        package: PackageInfo = {
+            "name": "requests",
+            "version": "",
+            "source": "https://pypi.python.org/simple",
+        }
+        pip_manager.add_package(package)
 
-        packages: list[PackageInfo] = [
-            {"name": "requests", "version": ">=2.31.0,<3.0.0", "source": "https://pypi.python.org/simple"},
-            {"name": "numpy", "version": ">=1.24.0,<2.0.0", "source": "https://pypi.python.org/simple"},
-            {"name": "pandas", "version": ">=2.0.0,<3.0.0", "source": "https://pypi.python.org/simple"},
-        ]
+        assert len(pip_manager.packages) == 1
+        assert pip_manager.packages[0]["version"] == ""
 
-        pip_manager.add_packages(packages)
 
-        # Verify all packages are in the list
-        self.assertEqual(len(pip_manager.packages), 3)
+class TestPipManagerPackageGrouping:
+    """Tests for package grouping by source."""
 
-        # Verify no warnings were logged
-        logger.info.assert_not_called()
-
-    def test_package_grouping_by_source(self):
-        """Test that packages are correctly grouped by source"""
-
-        logger = MagicMock(spec=Logger)
-        pip_manager = PipManager(logger, 0, 100)
+    def test_package_grouping_by_source(self, mock_logger):
+        """Test that packages are correctly grouped by source."""
+        pip_manager = PipManager(mock_logger, 0, 100)
 
         packages: list[PackageInfo] = [
             {"name": "requests", "version": "2.31.0", "source": "https://pypi.python.org/simple"},
@@ -233,22 +257,6 @@ class TestPipManager(IsolatedAsyncioTestCase):
             packages_by_source[package["source"]].append(package)
 
         # Verify grouping
-        self.assertEqual(len(packages_by_source), 2)
-        self.assertEqual(len(packages_by_source["https://pypi.python.org/simple"]), 2)
-        self.assertEqual(len(packages_by_source["https://custom-repo.com/simple"]), 1)
-
-    def test_empty_version_handling(self):
-        """Test that packages without version are handled correctly"""
-
-        logger = MagicMock(spec=Logger)
-        pip_manager = PipManager(logger, 0, 100)
-
-        package: PackageInfo = {
-            "name": "requests",
-            "version": "",
-            "source": "https://pypi.python.org/simple",
-        }
-        pip_manager.add_package(package)
-
-        self.assertEqual(len(pip_manager.packages), 1)
-        self.assertEqual(pip_manager.packages[0]["version"], "")
+        assert len(packages_by_source) == 2
+        assert len(packages_by_source["https://pypi.python.org/simple"]) == 2
+        assert len(packages_by_source["https://custom-repo.com/simple"]) == 1
