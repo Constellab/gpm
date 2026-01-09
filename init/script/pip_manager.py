@@ -63,28 +63,73 @@ class PipManager:
             self.add_package(package)
 
     def add_package(self, package: PackageInfo) -> None:
-        """Add a package to the list of packages to install"""
+        """Add a package to the list of packages to install.
 
-        # check if package is already in the list
-        existing = next((p for p in self.packages if p["name"] == package["name"]), None)
-
-        if existing:
-            existing_version = existing.get("version", "")
-            new_version = package.get("version", "")
-
-            # If versions differ, log a warning about the conflict
-            if existing_version != new_version:
-                self.logger.info(
-                    f"Package version conflict detected for '{package['name']}': "
-                    f"already have version '{existing_version}', ignoring new version '{new_version}'. "
-                    f"Consider using version ranges (e.g., '>=2.31.0,<3.0.0') instead of pinned versions."
-                )
-            return
-
+        Note: Packages are added without conflict checking.
+        Call check_conflicts() before install_packages() to validate.
+        """
         self.packages.append(package)
 
+    def check_conflicts(self) -> None:
+        """Check for version conflicts in the package list.
+
+        Raises an Exception if conflicts are detected.
+        Logs all conflicts before raising.
+        """
+        # Group packages by name to find duplicates
+        packages_by_name: dict[str, list[PackageInfo]] = {}
+        for package in self.packages:
+            name = package["name"]
+            if name not in packages_by_name:
+                packages_by_name[name] = []
+            packages_by_name[name].append(package)
+
+        # Find conflicts
+        conflicts = []
+        for package_name, package_list in packages_by_name.items():
+            if len(package_list) > 1:
+                # Get unique versions for this package
+                versions = {pkg.get("version", "") for pkg in package_list}
+                if len(versions) > 1:
+                    conflicts.append((package_name, list(versions)))
+
+        # If conflicts found, log them all and raise error
+        if conflicts:
+            self.logger.error("Package version conflicts detected:")
+            for package_name, versions in conflicts:
+                versions_str = "', '".join(v if v else "(no version)" for v in versions)
+                self.logger.error(f"  - '{package_name}': conflicting versions ['{versions_str}']")
+
+            self.logger.error("")
+            self.logger.error(
+                "To resolve conflicts, consider using version ranges (e.g., '>=2.31.0,<3.0.0') "
+                "instead of pinned versions in your brick settings.json files."
+            )
+            self.logger.error("See DEPENDENCY_MANAGEMENT.md for more information.")
+
+            raise Exception(
+                f"Found {len(conflicts)} package(s) with version conflicts. "
+                f"Please resolve the conflicts before continuing."
+            )
+
+        self.logger.info(f"No package conflicts detected. {len(packages_by_name)} unique packages to install.")
+
     def install_packages(self) -> None:
-        """Install all packages in the list"""
+        """Install all packages in the list.
+
+        Automatically checks for conflicts before installation.
+        """
+        # Check for conflicts before installing
+        self.check_conflicts()
+
+        # Deduplicate packages (keep first occurrence of each unique package name+version)
+        seen = set()
+        deduplicated_packages = []
+        for package in self.packages:
+            key = (package["name"], package.get("version", ""))
+            if key not in seen:
+                seen.add(key)
+                deduplicated_packages.append(package)
 
         # reset the progress
         self.current_progress = 0.0
@@ -92,7 +137,7 @@ class PipManager:
         # group packages by source
         packages_by_source: dict[str, list[PackageInfo]] = {}
 
-        for package in self.packages:
+        for package in deduplicated_packages:
             if package["source"] not in packages_by_source:
                 packages_by_source[package["source"]] = []
 

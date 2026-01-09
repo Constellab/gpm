@@ -98,7 +98,7 @@ class TestPipManagerVersionConflicts:
     """Tests for version conflict detection."""
 
     def test_version_conflict_detection(self, mock_logger):
-        """Test that version conflicts are detected and logged."""
+        """Test that version conflicts are detected and raise an exception."""
         pip_manager = PipManager(mock_logger, 0, 100)
 
         # Add first package with version 2.31.0
@@ -109,7 +109,7 @@ class TestPipManagerVersionConflicts:
         }
         pip_manager.add_package(package1)
 
-        # Add same package with different version - should trigger warning
+        # Add same package with different version - both should be added
         package2: PackageInfo = {
             "name": "requests",
             "version": "2.28.0",
@@ -117,21 +117,28 @@ class TestPipManagerVersionConflicts:
         }
         pip_manager.add_package(package2)
 
-        # Verify only one package is in the list
-        assert len(pip_manager.packages) == 1
-        assert pip_manager.packages[0]["version"] == "2.31.0"
+        # Verify both packages are in the list
+        assert len(pip_manager.packages) == 2
 
-        # Verify warning was logged
-        mock_logger.info.assert_called_once()
-        warning_message = mock_logger.info.call_args[0][0]
-        assert "Package version conflict detected" in warning_message
-        assert "requests" in warning_message
-        assert "2.31.0" in warning_message
-        assert "2.28.0" in warning_message
-        assert "version ranges" in warning_message
+        # Now check_conflicts should detect the conflict and raise an exception
+        with pytest.raises(Exception) as exc_info:
+            pip_manager.check_conflicts()
+
+        # Verify the exception message
+        assert "version conflicts" in str(exc_info.value)
+
+        # Verify error messages were logged
+        assert mock_logger.error.called
+        error_calls = [call[0][0] for call in mock_logger.error.call_args_list]
+        error_text = " ".join(error_calls)
+        assert "Package version conflicts detected" in error_text
+        assert "requests" in error_text
+        assert "2.31.0" in error_text
+        assert "2.28.0" in error_text
+        assert "version ranges" in error_text
 
     def test_no_conflict_same_version(self, mock_logger):
-        """Test that no warning is logged when same version is added twice."""
+        """Test that no conflict is detected when same version is added twice."""
         pip_manager = PipManager(mock_logger, 0, 100)
 
         # Add same package with same version twice
@@ -143,11 +150,16 @@ class TestPipManagerVersionConflicts:
         pip_manager.add_package(package)
         pip_manager.add_package(package)
 
-        # Verify only one package is in the list
-        assert len(pip_manager.packages) == 1
+        # Verify both packages are in the list (no deduplication at add time)
+        assert len(pip_manager.packages) == 2
 
-        # Verify no warning was logged
-        mock_logger.info.assert_not_called()
+        # check_conflicts should not raise an exception
+        pip_manager.check_conflicts()  # Should not raise
+
+        # Verify info message was logged (no conflicts)
+        assert mock_logger.info.called
+        info_message = mock_logger.info.call_args[0][0]
+        assert "No package conflicts detected" in info_message
 
     def test_multiple_packages_no_conflict(self, mock_logger):
         """Test that multiple different packages can be added without conflict."""
@@ -164,8 +176,53 @@ class TestPipManagerVersionConflicts:
         # Verify all packages are in the list
         assert len(pip_manager.packages) == 3
 
-        # Verify no warnings were logged
-        mock_logger.info.assert_not_called()
+        # check_conflicts should not raise an exception
+        pip_manager.check_conflicts()  # Should not raise
+
+        # Verify info message was logged (no conflicts)
+        assert mock_logger.info.called
+
+    def test_multiple_conflicts(self, mock_logger):
+        """Test detection of multiple package conflicts at once."""
+        pip_manager = PipManager(mock_logger, 0, 100)
+
+        # Add multiple packages with conflicts
+        packages: list[PackageInfo] = [
+            {"name": "requests", "version": "2.31.0", "source": "https://pypi.python.org/simple"},
+            {"name": "requests", "version": "2.28.0", "source": "https://pypi.python.org/simple"},
+            {"name": "numpy", "version": "1.24.0", "source": "https://pypi.python.org/simple"},
+            {"name": "numpy", "version": "1.26.0", "source": "https://pypi.python.org/simple"},
+            {"name": "pandas", "version": "2.0.0", "source": "https://pypi.python.org/simple"},  # No conflict
+        ]
+
+        pip_manager.add_packages(packages)
+
+        # Should raise exception with both conflicts
+        with pytest.raises(Exception) as exc_info:
+            pip_manager.check_conflicts()
+
+        exception_msg = str(exc_info.value)
+        assert "2 package(s) with version conflicts" in exception_msg
+
+        # Verify both packages are mentioned in error logs
+        error_calls = [call[0][0] for call in mock_logger.error.call_args_list]
+        error_text = " ".join(error_calls)
+        assert "requests" in error_text
+        assert "numpy" in error_text
+
+    def test_install_packages_calls_check_conflicts(self, mock_logger):
+        """Test that install_packages automatically checks for conflicts."""
+        pip_manager = PipManager(mock_logger, 0, 100)
+
+        # Add conflicting packages
+        pip_manager.add_package({"name": "requests", "version": "2.31.0", "source": "https://pypi.python.org/simple"})
+        pip_manager.add_package({"name": "requests", "version": "2.28.0", "source": "https://pypi.python.org/simple"})
+
+        # install_packages should raise exception due to conflict check
+        with pytest.raises(Exception) as exc_info:
+            pip_manager.install_packages()
+
+        assert "version conflicts" in str(exc_info.value)
 
 
 class TestPipManagerVersionFormatting:
@@ -232,6 +289,9 @@ class TestPipManagerVersionFormatting:
 
         assert len(pip_manager.packages) == 1
         assert pip_manager.packages[0]["version"] == ""
+
+        # Should not raise conflict
+        pip_manager.check_conflicts()
 
 
 class TestPipManagerPackageGrouping:
