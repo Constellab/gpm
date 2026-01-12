@@ -66,5 +66,6 @@
   "files.associations": {
     "pytest.ini": "ini",
     "**/tests/**/*.py": "python"
-  }
+  },
+  "testing.automaticallyOpenTestResults": "neverOpen"
 }

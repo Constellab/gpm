@@ -7,7 +7,7 @@ import time
 from datetime import datetime
 from typing import Literal, TypedDict
 
-from git import Repo
+from git import GitCommandError, Repo
 
 from .config_reader import SettingsReader
 from .logger import Logger
@@ -162,7 +162,31 @@ class GitPackageInstaller:
                 else:
                     repo = Repo.clone_from(url=url, to_path=dest_dir, depth=1)
                 break
+            except GitCommandError as err:
+                # Check if the error is due to a missing tag/branch
+                error_message = str(err)
+                if version and (
+                    "Remote branch" in error_message
+                    and "not found" in error_message
+                    or "couldn't find remote ref" in error_message.lower()
+                    or "does not exist" in error_message.lower()
+                ):
+                    raise Exception(
+                        f"Tag or branch '{version}' does not exist in repository '{repo_name}'. "
+                        f"Please verify the version (tag) exists in the repository."
+                    ) from err
+
+                # For other git errors, retry
+                self.logger.info(
+                    f"Couldn't clone the repository '{repo_name}' with version '{version}'. Error: {err}"
+                )
+                self.logger.info(f"Waiting {self.RETRY_DELAY_SECONDS} secs and retry ...")
+                time.sleep(self.RETRY_DELAY_SECONDS)
+                retry_count += 1
+                if retry_count >= self.MAX_RETRIES:
+                    raise err
             except Exception as err:
+                # For non-git errors, retry
                 self.logger.info(
                     f"Couldn't clone the repository '{repo_name}' with version '{version}'. Error: {err}"
                 )
@@ -211,9 +235,7 @@ class GitPackageInstaller:
             "package_type": "git",
         }
 
-        git_installation_file = os.path.join(
-            path, self.workspace_config.GIT_INSTALLATION_FILE
-        )
+        git_installation_file = os.path.join(path, self.workspace_config.GIT_INSTALLATION_FILE)
         with open(git_installation_file, "w", encoding="UTF-8") as file:
             json.dump(brick_installation, file, indent=2)
 
