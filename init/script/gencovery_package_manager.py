@@ -30,7 +30,7 @@ class GencoveryPackageManager:
     def __init__(
         self,
         settings_file_path: str,
-        env_mode: EnvMode,
+        env_mode: str,
         lab_workspace_dir: str = "/lab",
     ):
         """Initialize the package manager with all components.
