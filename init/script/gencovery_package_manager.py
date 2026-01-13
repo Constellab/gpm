@@ -106,7 +106,7 @@ class GencoveryPackageManager:
 
         # Step 1: Install all git packages and bricks recursively
         try:
-            self.install_git_packages_and_bricks([self.config_reader])
+            self.brick_installer.install_git_packages_and_bricks([self.config_reader])
 
             git_packages = self.git_installer.get_installed_packages()
             self.logger.info(f"Installed git packages:\n{git_packages}")
@@ -115,7 +115,9 @@ class GencoveryPackageManager:
             self.logger.info(f"Installed brick packages:\n{brick_packages}")
         except Exception as err:
             self.logger.main_error(f"Error while installing git packages and bricks. {err}")
-            raise err
+            # In codelab, ignore the error so it starts even if packages are not installed
+            if self.env_mode == "GLAB":
+                raise err
 
         self.logger.log_progress(
             "Installing bricks dependencies", self.INSTALL_DEPENDENCIES_PROGRESS_START
@@ -142,29 +144,6 @@ class GencoveryPackageManager:
         except Exception as err:
             self.logger.error(f"Error while calling brick hooks. {err}")
             # Don't fail the initialization if hooks fail
-
-    def install_git_packages_and_bricks(self, settings_readers: list[SettingsReader]) -> None:
-        """Recursively install git packages and bricks from settings readers.
-
-        This method clones git repositories and brick packages. It does NOT collect or install
-        pip dependencies - that is handled separately by collect_and_install_pip_dependencies().
-
-        Sub-packages are installed after main packages to maintain proper dependency order.
-
-        Args:
-            settings_readers: List of SettingsReader instances containing package configurations
-        """
-        # Install git packages (no pip dependencies collected here)
-        for settings_reader in settings_readers:
-            self.logger.info(f"Installing git packages for '{settings_reader.get_name()}' brick")
-            self.git_installer.install_git_packages(settings_reader)
-
-        # Install bricks recursively
-        sub_settings_readers = self.brick_installer.install_bricks_recursively(settings_readers)
-
-        # Recursive call to install sub-packages
-        if len(sub_settings_readers) > 0:
-            self.install_git_packages_and_bricks(sub_settings_readers)
 
     def collect_and_install_pip_dependencies(self) -> None:
         """Collect pip dependencies from all installed bricks and install them.
@@ -224,7 +203,7 @@ class GencoveryPackageManager:
                 json.dump(settings, file, indent=4)
 
         except Exception as err:
-            self.logger.error(f"Error while creating the app entrypoint: {err}")
+            self.logger.main_error(f"Error while creating the app entrypoint: {err}")
             raise err
 
     def call_brick_hooks(self) -> None:

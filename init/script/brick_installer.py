@@ -103,7 +103,7 @@ class BrickInstaller:
         # Return the settings reader for sub-dependency installation
         return SettingsReader(os.path.join(brick_dir, self.workspace_config.SETTING_JSON_FILE))
 
-    def install_bricks_recursively(
+    def _install_sub_brick(
         self, settings_readers: list[SettingsReader]
     ) -> list[SettingsReader]:
         """Install brick packages from settings readers and collect sub-dependencies.
@@ -207,3 +207,26 @@ class BrickInstaller:
         bricks = self._installed_bricks.copy()
         bricks.sort()
         return bricks
+
+    def install_git_packages_and_bricks(self, settings_readers: list[SettingsReader]) -> None:
+        """Recursively install git packages and bricks from settings readers.
+
+        This method clones git repositories and brick packages. It does NOT collect or install
+        pip dependencies - that is handled separately by collect_and_install_pip_dependencies().
+
+        Sub-packages are installed after main packages to maintain proper dependency order.
+
+        Args:
+            settings_readers: List of SettingsReader instances containing package configurations
+        """
+        # Install git packages (no pip dependencies collected here)
+        for settings_reader in settings_readers:
+            self.logger.info(f"Installing git packages for '{settings_reader.get_name()}' brick")
+            self.git_installer.install_git_packages(settings_reader)
+
+        # Install bricks recursively
+        sub_settings_readers = self._install_sub_brick(settings_readers)
+
+        # Recursive call to install sub-packages
+        if len(sub_settings_readers) > 0:
+            self.install_git_packages_and_bricks(sub_settings_readers)

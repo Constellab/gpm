@@ -200,49 +200,46 @@ class PipManager:
         # set the install ratio if there is multiple source, multiple install commands are trigger
         install_ratio = package_count / len(self.packages)
 
-        try:
-            proc = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
+      
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
 
-            reads = [proc.stdout.fileno(), proc.stderr.fileno()]
-            while True:
-                # return the list of file descriptors that are ready to be read
-                ret = select.select(reads, [], [])
+        reads = [proc.stdout.fileno(), proc.stderr.fileno()]
+        while True:
+            # return the list of file descriptors that are ready to be read
+            ret = select.select(reads, [], [])
 
-                has_read: bool = False
+            has_read: bool = False
 
-                for file_no in ret[0]:
-                    if file_no == proc.stdout.fileno():
-                        read = proc.stdout.readline()
-                        if read:
-                            self._handle_output(read.decode("utf-8"), install_ratio, package_count)
-                            has_read = True
-                    elif file_no == proc.stderr.fileno():
-                        read = proc.stderr.readline()
-                        if read:
-                            self.logger.error(read.decode("utf-8"))
-                            has_read = True
+            for file_no in ret[0]:
+                if file_no == proc.stdout.fileno():
+                    read = proc.stdout.readline()
+                    if read:
+                        self._handle_output(read.decode("utf-8"), install_ratio, package_count)
+                        has_read = True
+                elif file_no == proc.stderr.fileno():
+                    read = proc.stderr.readline()
+                    if read:
+                        self.logger.error(read.decode("utf-8"))
+                        has_read = True
 
-                poll = proc.poll()
+            poll = proc.poll()
 
-                # stop if the process has finished and there is no more data to read
-                # we need to check if there is no more data to read because the process can be finished but there is still data in the buffer (if long log at the end)
-                if poll is not None and not has_read:
-                    break
+            # stop if the process has finished and there is no more data to read
+            # we need to check if there is no more data to read because the process can be finished but there is still data in the buffer (if long log at the end)
+            if poll is not None and not has_read:
+                break
 
-            # Check if pip command succeeded
-            if proc.returncode != 0:
-                error_msg = f"Pip installation failed with exit code {proc.returncode}. Check the error logs for details."
-                raise Exception(error_msg)
+        # Check if pip command succeeded
+        if proc.returncode != 0:
+            error_msg = f"Pip installation failed with exit code {proc.returncode}. Check the error logs for details."
+            raise Exception(error_msg)
 
-            return True
-        except Exception as err:
-            self.logger.main_error(f"Error during pip installation: {err}")
-            raise err
-
+        return True
+       
     def _handle_output(self, output: str, install_ratio: float, package_count: int) -> None:
         self.logger.info(output)
 
