@@ -91,8 +91,6 @@ WORKDIR /home/labuser
 
 COPY --chown=labuser:labuser ./init /init-lab
 
-RUN python3 -m pip install biopython==1.79 --extra-index-url https://pypi.python.org/simple
-
 # Make entrypoint script executable
 RUN chmod +x /init-lab/entrypoint-glab.sh
 

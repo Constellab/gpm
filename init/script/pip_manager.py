@@ -204,9 +204,10 @@ class PipManager:
             proc = subprocess.Popen(
                 cmd,
                 stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
             )
 
-            reads = [proc.stdout.fileno()]
+            reads = [proc.stdout.fileno(), proc.stderr.fileno()]
             while True:
                 # return the list of file descriptors that are ready to be read
                 ret = select.select(reads, [], [])
@@ -219,6 +220,11 @@ class PipManager:
                         if read:
                             self._handle_output(read.decode("utf-8"), install_ratio, package_count)
                             has_read = True
+                    elif file_no == proc.stderr.fileno():
+                        read = proc.stderr.readline()
+                        if read:
+                            self.logger.error(read.decode("utf-8"))
+                            has_read = True
 
                 poll = proc.poll()
 
@@ -226,9 +232,15 @@ class PipManager:
                 # we need to check if there is no more data to read because the process can be finished but there is still data in the buffer (if long log at the end)
                 if poll is not None and not has_read:
                     break
+
+            # Check if pip command succeeded
+            if proc.returncode != 0:
+                error_msg = f"Pip installation failed with exit code {proc.returncode}. Check the error logs for details."
+                raise Exception(error_msg)
+
             return True
         except Exception as err:
-            self.logger.error("Error during pip instalation")
+            self.logger.main_error(f"Error during pip installation: {err}")
             raise err
 
     def _handle_output(self, output: str, install_ratio: float, package_count: int) -> None:
