@@ -112,7 +112,9 @@ class PipManager:
                 f"Please resolve the conflicts before continuing."
             )
 
-        self.logger.info(f"No package conflicts detected. {len(packages_by_name)} unique packages to install.")
+        self.logger.info(
+            f"No package conflicts detected. {len(packages_by_name)} unique packages to install."
+        )
 
     def install_packages(self) -> None:
         """Install all packages in the list.
@@ -179,12 +181,18 @@ class PipManager:
         if self.disable_cache:
             cmd.append("--no-cache-dir")
 
-        self.logger.info(f"Installing pip packages : '{' '.join(cmd)}'")
+        # Format command with packages wrapped in quotes
+        cmd_parts = cmd[:4]  # python3 -m pip install
+        quoted_packages = [f'"{pkg}"' for pkg in _packages_with_version]
+        cmd_parts.extend(quoted_packages)
+        cmd_parts.extend(cmd[4 + len(_packages_with_version) :])  # --extra-index-url and source
+        self.logger.info(f"Installing pip packages : '{' '.join(cmd_parts)}'")
+
         self._run_cmd(cmd, package_count=len(packages))
 
         self._installed_packages_version.extend(_packages_with_version)
 
-        self.logger.info("Pip packages successfully insalled")
+        self.logger.info("Pip packages successfully installed")
 
     def _run_cmd(self, cmd: list[str], package_count: int) -> bool:
         self.download_finished = False

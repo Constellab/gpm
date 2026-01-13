@@ -55,6 +55,8 @@ RUN INSTALLER="Miniforge3-${CUSTOM_MAMBA_VERSION}-$(uname)-$(uname -m).sh" && \
     sha256sum -c "${INSTALLER}.sha256" && \
     bash "${INSTALLER}" -b -p /opt/conda && \
     rm "${INSTALLER}" "${INSTALLER}.sha256" && \
+    # Install Python 3.10 in the base conda environment
+    /opt/conda/bin/conda install -y python=3.10 && \
     /opt/conda/bin/conda init bash && \
     /opt/conda/bin/mamba shell init --shell bash
 
@@ -88,6 +90,8 @@ WORKDIR /home/labuser
 # ============================================================================
 
 COPY --chown=labuser:labuser ./init /init-lab
+
+RUN python3 -m pip install biopython==1.79 --extra-index-url https://pypi.python.org/simple
 
 # Make entrypoint script executable
 RUN chmod +x /init-lab/entrypoint-glab.sh
