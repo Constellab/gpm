@@ -83,7 +83,7 @@ pytest -m requires_network
 ## Testing the docker images
 
 Testing the glab image locally : ```docker build -t glab:latest -f ./dockerfile/glab/Dockerfile .```
-Testing the codelab image locally : ```docker build -t constellab/codelab:2.12.0 -f ./dockerfile/codelab/Dockerfile .```
+Testing the codelab image locally : ```docker build -t codelab:codelab -f ./dockerfile/codelab/Dockerfile .```
 
 Coding using the dev-env image : ```docker build -t lab-dev-env -f ./dockerfile/lab-dev-env/Dockerfile .```
 

@@ -1,0 +1,75 @@
+# =============================================================================
+# Git Line Ending Configuration
+# =============================================================================
+# This file ensures consistent line endings across all platforms
+# Prevents Windows CRLF from breaking shell scripts in Docker/Linux
+
+# Auto-detect text files and normalize line endings to LF on commit
+* text=auto
+
+# =============================================================================
+# Force LF (Unix) line endings for script files
+# =============================================================================
+*.sh text eol=lf
+*.bash text eol=lf
+*.py text eol=lf
+*.pl text eol=lf
+*.rb text eol=lf
+
+# =============================================================================
+# Force LF for Docker and configuration files
+# =============================================================================
+Dockerfile text eol=lf
+*.dockerfile text eol=lf
+docker-compose.yml text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.json text eol=lf
+*.toml text eol=lf
+*.ini text eol=lf
+*.cfg text eol=lf
+.gitattributes text eol=lf
+.gitignore text eol=lf
+.env* text eol=lf
+
+# =============================================================================
+# Force LF for common text files
+# =============================================================================
+*.txt text eol=lf
+*.md text eol=lf
+*.csv text eol=lf
+*.sql text eol=lf
+*.xml text eol=lf
+*.html text eol=lf
+*.css text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.jsx text eol=lf
+*.tsx text eol=lf
+
+# =============================================================================
+# Force CRLF for Windows-specific files (if any)
+# =============================================================================
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# =============================================================================
+# Binary files - do not modify
+# =============================================================================
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.tgz binary
+*.7z binary
+*.exe binary
+*.dll binary
+*.so binary
+*.dylib binary
+*.whl binary

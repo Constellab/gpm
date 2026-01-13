@@ -20,27 +20,25 @@ ChallengeResponseAuthentication no
 
 # TCP Forwarding - Essential for VS Code Remote
 AllowTcpForwarding yes
-GatewayPorts no
 X11Forwarding no
 
 # Various settings
 Subsystem sftp internal-sftp
 UseDNS no
 PrintMotd no
-AcceptEnv LANG LC_*
-
-# Required for proper interactive sessions with VS Code
-PermitTTY yes
 
 # Don't accept all client environment variables (security risk)
 # Only accept locale settings
 AcceptEnv LANG LC_*
 
+# Required for proper interactive sessions with VS Code
+PermitTTY yes
+
 # Keep connections alive
 ClientAliveInterval 60
 ClientAliveCountMax 10
 
-# Permit the server to listen on localhost for server-to-server connections
-# This is needed for VS Code's port forwarding
+# Permit the server to listen for VS Code's port forwarding
+# clientspecified allows client to specify bind address for forwarded ports
 GatewayPorts clientspecified
 PermitTunnel yes
