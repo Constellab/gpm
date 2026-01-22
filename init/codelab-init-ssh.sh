@@ -9,9 +9,14 @@
 
 # Ensure /lab directory structure exists with correct permissions
 # This fixes permissions when /lab is mounted as a volume (volumes are created as root)
-echo "Ensuring /lab/user directory exists with correct permissions..."
 mkdir -p /lab/user
-chown -R labuser:labuser /lab
+# Only chown if needed (avoids slow recursive operation on large directories)
+if [ "$(stat -c %U /lab)" != "labuser" ]; then
+    chown labuser:labuser /lab
+fi
+if [ "$(stat -c %U /lab/user)" != "labuser" ]; then
+    chown labuser:labuser /lab/user
+fi
 
 # Copy the ssh config in the correct location
 # we use copy here because the /etc/ssh directory is mounted from the host
