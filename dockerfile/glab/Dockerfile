@@ -14,7 +14,7 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 # ============================================================================
 ENV TZ=UTC \
     CUSTOM_MAMBA_VERSION=25.9.1-0 \
-    PATH="/home/labuser/.local/bin:/opt/conda/bin:${PATH}"
+    PATH="/home/labuser/.local/bin:/usr/local/bin:/opt/conda/bin:${PATH}"
 
 # ============================================================================
 # System Package Installation
@@ -47,6 +47,8 @@ RUN INSTALLER="Miniforge3-${CUSTOM_MAMBA_VERSION}-$(uname)-$(uname -m).sh" && \
     /opt/conda/bin/conda install -y python=3.10 && \
     /opt/conda/bin/conda init bash && \
     /opt/conda/bin/mamba shell init --shell bash && \
+    # Clean conda cache to reduce image size
+    /opt/conda/bin/conda clean -afy && \
     # Create symlink so 'python' command works
     ln -s /opt/conda/bin/python /usr/local/bin/python
 
