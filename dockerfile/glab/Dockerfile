@@ -13,7 +13,6 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 # Environment Variables
 # ============================================================================
 ENV TZ=UTC \
-    CUSTOM_PIP_VERSION=25.3 \
     CUSTOM_MAMBA_VERSION=25.9.1-0 \
     PATH="/home/labuser/.local/bin:/opt/conda/bin:${PATH}"
 
@@ -21,31 +20,20 @@ ENV TZ=UTC \
 # System Package Installation
 # ============================================================================
 
-# Install Python 3.10 and essential system packages
+# Install essential system packages (without Python - conda will provide it)
 RUN apt-get -y update && \
-    apt-get -y install python3.10 python3-distutils && \
     apt-get -y install git curl zip unzip bzip2 wget rsync nginx sudo && \
-    # It is needed to install hdmedians which is a dependency of scikit-bio
-    # build essential install g++ and gcc which are commonly needed
-    apt-get -y install gcc libpq-dev python3-dev build-essential && \
-    # create a symlink to python3 so python command will use python3
-    ln -s $(which python3) /usr/local/bin/python && \
+    # Build tools needed for compiling Python packages (e.g., hdmedians for scikit-bio)
+    apt-get -y install gcc libpq-dev build-essential && \
     # Clean apt cache to reduce image size
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================================================
-# Python Package Managers Installation
+# Conda/Mamba Installation (includes Python 3.10 and pip)
 # ============================================================================
 
-# Install pip system-wide (as root) so it's available to all users
-# Using -fsSL for secure download: fail on errors, silent, follow redirects, HTTPS
-RUN curl -fsSL https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python3 get-pip.py "pip==${CUSTOM_PIP_VERSION}" && \
-    python3 -m pip install --no-cache-dir --upgrade setuptools && \
-    rm get-pip.py
-
-# Installing conda and mamba system-wide (as root)
+# Install miniforge (conda + mamba) with Python 3.10
 # Info from https://github.com/conda-forge/miniforge#mambaforge
 # Download installer and its SHA256 checksum, then verify before installation
 RUN INSTALLER="Miniforge3-${CUSTOM_MAMBA_VERSION}-$(uname)-$(uname -m).sh" && \
@@ -55,17 +43,19 @@ RUN INSTALLER="Miniforge3-${CUSTOM_MAMBA_VERSION}-$(uname)-$(uname -m).sh" && \
     sha256sum -c "${INSTALLER}.sha256" && \
     bash "${INSTALLER}" -b -p /opt/conda && \
     rm "${INSTALLER}" "${INSTALLER}.sha256" && \
-    # Install Python 3.10 in the base conda environment
+    # Install Python 3.10 in the base conda environment (includes pip)
     /opt/conda/bin/conda install -y python=3.10 && \
     /opt/conda/bin/conda init bash && \
-    /opt/conda/bin/mamba shell init --shell bash
+    /opt/conda/bin/mamba shell init --shell bash && \
+    # Create symlink so 'python' command works
+    ln -s /opt/conda/bin/python /usr/local/bin/python
 
 # ============================================================================
 # Python Dependencies Installation
 # ============================================================================
 
-# Install pipenv and gws dependencies system-wide (as root)
-RUN pip install --no-cache-dir \
+# Install initial dependencies using conda's pip
+RUN /opt/conda/bin/pip install --no-cache-dir \
                 pipenv==2025.0.4 \
                 click==8.3.1 \
                 GitPython==3.1.45 \
