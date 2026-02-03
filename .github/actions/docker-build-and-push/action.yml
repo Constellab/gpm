@@ -3,6 +3,7 @@
 # It suppoert cpu and gpu image build and push
 
 name: Publish Docker image
+description: Build and push Docker images from Dockerfile to Docker Hub with support for CPU and GPU variants
 
 inputs:
   container_name:
