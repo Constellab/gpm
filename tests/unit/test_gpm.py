@@ -18,13 +18,17 @@ GWS_CORE_VERSION = "0.8.0"
 
 @pytest.fixture
 def test_workspace():
-    """Create a workspace for testing using .build/lab folder."""
+    """Create a clean workspace for testing using .build/lab folder."""
     # Use the .build/lab folder relative to the tests directory
     tests_dir = Path(__file__).parent.parent
     build_dir = tests_dir / ".build"
     workspace = build_dir / "lab"
 
-    # Create the directory if it doesn't exist
+    # Clean up any leftover state from previous runs
+    if workspace.exists():
+        shutil.rmtree(workspace)
+
+    # Create a fresh directory
     workspace.mkdir(parents=True, exist_ok=True)
 
     return workspace

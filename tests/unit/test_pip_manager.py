@@ -34,18 +34,18 @@ class TestPipManagerInstallation:
         logger = Logger(str(log_file_path))
 
         packages: list[PackageInfo] = [
-            {"name": "numpy", "version": "1.26.4", "source": "https://pypi.python.org/simple"},
-            {"name": "pandas", "version": "2.2.2", "source": "https://pypi.python.org/simple"},
+            PackageInfo(name="numpy", version="1.26.4", source="https://pypi.python.org/simple"),
+            PackageInfo(name="pandas", version="2.2.2", source="https://pypi.python.org/simple"),
             # Simulate a second source
-            {
-                "name": "simplejson",
-                "version": "3.19.2",
-                "source": "https://pypi.python.org/simple ",
-            },
+            PackageInfo(
+                name="simplejson",
+                version="3.19.2",
+                source="https://pypi.python.org/simple ",
+            ),
         ]
 
         # Uninstall packages first
-        packages_to_uninstall = [package["name"] for package in packages]
+        packages_to_uninstall = [package.name for package in packages]
         cmd = ["pip", "uninstall"] + packages_to_uninstall + ["-y"]
         subprocess.check_call(cmd)
 
@@ -67,14 +67,14 @@ class TestPipManagerInstallation:
 
         packages: list[PackageInfo] = [
             # Use version ranges instead of pinned versions
-            {"name": "certifi", "version": ">=2023.0.0,<2025.0.0", "source": "https://pypi.python.org/simple"},
-            {"name": "charset-normalizer", "version": ">=3.0.0,<4.0.0", "source": "https://pypi.python.org/simple"},
+            PackageInfo(name="certifi", version=">=2023.0.0,<2025.0.0", source="https://pypi.python.org/simple"),
+            PackageInfo(name="charset-normalizer", version=">=3.0.0,<4.0.0", source="https://pypi.python.org/simple"),
             # Test compatible release operator
-            {"name": "idna", "version": "~=3.4", "source": "https://pypi.python.org/simple"},
+            PackageInfo(name="idna", version="~=3.4", source="https://pypi.python.org/simple"),
         ]
 
         # Uninstall packages first
-        packages_to_uninstall = [package["name"] for package in packages]
+        packages_to_uninstall = [package.name for package in packages]
         cmd = ["pip", "uninstall"] + packages_to_uninstall + ["-y"]
         subprocess.run(cmd, check=False)  # Don't fail if packages aren't installed
 
@@ -102,19 +102,19 @@ class TestPipManagerVersionConflicts:
         pip_manager = PipManager(mock_logger, 0, 100)
 
         # Add first package with version 2.31.0
-        package1: PackageInfo = {
-            "name": "requests",
-            "version": "2.31.0",
-            "source": "https://pypi.python.org/simple",
-        }
+        package1 = PackageInfo(
+            name="requests",
+            version="2.31.0",
+            source="https://pypi.python.org/simple",
+        )
         pip_manager.add_package(package1, "brick-a")
 
         # Add same package with different version - both should be added
-        package2: PackageInfo = {
-            "name": "requests",
-            "version": "2.28.0",
-            "source": "https://pypi.python.org/simple",
-        }
+        package2 = PackageInfo(
+            name="requests",
+            version="2.28.0",
+            source="https://pypi.python.org/simple",
+        )
         pip_manager.add_package(package2, "brick-b")
 
         # Verify both packages are in the list
@@ -144,11 +144,11 @@ class TestPipManagerVersionConflicts:
         pip_manager = PipManager(mock_logger, 0, 100)
 
         # Add same package with same version twice
-        package: PackageInfo = {
-            "name": "requests",
-            "version": "2.31.0",
-            "source": "https://pypi.python.org/simple",
-        }
+        package = PackageInfo(
+            name="requests",
+            version="2.31.0",
+            source="https://pypi.python.org/simple",
+        )
         pip_manager.add_package(package, "brick-a")
         pip_manager.add_package(package, "brick-b")
 
@@ -168,9 +168,9 @@ class TestPipManagerVersionConflicts:
         pip_manager = PipManager(mock_logger, 0, 100)
 
         packages: list[PackageInfo] = [
-            {"name": "requests", "version": ">=2.31.0,<3.0.0", "source": "https://pypi.python.org/simple"},
-            {"name": "numpy", "version": ">=1.24.0,<2.0.0", "source": "https://pypi.python.org/simple"},
-            {"name": "pandas", "version": ">=2.0.0,<3.0.0", "source": "https://pypi.python.org/simple"},
+            PackageInfo(name="requests", version=">=2.31.0,<3.0.0", source="https://pypi.python.org/simple"),
+            PackageInfo(name="numpy", version=">=1.24.0,<2.0.0", source="https://pypi.python.org/simple"),
+            PackageInfo(name="pandas", version=">=2.0.0,<3.0.0", source="https://pypi.python.org/simple"),
         ]
 
         pip_manager.add_packages(packages, "brick-a")
@@ -189,11 +189,11 @@ class TestPipManagerVersionConflicts:
         pip_manager = PipManager(mock_logger, 0, 100)
 
         # Add multiple packages with conflicts from different bricks
-        pip_manager.add_package({"name": "requests", "version": "2.31.0", "source": "https://pypi.python.org/simple"}, "brick-a")
-        pip_manager.add_package({"name": "requests", "version": "2.28.0", "source": "https://pypi.python.org/simple"}, "brick-b")
-        pip_manager.add_package({"name": "numpy", "version": "1.24.0", "source": "https://pypi.python.org/simple"}, "brick-a")
-        pip_manager.add_package({"name": "numpy", "version": "1.26.0", "source": "https://pypi.python.org/simple"}, "brick-c")
-        pip_manager.add_package({"name": "pandas", "version": "2.0.0", "source": "https://pypi.python.org/simple"}, "brick-a")  # No conflict
+        pip_manager.add_package(PackageInfo(name="requests", version="2.31.0", source="https://pypi.python.org/simple"), "brick-a")
+        pip_manager.add_package(PackageInfo(name="requests", version="2.28.0", source="https://pypi.python.org/simple"), "brick-b")
+        pip_manager.add_package(PackageInfo(name="numpy", version="1.24.0", source="https://pypi.python.org/simple"), "brick-a")
+        pip_manager.add_package(PackageInfo(name="numpy", version="1.26.0", source="https://pypi.python.org/simple"), "brick-c")
+        pip_manager.add_package(PackageInfo(name="pandas", version="2.0.0", source="https://pypi.python.org/simple"), "brick-a")  # No conflict
 
         # Should raise exception with both conflicts
         with pytest.raises(Exception) as exc_info:
@@ -216,8 +216,8 @@ class TestPipManagerVersionConflicts:
         pip_manager = PipManager(mock_logger, 0, 100)
 
         # Add conflicting packages
-        pip_manager.add_package({"name": "requests", "version": "2.31.0", "source": "https://pypi.python.org/simple"}, "brick-a")
-        pip_manager.add_package({"name": "requests", "version": "2.28.0", "source": "https://pypi.python.org/simple"}, "brick-b")
+        pip_manager.add_package(PackageInfo(name="requests", version="2.31.0", source="https://pypi.python.org/simple"), "brick-a")
+        pip_manager.add_package(PackageInfo(name="requests", version="2.28.0", source="https://pypi.python.org/simple"), "brick-b")
 
         # install_packages should raise exception due to conflict check
         with pytest.raises(Exception) as exc_info:
@@ -243,11 +243,11 @@ class TestPipManagerVersionFormatting:
         ]
 
         for input_version, expected_output in test_cases:
-            package: PackageInfo = {
-                "name": f"test-package-{input_version.replace('=', '').replace('<', '').replace('>', '').replace(',', '').replace('~', '').replace('!', '')}",
-                "version": input_version,
-                "source": "https://pypi.python.org/simple",
-            }
+            package = PackageInfo(
+                name=f"test-package-{input_version.replace('=', '').replace('<', '').replace('>', '').replace(',', '').replace('~', '').replace('!', '')}",
+                version=input_version,
+                source="https://pypi.python.org/simple",
+            )
 
             # Create a new pip_manager for each test to avoid conflicts
             test_pip_manager = PipManager(mock_logger, 0, 100)
@@ -271,21 +271,21 @@ class TestPipManagerVersionFormatting:
                     formatted_packages.append(f"{name}{version}")
 
             if expected_output:
-                expected_full = f"{package['name']}{expected_output}"
+                expected_full = f"{package.name}{expected_output}"
                 assert formatted_packages[0] == expected_full, \
                     f"Failed for input '{input_version}': expected '{expected_full}', got '{formatted_packages[0]}'"
             else:
-                assert formatted_packages[0] == package["name"]
+                assert formatted_packages[0] == package.name
 
     def test_empty_version_handling(self, mock_logger):
         """Test that packages without version are handled correctly."""
         pip_manager = PipManager(mock_logger, 0, 100)
 
-        package: PackageInfo = {
-            "name": "requests",
-            "version": "",
-            "source": "https://pypi.python.org/simple",
-        }
+        package = PackageInfo(
+            name="requests",
+            version="",
+            source="https://pypi.python.org/simple",
+        )
         pip_manager.add_package(package, "test-brick")
 
         assert len(pip_manager.packages) == 1
@@ -303,9 +303,9 @@ class TestPipManagerPackageGrouping:
         pip_manager = PipManager(mock_logger, 0, 100)
 
         packages: list[PackageInfo] = [
-            {"name": "requests", "version": "2.31.0", "source": "https://pypi.python.org/simple"},
-            {"name": "numpy", "version": "1.24.0", "source": "https://custom-repo.com/simple"},
-            {"name": "pandas", "version": "2.0.0", "source": "https://pypi.python.org/simple"},
+            PackageInfo(name="requests", version="2.31.0", source="https://pypi.python.org/simple"),
+            PackageInfo(name="numpy", version="1.24.0", source="https://custom-repo.com/simple"),
+            PackageInfo(name="pandas", version="2.0.0", source="https://pypi.python.org/simple"),
         ]
 
         pip_manager.add_packages(packages, "test-brick")

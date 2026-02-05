@@ -69,9 +69,9 @@ class PipManager:
         Call check_conflicts() before install_packages() to validate.
         """
         tracked = TrackedPackageInfo(
-            name=package["name"],
-            version=package.get("version", ""),
-            source=package["source"],
+            name=package.name,
+            version=package.version,
+            source=package.source,
             brick_name=brick_name,
         )
         self.packages.append(tracked)

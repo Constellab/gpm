@@ -66,14 +66,14 @@ class GitPackageInstaller:
         """
         parent_name = settings_reader.get_name()
         for package in settings_reader.get_git_packages():
-            repo_name = package["name"]
+            repo_name = package.name
 
             # Skip install if the package is already installed
             if self.is_installed(repo_name):
                 continue
 
-            version: str | None = package.get("version")
-            source_url = package.get("source", "").strip("/")
+            version: str | None = package.version or None
+            source_url = (package.source or "").strip("/")
             repo_path = f"{source_url}/{repo_name}.git"
 
             # Replace environment variables (including credentials)

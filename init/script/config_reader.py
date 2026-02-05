@@ -44,7 +44,8 @@ class SettingsFile(TypedDict):
     environment: SettingFileEnv
 
 
-class PackageInfo(TypedDict):
+@dataclass
+class PackageInfo:
     """ object containing info to install a git or pip package"""
     name: str
     version: str
@@ -107,11 +108,11 @@ class SettingsReader:
 
         for pip_channel in self.get_pip_channels():
             for pip_package in pip_channel["packages"]:
-                packages.append({
-                    "name": pip_package["name"],
-                    "version": pip_package.get("version", ''),
-                    "source": pip_channel["source"]
-                })
+                packages.append(PackageInfo(
+                    name=pip_package["name"],
+                    version=pip_package.get("version", ''),
+                    source=pip_channel["source"],
+                ))
 
         return packages
 
@@ -125,11 +126,11 @@ class SettingsReader:
         for git_channel in self.get_git_channels():
             for git_package in git_channel["packages"]:
                 if git_package.get("is_brick", False) == is_brick:
-                    bricks.append({
-                        "name": git_package["name"],
-                        "version": git_package.get("version", ''),
-                        "source": git_channel["source"]
-                    })
+                    bricks.append(PackageInfo(
+                        name=git_package["name"],
+                        version=git_package.get("version", ''),
+                        source=git_channel["source"],
+                    ))
 
         return bricks
 
