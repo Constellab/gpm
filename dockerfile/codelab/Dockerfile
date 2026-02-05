@@ -1,7 +1,7 @@
 # =============================================================================
 # Build Arguments
 # =============================================================================
-ARG IMAGE="glab:latest"
+ARG IMAGE="constellab/glab:latest"
 
 FROM $IMAGE
 
@@ -14,7 +14,7 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 # Choose version from https://github.com/gitpod-io/openvscode-server
 ARG RELEASE_TAG=openvscode-server-v1.105.1
 ARG RELEASE_ORG="gitpod-io"
-ARG OPENVSCODE_SERVER_ROOT="/home/.openvscode-server"
+ARG OPENVSCODE_SERVER_ROOT="/opt/openvscode-server"
 
 # =============================================================================
 # Environment Variables
@@ -89,13 +89,18 @@ RUN if [ -z "${RELEASE_TAG}" ]; then \
     rm -f "${ARCHIVE}"
 
 # =============================================================================
-# SSH Server Configuration
+# SSH Server Configuration and VS Code Remote Setup
 # =============================================================================
 # Configure SSH server for VS Code Remote access
-RUN mkdir -p /etc/ssh /home/labuser/.ssh && \
+RUN mkdir -p /etc/ssh /home/labuser/.ssh \
+        /home/labuser/.vscode-server \
+        /home/labuser/.openvscode-server && \
     # Set proper ownership and permissions for SSH directory (mode 700 required)
     chown labuser:labuser /home/labuser/.ssh && \
     chmod 700 /home/labuser/.ssh && \
+    # Set ownership for VS Code server directories (so they can be used in volume)
+    chown labuser:labuser /home/labuser/.vscode-server && \
+    chown labuser:labuser /home/labuser/.openvscode-server && \
     # Create locale file to avoid PAM environment warnings
     touch /etc/default/locale && \
     echo "LANG=C.UTF-8" > /etc/default/locale
@@ -114,11 +119,8 @@ COPY ./dockerfile/codelab/rsyslog.conf /etc/rsyslog.conf
 # This copy ensures codelab has its own layer for cache control and flexibility
 COPY --chown=labuser:labuser ./init ${INIT_LAB_PATH}
 
-# Make scripts executable and normalize line endings
-# Using find loop for efficiency instead of individual sed commands
-RUN find ${INIT_LAB_PATH} -type f \( -name "*.sh" -o -name "*.py" \) \
-    -exec chmod +x {} \; \
-    -exec sed -i -e 's/\r$//' {} \;
+# Make entrypoint script executable
+RUN chmod +x /init-lab/entrypoint-codelab.sh
 
 # =============================================================================
 # Runtime Configuration

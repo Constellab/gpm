@@ -16,10 +16,8 @@ USER root
 # Duplicate of glab but it is useful to have it here for clarity and cache control
 COPY --chown=labuser:labuser ./init /init-lab
 
-RUN chmod +x /init-lab/entrypoint-local-dev-env.sh && \
-    sed -i -e 's/\r$//' /init-lab/entrypoint-local-dev-env.sh && \
-    sed -i -e 's/\r$//' /init-lab/init_lab.sh && \
-    sed -i -e 's/\r$//' /init-lab/clean.sh
+# Make entrypoint script executable
+RUN chmod +x /init-lab/entrypoint-local-dev-env.sh
 
 USER labuser
 

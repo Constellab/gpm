@@ -13,21 +13,32 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 # Environment Variables
 # ============================================================================
 ENV TZ=UTC \
-    CUSTOM_MAMBA_VERSION=25.9.1-0 \
+    # Version from https://github.com/conda-forge/miniforge/releases
+    CUSTOM_MAMBA_VERSION=25.11.0-1 \
+    # don't name it PIP_VERSION because it will be overwritten by pip
+    # version from https://pypi.org/project/pip/
+    CUSTOM_PIP_VERSION=26.0 \
     PATH="/home/labuser/.local/bin:/usr/local/bin:/opt/conda/bin:${PATH}"
 
 # ============================================================================
 # System Package Installation
 # ============================================================================
 
-# Install essential system packages (without Python - conda will provide it)
+# install python v 3.10 & base packages
 RUN apt-get -y update && \
+    apt-get -y install python3.10 python3-distutils && \
     apt-get -y install git curl zip unzip bzip2 wget rsync nginx sudo && \
-    # Build tools needed for compiling Python packages (e.g., hdmedians for scikit-bio)
-    apt-get -y install gcc libpq-dev build-essential && \
-    # Clean apt cache to reduce image size
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+    # It is needed to install hdmedians which is a dependency of scikit-bio
+    # build essential install g++ and gcc which are commonly needed
+    apt-get -y install gcc libpq-dev python3-dev build-essential && \
+    # create a symlink to python3 so python command will use python3
+    ln -s $(which python3) /usr/local/bin/python
+
+# install pip system-wide (as root) so it's available to all users
+RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
+    python3 get-pip.py "pip==${CUSTOM_PIP_VERSION}" && \
+    python3 -m pip install --upgrade setuptools && \
+    rm get-pip.py
 
 # ============================================================================
 # Conda/Mamba Installation (includes Python 3.10 and pip)
@@ -36,21 +47,15 @@ RUN apt-get -y update && \
 # Install miniforge (conda + mamba) with Python 3.10
 # Info from https://github.com/conda-forge/miniforge#mambaforge
 # Download installer and its SHA256 checksum, then verify before installation
-RUN INSTALLER="Miniforge3-${CUSTOM_MAMBA_VERSION}-$(uname)-$(uname -m).sh" && \
-    RELEASE_URL="https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_MAMBA_VERSION}" && \
-    curl -fsSL "${RELEASE_URL}/${INSTALLER}" -o "${INSTALLER}" && \
-    curl -fsSL "${RELEASE_URL}/${INSTALLER}.sha256" -o "${INSTALLER}.sha256" && \
-    sha256sum -c "${INSTALLER}.sha256" && \
-    bash "${INSTALLER}" -b -p /opt/conda && \
-    rm "${INSTALLER}" "${INSTALLER}.sha256" && \
-    # Install Python 3.10 in the base conda environment (includes pip)
-    /opt/conda/bin/conda install -y python=3.10 && \
+# Installing conda and mamba system-wide (as root)
+# Info from https://github.com/conda-forge/miniforge#mambaforge
+RUN curl -L https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_MAMBA_VERSION}/Miniforge3-${CUSTOM_MAMBA_VERSION}-$(uname)-$(uname -m).sh -o mamba_install.sh && \
+    bash mamba_install.sh -b -p /opt/conda && \
+    rm mamba_install.sh && \
     /opt/conda/bin/conda init bash && \
     /opt/conda/bin/mamba shell init --shell bash && \
     # Clean conda cache to reduce image size
-    /opt/conda/bin/conda clean -afy && \
-    # Create symlink so 'python' command works
-    ln -s /opt/conda/bin/python /usr/local/bin/python
+    /opt/conda/bin/conda clean -afy
 
 # ============================================================================
 # Python Dependencies Installation
