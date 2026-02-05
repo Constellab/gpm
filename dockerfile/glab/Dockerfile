@@ -18,7 +18,9 @@ ENV TZ=UTC \
     # don't name it PIP_VERSION because it will be overwritten by pip
     # version from https://pypi.org/project/pip/
     CUSTOM_PIP_VERSION=26.0 \
-    PATH="/home/labuser/.local/bin:/usr/local/bin:/opt/conda/bin:${PATH}"
+    # User local bin first, then system paths, then conda at the end
+    # so system Python 3.10 takes precedence over conda's Python
+    PATH="/home/labuser/.local/bin:$PATH:/opt/conda/bin"
 
 # ============================================================================
 # System Package Installation
@@ -62,7 +64,7 @@ RUN curl -L https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_
 # ============================================================================
 
 # Install initial dependencies using conda's pip
-RUN /opt/conda/bin/pip install --no-cache-dir \
+RUN pip install --no-cache-dir \
                 pipenv==2025.0.4 \
                 click==8.3.1 \
                 GitPython==3.1.45 \
