@@ -70,7 +70,7 @@ class Logger:
         if msg.endswith("\n"):
             msg = msg[:-1]
         if type_ == "ERROR":
-            sys.stderr.write(f"{type_} - {datetime.now().isoformat()} - {msg}")
+            sys.stderr.write(f"{type_} - {datetime.now().isoformat()} - {msg}\n")
         else:
             # get the date in UTC format
             print(f"{type_} - {datetime.now().isoformat()} - {msg}")
