@@ -1,14 +1,14 @@
 import select
 import subprocess
 
-from .config_reader import PackageInfo
+from .config_reader import PackageInfo, TrackedPackageInfo
 from .logger import Logger
 
 
 class PipManager:
     """Class to store pip packages to install and install them at the end of the installation process"""
 
-    packages: list[PackageInfo]
+    packages: list[TrackedPackageInfo]
 
     _installed_packages_version: list[str]
 
@@ -56,19 +56,25 @@ class PipManager:
         self.current_progress = 0.0
         self.download_finished = False
 
-    def add_packages(self, packages: list[PackageInfo]) -> None:
+    def add_packages(self, packages: list[PackageInfo], brick_name: str) -> None:
         """Add a list of packages to the list of packages to install"""
 
         for package in packages:
-            self.add_package(package)
+            self.add_package(package, brick_name)
 
-    def add_package(self, package: PackageInfo) -> None:
+    def add_package(self, package: PackageInfo, brick_name: str) -> None:
         """Add a package to the list of packages to install.
 
         Note: Packages are added without conflict checking.
         Call check_conflicts() before install_packages() to validate.
         """
-        self.packages.append(package)
+        tracked = TrackedPackageInfo(
+            name=package["name"],
+            version=package.get("version", ""),
+            source=package["source"],
+            brick_name=brick_name,
+        )
+        self.packages.append(tracked)
 
     def check_conflicts(self) -> None:
         """Check for version conflicts in the package list.
@@ -77,28 +83,30 @@ class PipManager:
         Logs all conflicts before raising.
         """
         # Group packages by name to find duplicates
-        packages_by_name: dict[str, list[PackageInfo]] = {}
+        packages_by_name: dict[str, list[TrackedPackageInfo]] = {}
         for package in self.packages:
-            name = package["name"]
-            if name not in packages_by_name:
-                packages_by_name[name] = []
-            packages_by_name[name].append(package)
+            if package.name not in packages_by_name:
+                packages_by_name[package.name] = []
+            packages_by_name[package.name].append(package)
 
-        # Find conflicts
-        conflicts = []
+        # Find conflicts: collect packages with different versions
+        conflicts: list[tuple[str, list[TrackedPackageInfo]]] = []
         for package_name, package_list in packages_by_name.items():
             if len(package_list) > 1:
                 # Get unique versions for this package
-                versions = {pkg.get("version", "") for pkg in package_list}
+                versions = {pkg.version for pkg in package_list}
                 if len(versions) > 1:
-                    conflicts.append((package_name, list(versions)))
+                    conflicts.append((package_name, package_list))
 
         # If conflicts found, log them all and raise error
         if conflicts:
             self.logger.error("Package version conflicts detected:")
-            for package_name, versions in conflicts:
-                versions_str = "', '".join(v if v else "(no version)" for v in versions)
-                self.logger.error(f"  - '{package_name}': conflicting versions ['{versions_str}']")
+            for package_name, package_list in conflicts:
+                brick_details = ", ".join(
+                    f"brick '{pkg.brick_name}' requires '{pkg.version or '(no version)'}'"
+                    for pkg in package_list
+                )
+                self.logger.error(f"  - '{package_name}': {brick_details}")
 
             self.logger.error("")
             self.logger.error(
@@ -128,7 +136,7 @@ class PipManager:
         seen = set()
         deduplicated_packages = []
         for package in self.packages:
-            key = (package["name"], package.get("version", ""))
+            key = (package.name, package.version)
             if key not in seen:
                 seen.add(key)
                 deduplicated_packages.append(package)
@@ -137,26 +145,26 @@ class PipManager:
         self.current_progress = 0.0
 
         # group packages by source
-        packages_by_source: dict[str, list[PackageInfo]] = {}
+        packages_by_source: dict[str, list[TrackedPackageInfo]] = {}
 
         for package in deduplicated_packages:
-            if package["source"] not in packages_by_source:
-                packages_by_source[package["source"]] = []
+            if package.source not in packages_by_source:
+                packages_by_source[package.source] = []
 
-            packages_by_source[package["source"]].append(package)
+            packages_by_source[package.source].append(package)
 
         # install packages by source
         for source, packages in packages_by_source.items():
             self._install_packages_for_source(source, packages)
 
-    def _install_packages_for_source(self, source: str, packages: list[PackageInfo]) -> None:
+    def _install_packages_for_source(self, source: str, packages: list[TrackedPackageInfo]) -> None:
         """Install all packages for a given source"""
 
         _packages_with_version: list[str] = []
 
         for package in packages:
-            name = package["name"]
-            version = package.get("version", "")
+            name = package.name
+            version = package.version
             # Only add == prefix if version doesn't already have a comparator
             # This supports both pinned versions (2.31.0) and ranges (>=2.31.0,<3.0.0)
             if version and version[0] not in [">", "<", "=", "~", "!"]:
@@ -262,7 +270,7 @@ class PipManager:
 
             # if the text after is one of the package name, we update the progress
             for package in self.packages:
-                if after_text.startswith(package["name"]):
+                if after_text.startswith(package.name):
                     # number of line to consider all package as downloaded
                     total_required_lines = package_count * self.NUMBER_OF_PACKAGE_LOG_LINES
                     # When we rach the last package downloaded, the progress should be at 80%

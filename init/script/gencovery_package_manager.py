@@ -175,7 +175,7 @@ class GencoveryPackageManager:
                     self.logger.info(
                         f"Adding {len(pip_packages)} pip packages from brick '{brick_name}' (from {brick_path})"
                     )
-                    self.pip_manager.add_packages(pip_packages)
+                    self.pip_manager.add_packages(pip_packages, brick_name)
                 else:
                     self.logger.info(f"No pip packages found for brick '{brick_name}'")
             except Exception as err:

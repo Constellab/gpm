@@ -50,7 +50,7 @@ class TestPipManagerInstallation:
         subprocess.check_call(cmd)
 
         pip_manager = PipManager(logger, 0, 100, disable_cache=True, log_progress=True)
-        pip_manager.add_packages(packages)
+        pip_manager.add_packages(packages, "test-brick")
         pip_manager.install_packages()
 
         # Verify packages are installed
@@ -79,7 +79,7 @@ class TestPipManagerInstallation:
         subprocess.run(cmd, check=False)  # Don't fail if packages aren't installed
 
         pip_manager = PipManager(logger, 0, 100, disable_cache=True, log_progress=True)
-        pip_manager.add_packages(packages)
+        pip_manager.add_packages(packages, "test-brick")
         pip_manager.install_packages()
 
         # Verify packages are installed
@@ -107,7 +107,7 @@ class TestPipManagerVersionConflicts:
             "version": "2.31.0",
             "source": "https://pypi.python.org/simple",
         }
-        pip_manager.add_package(package1)
+        pip_manager.add_package(package1, "brick-a")
 
         # Add same package with different version - both should be added
         package2: PackageInfo = {
@@ -115,7 +115,7 @@ class TestPipManagerVersionConflicts:
             "version": "2.28.0",
             "source": "https://pypi.python.org/simple",
         }
-        pip_manager.add_package(package2)
+        pip_manager.add_package(package2, "brick-b")
 
         # Verify both packages are in the list
         assert len(pip_manager.packages) == 2
@@ -127,7 +127,7 @@ class TestPipManagerVersionConflicts:
         # Verify the exception message
         assert "version conflicts" in str(exc_info.value)
 
-        # Verify error messages were logged
+        # Verify error messages were logged with brick names
         assert mock_logger.error.called
         error_calls = [call[0][0] for call in mock_logger.error.call_args_list]
         error_text = " ".join(error_calls)
@@ -135,6 +135,8 @@ class TestPipManagerVersionConflicts:
         assert "requests" in error_text
         assert "2.31.0" in error_text
         assert "2.28.0" in error_text
+        assert "brick-a" in error_text
+        assert "brick-b" in error_text
         assert "version ranges" in error_text
 
     def test_no_conflict_same_version(self, mock_logger):
@@ -147,8 +149,8 @@ class TestPipManagerVersionConflicts:
             "version": "2.31.0",
             "source": "https://pypi.python.org/simple",
         }
-        pip_manager.add_package(package)
-        pip_manager.add_package(package)
+        pip_manager.add_package(package, "brick-a")
+        pip_manager.add_package(package, "brick-b")
 
         # Verify both packages are in the list (no deduplication at add time)
         assert len(pip_manager.packages) == 2
@@ -171,7 +173,7 @@ class TestPipManagerVersionConflicts:
             {"name": "pandas", "version": ">=2.0.0,<3.0.0", "source": "https://pypi.python.org/simple"},
         ]
 
-        pip_manager.add_packages(packages)
+        pip_manager.add_packages(packages, "brick-a")
 
         # Verify all packages are in the list
         assert len(pip_manager.packages) == 3
@@ -186,16 +188,12 @@ class TestPipManagerVersionConflicts:
         """Test detection of multiple package conflicts at once."""
         pip_manager = PipManager(mock_logger, 0, 100)
 
-        # Add multiple packages with conflicts
-        packages: list[PackageInfo] = [
-            {"name": "requests", "version": "2.31.0", "source": "https://pypi.python.org/simple"},
-            {"name": "requests", "version": "2.28.0", "source": "https://pypi.python.org/simple"},
-            {"name": "numpy", "version": "1.24.0", "source": "https://pypi.python.org/simple"},
-            {"name": "numpy", "version": "1.26.0", "source": "https://pypi.python.org/simple"},
-            {"name": "pandas", "version": "2.0.0", "source": "https://pypi.python.org/simple"},  # No conflict
-        ]
-
-        pip_manager.add_packages(packages)
+        # Add multiple packages with conflicts from different bricks
+        pip_manager.add_package({"name": "requests", "version": "2.31.0", "source": "https://pypi.python.org/simple"}, "brick-a")
+        pip_manager.add_package({"name": "requests", "version": "2.28.0", "source": "https://pypi.python.org/simple"}, "brick-b")
+        pip_manager.add_package({"name": "numpy", "version": "1.24.0", "source": "https://pypi.python.org/simple"}, "brick-a")
+        pip_manager.add_package({"name": "numpy", "version": "1.26.0", "source": "https://pypi.python.org/simple"}, "brick-c")
+        pip_manager.add_package({"name": "pandas", "version": "2.0.0", "source": "https://pypi.python.org/simple"}, "brick-a")  # No conflict
 
         # Should raise exception with both conflicts
         with pytest.raises(Exception) as exc_info:
@@ -204,19 +202,22 @@ class TestPipManagerVersionConflicts:
         exception_msg = str(exc_info.value)
         assert "2 package(s) with version conflicts" in exception_msg
 
-        # Verify both packages are mentioned in error logs
+        # Verify both packages and bricks are mentioned in error logs
         error_calls = [call[0][0] for call in mock_logger.error.call_args_list]
         error_text = " ".join(error_calls)
         assert "requests" in error_text
         assert "numpy" in error_text
+        assert "brick-a" in error_text
+        assert "brick-b" in error_text
+        assert "brick-c" in error_text
 
     def test_install_packages_calls_check_conflicts(self, mock_logger):
         """Test that install_packages automatically checks for conflicts."""
         pip_manager = PipManager(mock_logger, 0, 100)
 
         # Add conflicting packages
-        pip_manager.add_package({"name": "requests", "version": "2.31.0", "source": "https://pypi.python.org/simple"})
-        pip_manager.add_package({"name": "requests", "version": "2.28.0", "source": "https://pypi.python.org/simple"})
+        pip_manager.add_package({"name": "requests", "version": "2.31.0", "source": "https://pypi.python.org/simple"}, "brick-a")
+        pip_manager.add_package({"name": "requests", "version": "2.28.0", "source": "https://pypi.python.org/simple"}, "brick-b")
 
         # install_packages should raise exception due to conflict check
         with pytest.raises(Exception) as exc_info:
@@ -250,21 +251,21 @@ class TestPipManagerVersionFormatting:
 
             # Create a new pip_manager for each test to avoid conflicts
             test_pip_manager = PipManager(mock_logger, 0, 100)
-            test_pip_manager.add_package(package)
+            test_pip_manager.add_package(package, "test-brick")
 
             # Get the formatted package string
-            packages_by_source: dict[str, list[PackageInfo]] = {}
+            packages_by_source: dict[str, list] = {}
             for pkg in test_pip_manager.packages:
-                if pkg["source"] not in packages_by_source:
-                    packages_by_source[pkg["source"]] = []
-                packages_by_source[pkg["source"]].append(pkg)
+                if pkg.source not in packages_by_source:
+                    packages_by_source[pkg.source] = []
+                packages_by_source[pkg.source].append(pkg)
 
             # Format the version as done in _install_packages_for_source
             formatted_packages = []
             for source_packages in packages_by_source.values():
                 for pkg in source_packages:
-                    name = pkg["name"]
-                    version = pkg.get("version", "")
+                    name = pkg.name
+                    version = pkg.version
                     if version and version[0] not in [">", "<", "=", "~", "!"]:
                         version = "==" + version
                     formatted_packages.append(f"{name}{version}")
@@ -285,10 +286,10 @@ class TestPipManagerVersionFormatting:
             "version": "",
             "source": "https://pypi.python.org/simple",
         }
-        pip_manager.add_package(package)
+        pip_manager.add_package(package, "test-brick")
 
         assert len(pip_manager.packages) == 1
-        assert pip_manager.packages[0]["version"] == ""
+        assert pip_manager.packages[0].version == ""
 
         # Should not raise conflict
         pip_manager.check_conflicts()
@@ -307,14 +308,14 @@ class TestPipManagerPackageGrouping:
             {"name": "pandas", "version": "2.0.0", "source": "https://pypi.python.org/simple"},
         ]
 
-        pip_manager.add_packages(packages)
+        pip_manager.add_packages(packages, "test-brick")
 
         # Group packages by source (mimics internal behavior)
-        packages_by_source: dict[str, list[PackageInfo]] = {}
+        packages_by_source: dict[str, list] = {}
         for package in pip_manager.packages:
-            if package["source"] not in packages_by_source:
-                packages_by_source[package["source"]] = []
-            packages_by_source[package["source"]].append(package)
+            if package.source not in packages_by_source:
+                packages_by_source[package.source] = []
+            packages_by_source[package.source].append(package)
 
         # Verify grouping
         assert len(packages_by_source) == 2

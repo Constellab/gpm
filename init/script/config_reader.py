@@ -2,6 +2,7 @@
 
 import json
 import os
+from dataclasses import dataclass
 from typing import TypedDict
 
 
@@ -48,6 +49,15 @@ class PackageInfo(TypedDict):
     name: str
     version: str
     source: str
+
+
+@dataclass
+class TrackedPackageInfo:
+    """PackageInfo with brick_name for traceability in conflict detection."""
+    name: str
+    version: str
+    source: str
+    brick_name: str
 
 
 class SettingsReader:
