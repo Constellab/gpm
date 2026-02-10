@@ -108,7 +108,7 @@ RUN mkdir -p /etc/ssh /home/labuser/.ssh \
 # Copy SSH and rsyslog configuration files
 # sshd_config: Restricts to labuser, pubkey auth only, enables port forwarding
 # rsyslog.conf: Disables kernel logging (unavailable in containers)
-COPY ./dockerfile/codelab/sshd_config /etc/ssh/sshd_config
+COPY ./dockerfile/codelab/sshd_config /tmp/sshd_config
 COPY ./dockerfile/codelab/rsyslog.conf /etc/rsyslog.conf
 
 # =============================================================================
