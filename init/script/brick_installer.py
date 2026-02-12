@@ -63,14 +63,6 @@ class BrickInstaller:
         sys_brick_dir = os.path.join(self.workspace_config.sys_bricks_folder, name)
         user_brick_dir = os.path.join(self.workspace_config.user_bricks_folder, name)
 
-        # Remove brick in sys folder if it exists, then install
-        if os.path.exists(sys_brick_dir):
-            self.logger.info(f"Removing {sys_brick_dir} ...")
-            try:
-                shutil.rmtree(sys_brick_dir)
-            except Exception as err:
-                raise Exception(f"Cannot remove {sys_brick_dir}") from err
-
         # Install the brick in sys folder
         self.logger.info(
             f"Cloning brick '{name}' version '{version}' from {brick_info['repositoryUrl']}."
@@ -208,6 +200,18 @@ class BrickInstaller:
         bricks.sort()
         return bricks
 
+    def clear_sys_bricks_folder(self) -> None:
+        """Clear all contents of the sys bricks folder without removing the folder itself."""
+        sys_bricks = self.workspace_config.sys_bricks_folder
+        if os.path.exists(sys_bricks):
+            self.logger.info(f"Clearing sys bricks folder: {sys_bricks}")
+            for entry in os.listdir(sys_bricks):
+                entry_path = os.path.join(sys_bricks, entry)
+                if os.path.isdir(entry_path):
+                    shutil.rmtree(entry_path)
+                else:
+                    os.remove(entry_path)
+
     def install_git_packages_and_bricks(self, settings_readers: list[SettingsReader]) -> None:
         """Recursively install git packages and bricks from settings readers.
 
@@ -219,6 +223,10 @@ class BrickInstaller:
         Args:
             settings_readers: List of SettingsReader instances containing package configurations
         """
+        # Clear all sys bricks on the first call (before any brick is installed)
+        if not self._installed_bricks:
+            self.clear_sys_bricks_folder()
+
         # Install git packages (no pip dependencies collected here)
         for settings_reader in settings_readers:
             self.logger.info(f"Installing git packages for '{settings_reader.get_name()}' brick")
