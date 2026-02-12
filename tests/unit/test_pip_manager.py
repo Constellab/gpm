@@ -2,9 +2,9 @@
 
 import importlib.util
 import subprocess
+from unittest.mock import MagicMock
 
 import pytest
-from unittest.mock import MagicMock
 
 from init.script.config_reader import PackageInfo
 from init.script.logger import Logger
@@ -67,8 +67,16 @@ class TestPipManagerInstallation:
 
         packages: list[PackageInfo] = [
             # Use version ranges instead of pinned versions
-            PackageInfo(name="certifi", version=">=2023.0.0,<2025.0.0", source="https://pypi.python.org/simple"),
-            PackageInfo(name="charset-normalizer", version=">=3.0.0,<4.0.0", source="https://pypi.python.org/simple"),
+            PackageInfo(
+                name="certifi",
+                version=">=2023.0.0,<2025.0.0",
+                source="https://pypi.python.org/simple",
+            ),
+            PackageInfo(
+                name="charset-normalizer",
+                version=">=3.0.0,<4.0.0",
+                source="https://pypi.python.org/simple",
+            ),
             # Test compatible release operator
             PackageInfo(name="idna", version="~=3.4", source="https://pypi.python.org/simple"),
         ]
@@ -90,7 +98,9 @@ class TestPipManagerInstallation:
         # Verify the installed packages are in the expected ranges
         installed_versions = pip_manager.get_installed_packages_version()
         assert any("certifi" in pkg for pkg in installed_versions)
-        assert any("charset-normalizer" in pkg or "charset_normalizer" in pkg for pkg in installed_versions)
+        assert any(
+            "charset-normalizer" in pkg or "charset_normalizer" in pkg for pkg in installed_versions
+        )
         assert any("idna" in pkg for pkg in installed_versions)
 
 
@@ -163,25 +173,68 @@ class TestPipManagerVersionConflicts:
         info_message = mock_logger.info.call_args[0][0]
         assert "No package conflicts detected" in info_message
 
-    def test_multiple_packages_no_conflict(self, mock_logger):
-        """Test that multiple different packages can be added without conflict."""
+    @pytest.mark.parametrize(
+        "versions, description",
+        [
+            # Different packages — no conflict possible
+            (
+                [("requests", ">=2.31.0,<3.0.0"), ("numpy", ">=1.24.0,<2.0.0")],
+                "different packages with ranges",
+            ),
+            # Pinned version within a range
+            (
+                [("pandas", ">=2.0.0,<3.0.0"), ("pandas", "2.5.0")],
+                "pinned version satisfies range",
+            ),
+            # Same pinned version from two bricks
+            (
+                [("requests", "2.31.0"), ("requests", "2.31.0")],
+                "identical pinned versions",
+            ),
+            # Pinned version at exact lower bound of range
+            (
+                [("numpy", ">=1.24.0,<2.0.0"), ("numpy", "1.24.0")],
+                "pinned version at lower bound of range",
+            ),
+            # Compatible release operator with matching pinned version
+            (
+                [("idna", "~=3.4"), ("idna", "3.7")],
+                "pinned version satisfies compatible release (~=)",
+            ),
+            # Two ranges (assumed compatible, let pip resolve)
+            (
+                [("requests", ">=2.28.0,<3.0.0"), ("requests", ">=2.31.0,<2.35.0")],
+                "two overlapping ranges",
+            ),
+            # Empty version is always compatible
+            (
+                [("pandas", ""), ("pandas", "2.5.0")],
+                "empty version with pinned version",
+            ),
+            # Multiple packages, one duplicated with compatible versions
+            (
+                [
+                    ("requests", ">=2.31.0,<3.0.0"),
+                    ("numpy", ">=1.24.0,<2.0.0"),
+                    ("pandas", ">=2.0.0,<3.0.0"),
+                    ("pandas", "2.5.0"),
+                ],
+                "mixed packages with one compatible duplicate",
+            ),
+        ],
+    )
+    def test_no_conflict_cases(self, mock_logger, versions, description):
+        """Test that compatible version combinations do not raise conflicts."""
         pip_manager = PipManager(mock_logger, 0, 100)
 
-        packages: list[PackageInfo] = [
-            PackageInfo(name="requests", version=">=2.31.0,<3.0.0", source="https://pypi.python.org/simple"),
-            PackageInfo(name="numpy", version=">=1.24.0,<2.0.0", source="https://pypi.python.org/simple"),
-            PackageInfo(name="pandas", version=">=2.0.0,<3.0.0", source="https://pypi.python.org/simple"),
-        ]
+        for name, version in versions:
+            pip_manager.add_package(
+                PackageInfo(name=name, version=version, source="https://pypi.python.org/simple"),
+                "brick-a",
+            )
 
-        pip_manager.add_packages(packages, "brick-a")
-
-        # Verify all packages are in the list
-        assert len(pip_manager.packages) == 3
-
-        # check_conflicts should not raise an exception
         pip_manager.check_conflicts()  # Should not raise
 
-        # Verify info message was logged (no conflicts)
         assert mock_logger.info.called
 
     def test_multiple_conflicts(self, mock_logger):
@@ -189,11 +242,26 @@ class TestPipManagerVersionConflicts:
         pip_manager = PipManager(mock_logger, 0, 100)
 
         # Add multiple packages with conflicts from different bricks
-        pip_manager.add_package(PackageInfo(name="requests", version="2.31.0", source="https://pypi.python.org/simple"), "brick-a")
-        pip_manager.add_package(PackageInfo(name="requests", version="2.28.0", source="https://pypi.python.org/simple"), "brick-b")
-        pip_manager.add_package(PackageInfo(name="numpy", version="1.24.0", source="https://pypi.python.org/simple"), "brick-a")
-        pip_manager.add_package(PackageInfo(name="numpy", version="1.26.0", source="https://pypi.python.org/simple"), "brick-c")
-        pip_manager.add_package(PackageInfo(name="pandas", version="2.0.0", source="https://pypi.python.org/simple"), "brick-a")  # No conflict
+        pip_manager.add_package(
+            PackageInfo(name="requests", version="2.31.0", source="https://pypi.python.org/simple"),
+            "brick-a",
+        )
+        pip_manager.add_package(
+            PackageInfo(name="requests", version="2.28.0", source="https://pypi.python.org/simple"),
+            "brick-b",
+        )
+        pip_manager.add_package(
+            PackageInfo(name="numpy", version="1.24.0", source="https://pypi.python.org/simple"),
+            "brick-a",
+        )
+        pip_manager.add_package(
+            PackageInfo(name="numpy", version="1.26.0", source="https://pypi.python.org/simple"),
+            "brick-c",
+        )
+        pip_manager.add_package(
+            PackageInfo(name="pandas", version="2.0.0", source="https://pypi.python.org/simple"),
+            "brick-a",
+        )  # No conflict
 
         # Should raise exception with both conflicts
         with pytest.raises(Exception) as exc_info:
@@ -216,8 +284,14 @@ class TestPipManagerVersionConflicts:
         pip_manager = PipManager(mock_logger, 0, 100)
 
         # Add conflicting packages
-        pip_manager.add_package(PackageInfo(name="requests", version="2.31.0", source="https://pypi.python.org/simple"), "brick-a")
-        pip_manager.add_package(PackageInfo(name="requests", version="2.28.0", source="https://pypi.python.org/simple"), "brick-b")
+        pip_manager.add_package(
+            PackageInfo(name="requests", version="2.31.0", source="https://pypi.python.org/simple"),
+            "brick-a",
+        )
+        pip_manager.add_package(
+            PackageInfo(name="requests", version="2.28.0", source="https://pypi.python.org/simple"),
+            "brick-b",
+        )
 
         # install_packages should raise exception due to conflict check
         with pytest.raises(Exception) as exc_info:
@@ -272,8 +346,9 @@ class TestPipManagerVersionFormatting:
 
             if expected_output:
                 expected_full = f"{package.name}{expected_output}"
-                assert formatted_packages[0] == expected_full, \
+                assert formatted_packages[0] == expected_full, (
                     f"Failed for input '{input_version}': expected '{expected_full}', got '{formatted_packages[0]}'"
+                )
             else:
                 assert formatted_packages[0] == package.name
 

@@ -1,6 +1,9 @@
 import select
 import subprocess
 
+from packaging.specifiers import InvalidSpecifier, SpecifierSet
+from packaging.version import InvalidVersion, Version
+
 from .config_reader import PackageInfo, TrackedPackageInfo
 from .logger import Logger
 
@@ -76,6 +79,42 @@ class PipManager:
         )
         self.packages.append(tracked)
 
+    @staticmethod
+    def _is_pinned_version(version: str) -> bool:
+        """Check if a version string is a pinned version (no operators)."""
+        if not version:
+            return False
+        return version[0] not in (">", "<", "=", "~", "!")
+
+    @staticmethod
+    def _versions_compatible(v1: str, v2: str) -> bool:
+        """Check if two version specifications are compatible.
+
+        Cases:
+        - Both pinned: compatible only if equal
+        - One pinned, one range: compatible if pinned version satisfies the range
+        - Both ranges: assume compatible (let pip resolve at install time)
+        - Either empty: assume compatible
+        """
+        if not v1 or not v2:
+            return True
+
+        v1_pinned = PipManager._is_pinned_version(v1)
+        v2_pinned = PipManager._is_pinned_version(v2)
+
+        try:
+            if v1_pinned and v2_pinned:
+                return Version(v1) == Version(v2)
+            if v1_pinned and not v2_pinned:
+                return Version(v1) in SpecifierSet(v2)
+            if not v1_pinned and v2_pinned:
+                return Version(v2) in SpecifierSet(v1)
+            # Both are ranges — assume compatible, let pip resolve
+            return True
+        except (InvalidVersion, InvalidSpecifier):
+            # If we can't parse, fall back to string comparison
+            return v1 == v2
+
     def check_conflicts(self) -> None:
         """Check for version conflicts in the package list.
 
@@ -89,13 +128,21 @@ class PipManager:
                 packages_by_name[package.name] = []
             packages_by_name[package.name].append(package)
 
-        # Find conflicts: collect packages with different versions
+        # Find conflicts: check pairwise version compatibility
         conflicts: list[tuple[str, list[TrackedPackageInfo]]] = []
         for package_name, package_list in packages_by_name.items():
             if len(package_list) > 1:
-                # Get unique versions for this package
-                versions = {pkg.version for pkg in package_list}
-                if len(versions) > 1:
+                has_conflict = False
+                for i in range(len(package_list)):
+                    for j in range(i + 1, len(package_list)):
+                        if not self._versions_compatible(
+                            package_list[i].version, package_list[j].version
+                        ):
+                            has_conflict = True
+                            break
+                    if has_conflict:
+                        break
+                if has_conflict:
                     conflicts.append((package_name, package_list))
 
         # If conflicts found, log them all and raise error
