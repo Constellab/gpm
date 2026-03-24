@@ -18,7 +18,6 @@ This repository allows managing Gencovery Web Services packages. It is used to c
 2. Create a `.env` file at project root with the following variables (optional for git pull tests):
    ```
    COMMUNITY_API_URL=<your_api_url>
-   COMMUNITY_API_KEY=<your_api_key>
    ```
 
 ### Running Tests

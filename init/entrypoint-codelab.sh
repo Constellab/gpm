@@ -10,4 +10,4 @@ bash /init-lab/init_lab.sh CODELAB
 
 echo "Codelab environment is ready."
 
-exec bash -c "source /init-lab/clean.sh && ${OPENVSCODE_SERVER_ROOT}/bin/openvscode-server --port 8080 --host 0.0.0.0 --without-connection-token"
+exec bash -c "${OPENVSCODE_SERVER_ROOT}/bin/openvscode-server --port 8080 --host 0.0.0.0 --without-connection-token"

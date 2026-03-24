@@ -22,7 +22,7 @@ class CommunityService:
     """
 
     @staticmethod
-    def get_brick(brick_name: str, verison: str) -> CommunityBrick:
+    def get_brick(brick_name: str, version: str) -> CommunityBrick:
         """
         Get the information about a brick
         """
@@ -35,7 +35,7 @@ class CommunityService:
             headers["X-Api-Key"] = api_key
 
         response = get(
-            f"{CommunityService._get_api_url()}/brick/space/name/{brick_name}/{verison}",
+            f"{CommunityService._get_api_url()}/brick/for-space/name/{brick_name}/{version}",
             headers=headers
         )
 
@@ -74,4 +74,4 @@ class CommunityService:
         """
         Get the api key
         """
-        return os.getenv("COMMUNITY_API_KEY")
+        return os.getenv("SPACE_API_KEY")
