@@ -32,7 +32,7 @@ class CommunityService:
         headers = {}
         api_key = CommunityService._get_api_key()
         if api_key is not None:
-            headers["X-Api-Key"] = api_key
+            headers["Authorization"] = f"api-key {api_key}"
 
         response = get(
             f"{CommunityService._get_api_url()}/brick/for-space/name/{brick_name}/{version}",
