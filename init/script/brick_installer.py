@@ -117,12 +117,19 @@ class BrickInstaller:
                     continue
 
                 # Install the brick
-                sub_reader = self.install_brick(
-                    name=brick["name"],
-                    version=brick["version"],
-                    parent_name=settings_reader.get_name(),
-                )
-                sub_settings_readers.append(sub_reader)
+                try:
+                    sub_reader = self.install_brick(
+                        name=brick["name"],
+                        version=brick["version"],
+                        parent_name=settings_reader.get_name(),
+                    )
+                    sub_settings_readers.append(sub_reader)
+                except Exception as err:
+                    self.logger.error(
+                        f"Failed to install brick '{brick['name']}' version '{brick['version']}' "
+                        f"(required by '{settings_reader.get_name()}'): {err}"
+                    )
+                    raise
 
         return sub_settings_readers
 
