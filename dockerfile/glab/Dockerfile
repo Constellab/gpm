@@ -81,7 +81,9 @@ RUN groupadd -g ${GROUP_ID} labuser && \
     echo "labuser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/labuser && \
     chmod 0440 /etc/sudoers.d/labuser
 
-USER labuser
+# Do NOT switch to USER labuser here: the entrypoint runs as root, aligns
+# labuser's UID/GID with the bind-mounted /lab owner (when the sub-compose
+# doesn't set `user:`), then re-execs itself as labuser.
 WORKDIR /home/labuser
 
 # ============================================================================

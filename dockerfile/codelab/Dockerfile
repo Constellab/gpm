@@ -125,8 +125,9 @@ RUN chmod +x /init-lab/entrypoint-codelab.sh
 # =============================================================================
 # Runtime Configuration
 # =============================================================================
-# Switch back to labuser for runtime security
-USER labuser
+# Do NOT switch to USER labuser here: the entrypoint runs as root, aligns
+# labuser's UID/GID with the bind-mounted /lab owner (when the sub-compose
+# doesn't set `user:`), then re-execs itself as labuser.
 WORKDIR /lab/user/
 
 ENTRYPOINT [ "/init-lab/entrypoint-codelab.sh" ]
