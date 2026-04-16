@@ -104,7 +104,9 @@ class GencoveryPackageManager:
         self.logger.info("[Starting lab]")
         self.logger.log_progress("Installing bricks", 0)
 
-        # Step 1: Install all git packages and bricks recursively
+        # Step 1: Install all git packages and bricks recursively. Individual brick
+        # failures are logged and swallowed by the installer so sibling bricks still
+        # get a chance. We only raise afterwards, and only in GLAB mode.
         try:
             self.brick_installer.install_git_packages_and_bricks([self.config_reader])
 
@@ -113,6 +115,23 @@ class GencoveryPackageManager:
 
             brick_packages = self.brick_installer.get_installed_bricks()
             self.logger.info(f"Installed brick packages:\n{brick_packages}")
+
+            # Prune only if every brick installed cleanly — a partial walk would
+            # wrongly delete still-needed sub-dependencies we never reached.
+            try:
+                self.brick_installer.prune_sys_bricks()
+            except Exception as prune_err:
+                self.logger.error(f"Error while pruning sys bricks. {prune_err}")
+
+            failed_bricks = self.brick_installer.get_failed_bricks()
+            if failed_bricks:
+                msg = (
+                    f"{len(failed_bricks)} brick(s) failed to install: "
+                    f"{', '.join(failed_bricks)}"
+                )
+                self.logger.main_error(msg)
+                if self.env_mode == "GLAB":
+                    raise Exception(msg)
         except Exception as err:
             self.logger.main_error(f"Error while installing git packages and bricks. {err}")
             # In codelab, ignore the error so it starts even if packages are not installed

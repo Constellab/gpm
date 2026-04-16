@@ -40,12 +40,16 @@ class BrickInstaller:
         self.community_service = community_service
         self.logger = logger
         self._installed_bricks: list[str] = []
+        self._failed_bricks: list[str] = []
 
     def install_brick(self, name: str, version: str, parent_name: str) -> SettingsReader:
         """Install a single brick from the community service.
 
         Bricks are installed to the .sys/bricks folder. If a brick with the same name
         exists in user/bricks, it takes priority for dependencies.
+
+        The existing clone is always removed and re-cloned, even if the version matches,
+        to guarantee a clean install.
 
         Args:
             name: Name of the brick to install
@@ -63,7 +67,10 @@ class BrickInstaller:
         sys_brick_dir = os.path.join(self.workspace_config.sys_bricks_folder, name)
         user_brick_dir = os.path.join(self.workspace_config.user_bricks_folder, name)
 
-        # Install the brick in sys folder
+        # Remove any previous clone before reinstalling
+        if os.path.exists(sys_brick_dir):
+            shutil.rmtree(sys_brick_dir)
+
         self.logger.info(
             f"Cloning brick '{name}' version '{version}' from {brick_info['repositoryUrl']}."
         )
@@ -116,7 +123,8 @@ class BrickInstaller:
                 if self.is_installed(brick["name"]):
                     continue
 
-                # Install the brick
+                # Install the brick. On failure, log and continue so sibling bricks
+                # still get a chance. The failure is recorded so pruning is skipped.
                 try:
                     sub_reader = self.install_brick(
                         name=brick["name"],
@@ -125,11 +133,11 @@ class BrickInstaller:
                     )
                     sub_settings_readers.append(sub_reader)
                 except Exception as err:
+                    self._failed_bricks.append(brick["name"])
                     self.logger.error(
                         f"Failed to install brick '{brick['name']}' version '{brick['version']}' "
                         f"(required by '{settings_reader.get_name()}'): {err}"
                     )
-                    raise
 
         return sub_settings_readers
 
@@ -207,18 +215,6 @@ class BrickInstaller:
         bricks.sort()
         return bricks
 
-    def clear_sys_bricks_folder(self) -> None:
-        """Clear all contents of the sys bricks folder without removing the folder itself."""
-        sys_bricks = self.workspace_config.sys_bricks_folder
-        if os.path.exists(sys_bricks):
-            self.logger.info(f"Clearing sys bricks folder: {sys_bricks}")
-            for entry in os.listdir(sys_bricks):
-                entry_path = os.path.join(sys_bricks, entry)
-                if os.path.isdir(entry_path):
-                    shutil.rmtree(entry_path)
-                else:
-                    os.remove(entry_path)
-
     def install_git_packages_and_bricks(self, settings_readers: list[SettingsReader]) -> None:
         """Recursively install git packages and bricks from settings readers.
 
@@ -230,14 +226,18 @@ class BrickInstaller:
         Args:
             settings_readers: List of SettingsReader instances containing package configurations
         """
-        # Clear all sys bricks on the first call (before any brick is installed)
-        if not self._installed_bricks:
-            self.clear_sys_bricks_folder()
-
-        # Install git packages (no pip dependencies collected here)
+        # Install git packages (no pip dependencies collected here). A failure on one
+        # brick's git packages shouldn't stop sibling bricks from being installed.
         for settings_reader in settings_readers:
             self.logger.info(f"Installing git packages for '{settings_reader.get_name()}' brick")
-            self.git_installer.install_git_packages(settings_reader)
+            try:
+                self.git_installer.install_git_packages(settings_reader)
+            except Exception as err:
+                # Tag the failure to the parent brick so it still blocks pruning.
+                self._failed_bricks.append(f"{settings_reader.get_name()} (git packages)")
+                self.logger.error(
+                    f"Failed to install git packages for '{settings_reader.get_name()}': {err}"
+                )
 
         # Install bricks recursively
         sub_settings_readers = self._install_sub_brick(settings_readers)
@@ -245,3 +245,32 @@ class BrickInstaller:
         # Recursive call to install sub-packages
         if len(sub_settings_readers) > 0:
             self.install_git_packages_and_bricks(sub_settings_readers)
+
+    def get_failed_bricks(self) -> list[str]:
+        """Names of bricks that failed to install during the walk."""
+        return self._failed_bricks.copy()
+
+    def prune_sys_bricks(self) -> None:
+        """Remove sys bricks that were not visited during the install walk.
+
+        Only safe to call after a fully successful walk — if any install failed, the
+        visited set is incomplete and pruning would wrongly delete still-needed
+        sub-dependencies that simply weren't reached this run.
+        """
+        if self._failed_bricks:
+            self.logger.info(
+                f"Skipping sys bricks prune: {len(self._failed_bricks)} install(s) failed."
+            )
+            return
+
+        sys_bricks_folder = self.workspace_config.sys_bricks_folder
+        visited = set(self._installed_bricks)
+        self.logger.info(
+            f"Pruning sys bricks against current run ({len(visited)} bricks kept)."
+        )
+
+        for entry in os.listdir(sys_bricks_folder):
+            entry_path = os.path.join(sys_bricks_folder, entry)
+            if os.path.isdir(entry_path) and entry not in visited:
+                self.logger.info(f"Removing obsolete sys brick: {entry}")
+                shutil.rmtree(entry_path)
