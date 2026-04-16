@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.6
+
 # Build arguments - define before FROM for better visibility
 ARG IMAGE="ubuntu:22.04"
 
@@ -27,13 +29,21 @@ ENV TZ=UTC \
 # ============================================================================
 
 # install python v 3.10 & base packages
-RUN apt-get -y update && \
-    apt-get -y install python3.10 python3-distutils && \
-    apt-get -y install git curl zip unzip bzip2 wget rsync nginx sudo && \
-    # It is needed to install hdmedians which is a dependency of scikit-bio
-    # build essential install g++ and gcc which are commonly needed
-    apt-get -y install gcc libpq-dev python3-dev build-essential && \
-    # create a symlink to python3 so python command will use python3
+# Use the Azure Ubuntu mirror — GitHub runners are on Azure, so this is much
+# faster than the default archive.ubuntu.com.
+# BuildKit cache mounts persist /var/cache/apt and /var/lib/apt/lists across
+# builds, so apt downloads are reused even when the layer hash changes.
+# The base image's docker-clean config auto-deletes downloaded debs, which
+# defeats the cache mount — remove it first.
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean && \
+    sed -i 's|http://archive.ubuntu.com|http://azure.archive.ubuntu.com|g; s|http://security.ubuntu.com|http://azure.archive.ubuntu.com|g' /etc/apt/sources.list && \
+    apt-get -y update && \
+    apt-get -y install \
+        python3.10 python3-distutils \
+        git curl zip unzip bzip2 wget rsync nginx sudo \
+        gcc libpq-dev python3-dev build-essential && \
     ln -s $(which python3) /usr/local/bin/python
 
 # install pip system-wide (as root) so it's available to all users

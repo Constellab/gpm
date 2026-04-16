@@ -1,3 +1,5 @@
+# syntax=docker/dockerfile:1.6
+
 # =============================================================================
 # Build Arguments
 # =============================================================================
@@ -39,15 +41,17 @@ WORKDIR /home
 # - wget: Download OpenVSCode Server release
 # - openssh-server: Enable SSH access for VS Code Remote
 # - rsyslog: Logging for SSH authentication and debugging
-RUN apt-get update && \
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
+    rm -f /etc/apt/apt.conf.d/docker-clean && \
+    sed -i 's|http://archive.ubuntu.com|http://azure.archive.ubuntu.com|g; s|http://security.ubuntu.com|http://azure.archive.ubuntu.com|g' /etc/apt/sources.list && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
         git \
         wget \
         openssh-server \
         rsyslog && \
-    # Clean apt cache to reduce image size
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    rm -rf /tmp/* /var/tmp/*
 
 # =============================================================================
 # Python Dependencies Installation
