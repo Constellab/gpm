@@ -1,4 +1,5 @@
-# Action to build image from dockerfile, then push it to dockerhub to constellab organization
+# Build and push glab, codelab, and lab-dev-env images to Docker Hub
+# under the constellab organization. Triggered on tag push.
 
 name: Publish Docker image
 
@@ -11,79 +12,80 @@ env:
   ORGANIZATION: constellab
 
 jobs:
-  build-cpu-glab-and-codelab:
-    name: Push cpu glab and codelab Docker image to Docker Hub
-    runs-on: ubuntu-latest
+  # Build the base glab image in both CPU and GPU variants in parallel.
+  glab:
+    name: Build glab (${{ matrix.variant }})
+    runs-on: ubuntu-24.04
     permissions:
-      packages: write
       contents: read
-      attestations: write
-      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: cpu
+            source: ubuntu:22.04
+            tag_prefix: ""
+            push_description: "true"
+          - variant: gpu
+            source: nvidia/cuda:12.4.1-runtime-ubuntu22.04
+            tag_prefix: gpu-
+            push_description: "false"
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.2
+
+      - uses: docker/setup-buildx-action@v4.0.0
+
+      - uses: docker/login-action@v4.1.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - uses: ./.github/actions/docker-build-and-push
         with:
-          container_name: "glab"
-          source_image: "ubuntu:22.04"
+          container_name: glab
+          source_image: ${{ matrix.source }}
+          tag_prefix: ${{ matrix.tag_prefix }}
           version: ${{ github.ref_name }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
           organization: ${{ env.ORGANIZATION }}
-          push_description: true
+          push_description: ${{ matrix.push_description }}
+          dockerhub_username: ${{ secrets.DOCKER_USERNAME }}
+          dockerhub_password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - uses: ./.github/actions/docker-build-and-push
-        with:
-          container_name: "codelab"
-          source_image: ${{ env.ORGANIZATION }}/glab:${{ github.ref_name }}
-          version: ${{ github.ref_name }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          organization: ${{ env.ORGANIZATION }}
-          push_description: true
-
-      - uses: ./.github/actions/docker-build-and-push
-        with:
-          container_name: "lab-dev-env"
-          source_image: ${{ env.ORGANIZATION }}/glab:${{ github.ref_name }}
-          version: ${{ github.ref_name }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          organization: ${{ env.ORGANIZATION }}
-          push_description: true
-    
-    
-
-  # Build the GPU images, container tagged with gpu-[version]
-  build-gpu-glab-and-codelab:
-    name: Push gpu glab and codelab Docker image to Docker Hub
-    runs-on: ubuntu-latest
+  # Downstream images (codelab, lab-dev-env) build from the just-published glab image.
+  # They do not depend on each other, so they run in parallel.
+  # lab-dev-env is CPU-only; GPU lane builds only codelab.
+  downstream:
+    name: Build ${{ matrix.container }} (${{ matrix.variant }})
+    needs: glab
+    runs-on: ubuntu-24.04
     permissions:
-      packages: write
       contents: read
-      attestations: write
-      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [cpu, gpu]
+        container: [codelab, lab-dev-env]
+        exclude:
+          - variant: gpu
+            container: lab-dev-env
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v6.0.2
+      - uses: actions/checkout@v6.0.2
+
+      - uses: docker/setup-buildx-action@v4.0.0
+
+      - uses: docker/login-action@v4.1.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
       - uses: ./.github/actions/docker-build-and-push
         with:
-          container_name: "glab"
-          source_image: "nvidia/cuda:12.4.1-runtime-ubuntu22.04"
-          tag_prefix: gpu-
+          container_name: ${{ matrix.container }}
+          source_image: ${{ env.ORGANIZATION }}/glab:${{ matrix.variant == 'gpu' && 'gpu-' || '' }}${{ github.ref_name }}
+          tag_prefix: ${{ matrix.variant == 'gpu' && 'gpu-' || '' }}
           version: ${{ github.ref_name }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
           organization: ${{ env.ORGANIZATION }}
-
-      - uses: ./.github/actions/docker-build-and-push
-        with:
-          container_name: "codelab"
-          source_image: ${{ env.ORGANIZATION }}/glab:gpu-${{ github.ref_name }}
-          tag_prefix: gpu-
-          version: ${{ github.ref_name }}
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
-          organization: ${{ env.ORGANIZATION }}
+          cache_mode: min
+          push_description: ${{ matrix.variant == 'cpu' && 'true' || 'false' }}
+          dockerhub_username: ${{ secrets.DOCKER_USERNAME }}
+          dockerhub_password: ${{ secrets.DOCKER_PASSWORD }}
