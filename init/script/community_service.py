@@ -35,7 +35,7 @@ class CommunityService:
             headers["Authorization"] = f"api-key {api_key}"
 
         response = get(
-            f"{CommunityService._get_api_url()}/brick/for-space/name/{brick_name}/{version}",            headers=headers
+            f"{CommunityService._get_api_url()}/lab/brick/{brick_name}/{version}/clone-info",            headers=headers
         )
 
         if response.status_code != 200:
