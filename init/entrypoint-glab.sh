@@ -4,7 +4,7 @@ set -e
 ENTRYPOINT_SCRIPT="$0"
 ENTRYPOINT_ARGS=("$@")
 source /init-lab/align-user.sh
-align_labuser_and_switch /lab
+align_labuser_and_switch "${LAB_FOLDER}"
 
 # Running as labuser from here on.
 
@@ -13,7 +13,7 @@ echo "Glab environment is ready."
 
 case "${RUN_MODE:-server}" in
     server)
-        exec bash -c "gws server run --settings-path /lab/.sys/app/settings.json"
+        exec bash -c "gws server run --settings-path ${LAB_FOLDER}/.sys/app/settings.json"
         ;;
     test)
         test_args=()

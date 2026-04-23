@@ -3,7 +3,7 @@
 #
 # Usage from an entrypoint:
 #   source /init-lab/align-user.sh
-#   align_labuser_and_switch "/lab" [pre_switch_hook]
+#   align_labuser_and_switch LAB_FOLDER [pre_switch_hook]
 #
 # Behavior:
 #   - If running as root and $1 is a bind-mounted directory with a non-root

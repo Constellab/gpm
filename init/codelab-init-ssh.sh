@@ -7,15 +7,15 @@
 # > /usr/sbin/sshd -D -d
 # End debug
 
-# Ensure /lab directory structure exists with correct permissions
-# This fixes permissions when /lab is mounted as a volume (volumes are created as root)
-mkdir -p /lab/user
+# Ensure ${LAB_FOLDER} directory structure exists with correct permissions
+# This fixes permissions when ${LAB_FOLDER} is mounted as a volume (volumes are created as root)
+mkdir -p "${LAB_FOLDER}/user"
 # Only chown if needed (avoids slow recursive operation on large directories)
-if [ "$(stat -c %U /lab)" != "labuser" ]; then
-    chown labuser:labuser /lab
+if [ "$(stat -c %U "${LAB_FOLDER}")" != "labuser" ]; then
+    chown labuser:labuser "${LAB_FOLDER}"
 fi
-if [ "$(stat -c %U /lab/user)" != "labuser" ]; then
-    chown labuser:labuser /lab/user
+if [ "$(stat -c %U "${LAB_FOLDER}/user")" != "labuser" ]; then
+    chown labuser:labuser "${LAB_FOLDER}/user"
 fi
 
 # Copy the ssh config in the correct location

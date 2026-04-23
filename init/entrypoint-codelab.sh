@@ -4,7 +4,7 @@ set -e
 ENTRYPOINT_SCRIPT="$0"
 ENTRYPOINT_ARGS=("$@")
 source /init-lab/align-user.sh
-align_labuser_and_switch /lab /init-lab/codelab-init-ssh.sh
+align_labuser_and_switch "${LAB_FOLDER}" /init-lab/codelab-init-ssh.sh
 
 # Running as labuser from here on.
 # If the container was started directly as labuser (via `user:` in compose),
