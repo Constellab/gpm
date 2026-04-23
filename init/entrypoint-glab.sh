@@ -16,15 +16,19 @@ case "${RUN_MODE:-server}" in
         exec bash -c "gws server run --settings-path /lab/.sys/app/settings.json"
         ;;
     test)
+        test_args=()
         case "${TEST_PARALLEL:-true}" in
-            true)  test_cmd="test-parallel" ;;
-            false) test_cmd="test" ;;
+            true)  test_args+=(--parallel) ;;
+            false) ;;
             *)
                 echo "Unknown TEST_PARALLEL '${TEST_PARALLEL}'. Expected 'true' or 'false'." >&2
                 exit 2
                 ;;
         esac
-        exec bash -c "gws server ${test_cmd} all --brick-name \"${TEST_BRICK_NAME}\""
+        for brick in ${TEST_BRICK_NAME}; do
+            test_args+=(--brick-name "${brick}")
+        done
+        exec gws server test "${test_args[@]}"
         ;;
     *)
         echo "Unknown RUN_MODE '${RUN_MODE}'. Expected 'server' or 'test'." >&2
