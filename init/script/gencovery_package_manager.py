@@ -31,14 +31,15 @@ class GencoveryPackageManager:
         self,
         settings_file_path: str,
         env_mode: str,
-        lab_workspace_dir: str = "/lab",
+        workspace_config: WorkspaceConfig,
     ):
         """Initialize the package manager with all components.
 
         Args:
             settings_file_path: Path to the main settings.json file
             env_mode: Environment mode (GLAB or CODELAB)
-            lab_workspace_dir: Root directory for the lab workspace (default: /lab)
+            workspace_config: Workspace configuration (built from env via
+                ``WorkspaceConfig.from_env()`` in production)
 
         Raises:
             Exception: If env_mode is invalid or None
@@ -54,7 +55,7 @@ class GencoveryPackageManager:
         self.settings_file_path = settings_file_path
 
         # Initialize workspace configuration
-        self.workspace_config = WorkspaceConfig(lab_workspace_dir)
+        self.workspace_config = workspace_config
         self.workspace_config.initialize_directories()
 
         # Initialize logger

@@ -35,6 +35,21 @@ To run this container, you need to run the [lab-manager](https://hub.docker.com/
 
 Then from [Constellab](https://constellab.space) space, you can configure your lab and run the glab.
 
+## 🧪 Run modes
+
+The container picks what to run after `init_all` based on the `RUN_MODE` env var:
+
+| `RUN_MODE` | Command |
+|------------|---------|
+| `server` (default) | `gws server run --settings-path /lab/.sys/app/settings.json` |
+| `test` | `gws server <test-parallel\|test> all --brick-name "${TEST_BRICK_NAME}"` |
+
+In `test` mode:
+
+- `TEST_BRICK_NAME` — brick whose tests are run (required).
+- `TEST_PARALLEL` — `true` (default) uses `test-parallel`; `false` uses `test` for single-threaded execution.
+
+The container exits with the test command's exit code — suitable for CI fan-out across bricks. A MariaDB instance must be reachable via the brick's usual `GWS_TEST_DB_*` env vars; the image does not provision it.
 
 ## 🤗 Community
 

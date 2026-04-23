@@ -8,7 +8,9 @@ from script.workspace_config import WorkspaceConfig
 @click.option("--env-mode")
 def install(ctx, env_mode: str):
     gpm = GencoveryPackageManager(
-        settings_file_path=WorkspaceConfig.CONFIG_FILE_PATH, env_mode=env_mode
+        settings_file_path=WorkspaceConfig.CONFIG_FILE_PATH,
+        env_mode=env_mode,
+        workspace_config=WorkspaceConfig.from_env(),
     )
     gpm.init_all()
 

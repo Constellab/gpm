@@ -17,7 +17,10 @@ from init.script.workspace_config import WorkspaceConfig
 @pytest.fixture
 def workspace(tmp_path: Path) -> WorkspaceConfig:
     """A WorkspaceConfig pointing at a temp lab dir with all folders created."""
-    config = WorkspaceConfig(str(tmp_path))
+    config = WorkspaceConfig(
+        lab_workspace_dir=str(tmp_path),
+        data_folder=str(tmp_path / "data"),
+    )
     config.initialize_directories()
     return config
 

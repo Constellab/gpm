@@ -12,6 +12,7 @@ import pytest
 from init.script.config_reader import SettingsReader
 from init.script.gencovery_package_manager import GencoveryPackageManager
 from init.script.git_package_installer import BrickInstallationInfo
+from init.script.workspace_config import WorkspaceConfig
 
 GWS_CORE_VERSION = "0.8.0"
 
@@ -41,12 +42,15 @@ def config_path():
 
 
 @pytest.fixture
-def gpm_instance(test_workspace, config_path):
+def gpm_instance(test_workspace, config_path, tmp_path):
     """Create a GPM instance for testing."""
     return GencoveryPackageManager(
         settings_file_path=str(config_path),
         env_mode="GLAB",
-        lab_workspace_dir=str(test_workspace),
+        workspace_config=WorkspaceConfig(
+            lab_workspace_dir=str(test_workspace),
+            data_folder=str(tmp_path / "data"),
+        ),
     )
 
 
@@ -184,12 +188,15 @@ class TestGpmCodelab:
     @pytest.mark.slow
     @pytest.mark.requires_network
     @pytest.mark.requires_git
-    def test_codelab_initialization(self, test_workspace, config_path):
+    def test_codelab_initialization(self, test_workspace, config_path, tmp_path):
         """Test that GPM initializes correctly in CODELAB mode."""
         gpm = GencoveryPackageManager(
             settings_file_path=str(config_path),
             env_mode="CODELAB",
-            lab_workspace_dir=str(test_workspace),
+            workspace_config=WorkspaceConfig(
+                lab_workspace_dir=str(test_workspace),
+                data_folder=str(tmp_path / "data"),
+            ),
         )
         gpm.init_all()
 

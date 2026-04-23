@@ -42,7 +42,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get -y update && \
     apt-get -y install \
         python3.10 python3-distutils \
-        git curl zip unzip bzip2 wget rsync nginx sudo \
+        git curl zip unzip bzip2 wget rsync nginx sudo pigz \
         gcc libpq-dev python3-dev build-essential && \
     ln -s $(which python3) /usr/local/bin/python
 

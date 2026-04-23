@@ -44,11 +44,11 @@ class HookExecutor:
         executed_bricks: set[str] = set()
 
         # Call hooks for user bricks first
-        self.logger.info("Calling brick hooks in /lab/user/bricks ...")
+        self.logger.info(f"Calling brick hooks in {user_bricks_folder} ...")
         self._call_hooks_in_folder(user_bricks_folder, executed_bricks)
 
         # Call hooks for sys bricks (skip if already executed in user bricks)
-        self.logger.info("Calling brick hooks in /lab/.sys/bricks ...")
+        self.logger.info(f"Calling brick hooks in {sys_bricks_folder} ...")
         self._call_hooks_in_folder(sys_bricks_folder, executed_bricks)
 
         self.logger.info("Brick hooks called.")

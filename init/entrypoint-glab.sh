@@ -11,4 +11,23 @@ align_labuser_and_switch /lab
 bash /init-lab/init_lab.sh GLAB
 echo "Glab environment is ready."
 
-exec bash -c "gws server run --settings-path /lab/.sys/app/settings.json"
+case "${RUN_MODE:-server}" in
+    server)
+        exec bash -c "gws server run --settings-path /lab/.sys/app/settings.json"
+        ;;
+    test)
+        case "${TEST_PARALLEL:-true}" in
+            true)  test_cmd="test-parallel" ;;
+            false) test_cmd="test" ;;
+            *)
+                echo "Unknown TEST_PARALLEL '${TEST_PARALLEL}'. Expected 'true' or 'false'." >&2
+                exit 2
+                ;;
+        esac
+        exec bash -c "gws server ${test_cmd} all --brick-name \"${TEST_BRICK_NAME}\""
+        ;;
+    *)
+        echo "Unknown RUN_MODE '${RUN_MODE}'. Expected 'server' or 'test'." >&2
+        exit 2
+        ;;
+esac

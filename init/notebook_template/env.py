@@ -3,9 +3,11 @@
 import os
 import sys
 
-user_bricks_folder = os.path.join('/lab', 'user', 'bricks')
-sys_bricks_folder = os.path.join('/lab', '.sys', 'bricks')
-app_folder = os.path.join('/lab', '.sys', 'app')
+lab_folder = os.environ["LAB_FOLDER"]
+
+user_bricks_folder = os.path.join(lab_folder, 'user', 'bricks')
+sys_bricks_folder = os.path.join(lab_folder, '.sys', 'bricks')
+app_folder = os.path.join(lab_folder, '.sys', 'app')
 
 
 def activate():
