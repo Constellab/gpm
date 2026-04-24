@@ -7,7 +7,7 @@ FROM $IMAGE
 USER labuser
 
 # Configure python
-RUN pip install ruff
+RUN uv pip install ruff
 
 RUN mkdir -p /home/labuser/.ssh
 

@@ -56,9 +56,12 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # =============================================================================
 # Python Dependencies Installation
 # =============================================================================
-# Install ruff (Python linter/formatter) system-wide
-# Version pinned to 0.14.7 for consistency
-RUN pip install --no-cache-dir ruff==0.14.7
+# Install ruff (Python linter/formatter) into the glab venv (/home/labuser/.venv).
+# Must run as labuser because root can't write to the labuser-owned venv.
+# Version pinned to 0.14.7 for consistency.
+USER labuser
+RUN uv pip install --no-cache ruff==0.14.7
+USER root
 
 # =============================================================================
 # OpenVSCode Server Installation

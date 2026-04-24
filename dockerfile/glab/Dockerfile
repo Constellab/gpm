@@ -20,9 +20,17 @@ ENV TZ=UTC \
     # don't name it PIP_VERSION because it will be overwritten by pip
     # version from https://pypi.org/project/pip/
     CUSTOM_PIP_VERSION=26.0 \
-    # User local bin first, then system paths, then conda at the end
-    # so system Python 3.10 takes precedence over conda's Python
-    PATH="/home/labuser/.local/bin:$PATH:/opt/conda/bin"
+    # All Python work happens inside a labuser-owned venv at /home/labuser/.venv.
+    # Putting its bin dir first on PATH and exporting VIRTUAL_ENV auto-activates
+    # the venv for every shell (interactive or not) — `python3`, `pip`, and any
+    # bare `uv pip install` invocation resolve to and install into this venv.
+    # User-local bin stays second for any user-scoped tooling; conda trails.
+    VIRTUAL_ENV=/home/labuser/.venv \
+    PATH="/home/labuser/.venv/bin:/home/labuser/.local/bin:$PATH:/opt/conda/bin" \
+    # pipenv is used for per-project isolated environments. Without this, pipenv
+    # would detect VIRTUAL_ENV and install project deps into the glab venv
+    # instead of creating a project-specific one.
+    PIPENV_IGNORE_VIRTUALENVS=1
 
 # ============================================================================
 # System Package Installation
@@ -52,6 +60,13 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python3 -m pip install --upgrade setuptools && \
     rm get-pip.py
 
+# Install uv (fast Python package installer) system-wide so it's on PATH
+# for both root and labuser. Pinned version from https://github.com/astral-sh/uv/releases
+ENV UV_VERSION=0.5.11
+RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | \
+    env UV_INSTALL_DIR=/usr/local/bin INSTALLER_NO_MODIFY_PATH=1 sh && \
+    uv --version
+
 # ============================================================================
 # Conda/Mamba Installation (includes Python 3.10 and pip)
 # ============================================================================
@@ -70,17 +85,6 @@ RUN curl -L https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_
     /opt/conda/bin/conda clean -afy
 
 # ============================================================================
-# Python Dependencies Installation
-# ============================================================================
-
-# Install initial dependencies using conda's pip
-RUN pip install --no-cache-dir \
-                pipenv==2025.0.4 \
-                click==8.3.1 \
-                GitPython==3.1.45 \
-                requests==2.32.5
-
-# ============================================================================
 # User Setup
 # ============================================================================
 
@@ -97,6 +101,27 @@ RUN groupadd -g ${GROUP_ID} labuser && \
 # uses `user: "${HOST_UID}:${HOST_GID}"` which already sets a non-root user.
 USER labuser
 WORKDIR /home/labuser
+
+# ============================================================================
+# Python Dependencies Installation
+# ============================================================================
+
+# Create the labuser-owned venv that VIRTUAL_ENV/PATH point at, using the
+# system Python 3.10. --system-site-packages lets code in the venv still
+# import packages installed system-wide (e.g. pipenv, click copies pip pulls in)
+# when needed. `uv venv` is used instead of `python3 -m venv` because the base
+# image doesn't include python3-venv (the stdlib ensurepip module).
+# align-user.sh's `chown -R /home/labuser` at UID-remap time covers the venv,
+# so it stays writable across host-UID changes.
+RUN uv venv --system-site-packages --python python3 "${VIRTUAL_ENV}"
+
+# Install initial dependencies into the venv. uv auto-detects VIRTUAL_ENV and
+# installs into it without any --system / --user / --prefix flag.
+RUN uv pip install --no-cache \
+                pipenv==2025.0.4 \
+                click==8.3.1 \
+                GitPython==3.1.45 \
+                requests==2.32.5
 
 # ============================================================================
 # Application Setup

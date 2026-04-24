@@ -1,5 +1,7 @@
+import os
 import select
 import subprocess
+import tempfile
 
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 from packaging.version import InvalidVersion, Version
@@ -24,22 +26,24 @@ class PipManager:
     # current step of the pip manager
     # from 0 to 100 based on pip manager progress
     current_progress: float
-    download_finished: bool
 
     disable_cache: bool
     log_progress: bool
 
     PROGRESS_TEXT: str = "Installing bricks dependencies"
-    # The message indicating that a package is being downloaded is formatted as follows:
-    # "Downloading pandas-2.2.2*"
-    DOWNLOADING_PACKAGE_TEXT: str = "Downloading "
 
-    # we consider the downloads takes 80% and installation takes 20% of the progress
-    DOWLOADING_END_TEXT: str = "Installing collected packages"
-    DOWNLOADING_END_PROGRESS: float = 80.0
+    # uv emits three status lines (to stderr) during a normal install:
+    #   "Resolved N packages in Xs"
+    #   "Prepared N packages in Xs"
+    #   "Installed N packages in Xs"
+    # We map each marker to a progress checkpoint on the 0–100 scale.
+    UV_RESOLVED_TEXT: str = "Resolved "
+    UV_PREPARED_TEXT: str = "Prepared "
+    UV_INSTALLED_TEXT: str = "Installed "
 
-    # Number of lines in the log for a package to be considered as downloaded
-    NUMBER_OF_PACKAGE_LOG_LINES: int = 2
+    PROGRESS_RESOLVED: float = 20.0
+    PROGRESS_PREPARED: float = 85.0
+    PROGRESS_INSTALLED: float = 100.0
 
     def __init__(
         self,
@@ -57,7 +61,6 @@ class PipManager:
         self.disable_cache = disable_cache
         self.log_progress = log_progress
         self.current_progress = 0.0
-        self.download_finished = False
 
     def add_packages(self, packages: list[PackageInfo], brick_name: str) -> None:
         """Add a list of packages to the list of packages to install"""
@@ -223,9 +226,11 @@ class PipManager:
 
         _packages_with_version.sort()
 
+        # uv auto-detects VIRTUAL_ENV from the environment (set by the glab
+        # Dockerfile) and installs into /home/labuser/.venv. No --system /
+        # --user / --prefix flag needed.
         cmd = [
-            "python3",
-            "-m",
+            "uv",
             "pip",
             "install",
             *_packages_with_version,
@@ -234,14 +239,14 @@ class PipManager:
         ]
 
         if self.disable_cache:
-            cmd.append("--no-cache-dir")
+            cmd.append("--no-cache")
 
         # Format command with packages wrapped in quotes
-        cmd_parts = cmd[:4]  # python3 -m pip install
+        cmd_parts = cmd[:3]  # uv pip install
         quoted_packages = [f'"{pkg}"' for pkg in _packages_with_version]
         cmd_parts.extend(quoted_packages)
-        cmd_parts.extend(cmd[4 + len(_packages_with_version) :])  # --extra-index-url and source
-        self.logger.info(f"Installing pip packages : '{' '.join(cmd_parts)}'")
+        cmd_parts.extend(cmd[3 + len(_packages_with_version) :])  # --extra-index-url and source
+        self.logger.info(f"Installing pip packages with uv: '{' '.join(cmd_parts)}'")
 
         self._run_cmd(cmd, package_count=len(packages))
 
@@ -250,21 +255,35 @@ class PipManager:
         self.logger.info("Pip packages successfully installed")
 
     def _run_cmd(self, cmd: list[str], package_count: int) -> bool:
-        self.download_finished = False
-
-        # set the install ratio if there is multiple source, multiple install commands are trigger
+        # Share of this source's packages over the full install set. Scales the
+        # progress checkpoints when a brick set spans multiple sources.
         install_ratio = package_count / len(self.packages)
 
-      
+        # Progress checkpoint the current source has reached (0–100 on uv's scale).
+        source_progress = 0.0
+
+        # uv writes an install lock to $TMPDIR keyed by the target interpreter
+        # (e.g. /tmp/uv-<hash>.lock). The glab image does a `RUN uv pip install
+        # --system ...` as root at build time, which leaves a root-owned lock
+        # that labuser can't reopen at runtime. Point uv at a per-user tmpdir
+        # so the lock is always writable by whoever is running the install.
+        env = os.environ.copy()
+        user_tmp = os.path.join(tempfile.gettempdir(), f"uv-{os.getuid()}")
+        os.makedirs(user_tmp, exist_ok=True)
+        env["TMPDIR"] = user_tmp
+
         proc = subprocess.Popen(
             cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            env=env,
         )
 
+        # uv writes Resolved / Prepared / Installed to stderr at default verbosity,
+        # so we feed stderr through the same parser as stdout. stderr is only
+        # treated as an error signal via the process exit code.
         reads = [proc.stdout.fileno(), proc.stderr.fileno()]
         while True:
-            # return the list of file descriptors that are ready to be read
             ret = select.select(reads, [], [])
 
             has_read: bool = False
@@ -273,67 +292,57 @@ class PipManager:
                 if file_no == proc.stdout.fileno():
                     read = proc.stdout.readline()
                     if read:
-                        self._handle_output(read.decode("utf-8"), install_ratio, package_count)
+                        source_progress = self._handle_output(
+                            read.decode("utf-8"), install_ratio, source_progress
+                        )
                         has_read = True
                 elif file_no == proc.stderr.fileno():
                     read = proc.stderr.readline()
                     if read:
-                        self.logger.error(read.decode("utf-8"))
+                        source_progress = self._handle_output(
+                            read.decode("utf-8"), install_ratio, source_progress
+                        )
                         has_read = True
 
             poll = proc.poll()
 
-            # stop if the process has finished and there is no more data to read
-            # we need to check if there is no more data to read because the process can be finished but there is still data in the buffer (if long log at the end)
             if poll is not None and not has_read:
                 break
 
-        # Check if pip command succeeded
         if proc.returncode != 0:
-            error_msg = f"Pip installation failed with exit code {proc.returncode}. Check the error logs for details."
+            error_msg = (
+                f"uv pip installation failed with exit code {proc.returncode}. "
+                f"Check the error logs for details."
+            )
             raise Exception(error_msg)
 
         return True
-       
-    def _handle_output(self, output: str, install_ratio: float, package_count: int) -> None:
+
+    def _handle_output(
+        self, output: str, install_ratio: float, source_progress: float
+    ) -> float:
+        """Log an output line and advance progress when a uv marker is detected.
+
+        Returns the updated per-source progress checkpoint (0–100).
+        """
         self.logger.info(output)
 
-        if self.download_finished:
-            return
+        stripped = output.strip()
 
-        output = output.strip()
-        # if we detect the step end text, we move to the next step
-        if output.startswith(self.DOWLOADING_END_TEXT):
-            # we add the remaining progress to reach 100%
-            add_progress = (100 - self.DOWNLOADING_END_PROGRESS) * install_ratio
-            self._update_progress(add_progress)
-            self.download_finished = True
-            return
+        target: float | None = None
+        if stripped.startswith(self.UV_RESOLVED_TEXT):
+            target = self.PROGRESS_RESOLVED
+        elif stripped.startswith(self.UV_PREPARED_TEXT):
+            target = self.PROGRESS_PREPARED
+        elif stripped.startswith(self.UV_INSTALLED_TEXT):
+            target = self.PROGRESS_INSTALLED
 
-        # if we detect the line of a package, we update the progress
-        if output.startswith(self.DOWNLOADING_PACKAGE_TEXT):
-            # get the text after "Downloading "
-            after_text = output[len(self.DOWNLOADING_PACKAGE_TEXT) :]
+        if target is None or target <= source_progress:
+            return source_progress
 
-            # if the text after is one of the package name, we update the progress
-            for package in self.packages:
-                if after_text.startswith(package.name):
-                    # number of line to consider all package as downloaded
-                    total_required_lines = package_count * self.NUMBER_OF_PACKAGE_LOG_LINES
-                    # When we rach the last package downloaded, the progress should be at 80%
-                    downloaded_package_ratio = self.DOWNLOADING_END_PROGRESS / 100
-
-                    # we get the percentage of 1 package of the total number of packages
-                    # then we apply the different ratio to get the progress
-                    add_progress = (
-                        (1 / (total_required_lines))
-                        * 100
-                        * downloaded_package_ratio
-                        * install_ratio
-                    )
-
-                    self._update_progress(add_progress)
-                    return
+        delta = (target - source_progress) * install_ratio
+        self._update_progress(delta)
+        return target
 
     def _update_progress(self, progress_add: float) -> None:
         self.current_progress += progress_add
