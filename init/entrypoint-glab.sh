@@ -28,7 +28,7 @@ case "${RUN_MODE:-server}" in
         for brick in ${TEST_BRICK_NAME}; do
             test_args+=(--brick-name "${brick}")
         done
-        exec gws server test "${test_args[@]}"
+        exec gws server test-all "${test_args[@]}"
         ;;
     *)
         echo "Unknown RUN_MODE '${RUN_MODE}'. Expected 'server' or 'test'." >&2
