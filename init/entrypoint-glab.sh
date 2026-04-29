@@ -28,6 +28,9 @@ case "${RUN_MODE:-server}" in
         for brick in ${TEST_BRICK_NAME}; do
             test_args+=(--brick-name "${brick}")
         done
+        if [[ -n "${TEST_OUTPUT_DIR:-}" ]]; then
+            test_args+=(--output-dir "${TEST_OUTPUT_DIR}")
+        fi
         exec gws server test-all "${test_args[@]}"
         ;;
     *)
