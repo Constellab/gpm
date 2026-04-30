@@ -71,8 +71,10 @@ echo "# Docker container environment variables" > "$BASHRC_ENV"
 echo "# Auto-generated on $(date)" >> "$BASHRC_ENV"
 echo "" >> "$BASHRC_ENV"
 
-# Add PATH from current environment to preserve container's PATH configuration
-CUSTOM_PATH="/home/labuser/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/conda/bin"
+# Add PATH from current environment to preserve container's PATH configuration.
+# The venv bin must come first so `python`/`pip` resolve into /home/labuser/.venv,
+# matching the Dockerfile's PATH and what VSCode "Attach to running container" sees.
+CUSTOM_PATH="/home/labuser/.venv/bin:/home/labuser/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/conda/bin"
 echo "export PATH=\"$CUSTOM_PATH\"" >> "$BASHRC_ENV"
 
 # Export all non-user-specific environment variables
