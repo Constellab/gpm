@@ -13,6 +13,10 @@ align_labuser_and_switch "${LAB_FOLDER}"
 bash /init-lab/setup-shell-env.sh
 
 bash /init-lab/init_lab.sh CODELAB
+
+# Setup SSH for local dev environment
+sudo chown -R labuser:labuser /home/labuser/.ssh
+
 echo "Dev environment is ready."
 
 exec tail -f /dev/null
