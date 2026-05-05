@@ -55,82 +55,10 @@ service ssh start
 # Verify SSH is logging
 echo "SSH server started. Logs available at /var/log/auth.log"
 
-# Export container environment variables for SSH sessions
-# Using shell profile approach (.bash_profile and .bashrc) for reliability
-USER_HOME="/home/labuser"
-BASHRC_ENV="$USER_HOME/.bashrc_docker_env"
+# Ensure .ssh exists for SSH key auth (separate from the shell-env setup below).
+mkdir -p /home/labuser/.ssh
+chmod 700 /home/labuser/.ssh
 
-echo "Configuring SSH environment variables..."
-
-# Create .ssh directory if it doesn't exist (needed for SSH keys)
-mkdir -p "$USER_HOME/.ssh"
-chmod 700 "$USER_HOME/.ssh"
-
-# Create bash environment file with all container environment variables
-echo "# Docker container environment variables" > "$BASHRC_ENV"
-echo "# Auto-generated on $(date)" >> "$BASHRC_ENV"
-echo "" >> "$BASHRC_ENV"
-
-# Add PATH from current environment to preserve container's PATH configuration.
-# The venv bin must come first so `python`/`pip` resolve into /home/labuser/.venv,
-# matching the Dockerfile's PATH and what VSCode "Attach to running container" sees.
-CUSTOM_PATH="/home/labuser/.venv/bin:/home/labuser/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/opt/conda/bin"
-echo "export PATH=\"$CUSTOM_PATH\"" >> "$BASHRC_ENV"
-
-# Export all non-user-specific environment variables
-env | grep -vE '^(HOME|USER|LOGNAME|MAIL|SHELL|PWD|OLDPWD|SHLVL|PATH|_|SUDO_GID|SUDO_UID|SUDO_USER|SUDO_COMMAND|HOSTNAME|TERM)=' | while IFS='=' read -r key value; do
-    if [ -n "$key" ]; then
-        # Escape quotes in value
-        escaped_value=$(printf '%s\n' "$value" | sed 's/"/\\"/g')
-        echo "export $key=\"$escaped_value\"" >> "$BASHRC_ENV"
-    fi
-done
-
-# Source the environment file from .bash_profile (for login shells like SSH)
-# This ensures environment is loaded for SSH sessions
-if [ -f "$USER_HOME/.bash_profile" ]; then
-    if ! grep -q ".bashrc_docker_env" "$USER_HOME/.bash_profile"; then
-        echo "" >> "$USER_HOME/.bash_profile"
-        echo "# Source Docker container environment variables" >> "$USER_HOME/.bash_profile"
-        echo "if [ -f ~/.bashrc_docker_env ]; then" >> "$USER_HOME/.bash_profile"
-        echo "    source ~/.bashrc_docker_env" >> "$USER_HOME/.bash_profile"
-        echo "fi" >> "$USER_HOME/.bash_profile"
-    fi
-else
-    # Create .bash_profile if it doesn't exist
-    echo "# Source Docker container environment variables" > "$USER_HOME/.bash_profile"
-    echo "if [ -f ~/.bashrc_docker_env ]; then" >> "$USER_HOME/.bash_profile"
-    echo "    source ~/.bashrc_docker_env" >> "$USER_HOME/.bash_profile"
-    echo "fi" >> "$USER_HOME/.bash_profile"
-fi
-
-# Also add to .bashrc for interactive non-login shells (like VS Code terminals)
-if [ -f "$USER_HOME/.bashrc" ]; then
-    if ! grep -q ".bashrc_docker_env" "$USER_HOME/.bashrc"; then
-        echo "" >> "$USER_HOME/.bashrc"
-        echo "# Source Docker container environment variables" >> "$USER_HOME/.bashrc"
-        echo "if [ -f ~/.bashrc_docker_env ]; then" >> "$USER_HOME/.bashrc"
-        echo "    source ~/.bashrc_docker_env" >> "$USER_HOME/.bashrc"
-        echo "fi" >> "$USER_HOME/.bashrc"
-    fi
-else
-    # Create .bashrc if it doesn't exist
-    echo "# Source Docker container environment variables" > "$USER_HOME/.bashrc"
-    echo "if [ -f ~/.bashrc_docker_env ]; then" >> "$USER_HOME/.bashrc"
-    echo "    source ~/.bashrc_docker_env" >> "$USER_HOME/.bashrc"
-    echo "fi" >> "$USER_HOME/.bashrc"
-fi
-
-# Set correct permissions and ownership
-chmod 644 "$BASHRC_ENV"
-chown labuser:labuser "$BASHRC_ENV"
-[ -f "$USER_HOME/.bash_profile" ] && chown labuser:labuser "$USER_HOME/.bash_profile"
-[ -f "$USER_HOME/.bashrc" ] && chown labuser:labuser "$USER_HOME/.bashrc"
-
-# Count environment variables (excluding the header comments and PATH)
-VAR_COUNT=$(grep -c "^export" "$BASHRC_ENV" || echo "0")
-
-echo "SSH environment configured:"
-echo "  - ~/.bashrc_docker_env sourced by .bash_profile (SSH login shells)"
-echo "  - ~/.bashrc_docker_env sourced by .bashrc (interactive shells)"
-echo "Exported $VAR_COUNT environment variables (including PATH)"
+# Propagate container env vars (PATH, VIRTUAL_ENV, etc.) into ~/.bashrc_docker_env
+# so SSH login shells and interactive shells see the same environment.
+bash /init-lab/setup-shell-env.sh

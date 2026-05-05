@@ -1,24 +1,34 @@
-# Dockerfile to build an image to work on lab (gws_core, gws_biota)
-# with vscode remote containers
+# Dockerfile to build an image for local lab development.
+# Mirrors codelab's env propagation and UID alignment without OpenVSCode-server
+# or SSH — connect via VS Code's "Attach to running container" Dev Containers flow.
+
 ARG IMAGE="constellab/glab:latest"
 FROM $IMAGE
 
+LABEL maintainer="Admin <admin@gencovery.com>"
 
-USER labuser
-
-# Configure python
-RUN uv pip install ruff
-
-RUN mkdir -p /home/labuser/.ssh
+ENV TZ=UTC \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8 \
+    INIT_LAB_PATH=/init-lab
 
 USER root
+WORKDIR /home
 
-# Duplicate of glab but it is useful to have it here for clarity and cache control
-COPY --chown=labuser:labuser ./init /init-lab
-
-# Make entrypoint script executable
-RUN chmod +x /init-lab/entrypoint-local-dev-env.sh
-
+# Install ruff into the glab venv. Must run as labuser because root can't
+# write to the labuser-owned venv at /home/labuser/.venv.
 USER labuser
+RUN uv pip install --no-cache ruff==0.14.7
+USER root
+
+COPY --chown=labuser:labuser ./init ${INIT_LAB_PATH}
+
+RUN chmod +x ${INIT_LAB_PATH}/entrypoint-local-dev-env.sh \
+              ${INIT_LAB_PATH}/setup-shell-env.sh
+
+# Default to labuser; sub-composes that need root for UID alignment on
+# bind-mounts can override with `user: "0:0"`.
+USER labuser
+WORKDIR /lab/user/
 
 ENTRYPOINT [ "/init-lab/entrypoint-local-dev-env.sh" ]
