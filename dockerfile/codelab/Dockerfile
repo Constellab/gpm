@@ -56,11 +56,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
 # =============================================================================
 # Python Dependencies Installation
 # =============================================================================
-# Install ruff (Python linter/formatter) into the glab venv (/home/labuser/.venv).
+# Install ruff (Python linter/formatter) and pyright (Python type checker) into the glab venv (/home/labuser/.venv).
 # Must run as labuser because root can't write to the labuser-owned venv.
-# Version pinned to 0.14.7 for consistency.
 USER labuser
-RUN uv pip install --no-cache ruff==0.14.7
+RUN uv pip install --no-cache ruff pyright
 USER root
 
 # =============================================================================

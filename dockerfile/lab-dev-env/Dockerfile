@@ -15,10 +15,10 @@ ENV TZ=UTC \
 USER root
 WORKDIR /home
 
-# Install ruff into the glab venv. Must run as labuser because root can't
+# Install ruff and pyright into the glab venv. Must run as labuser because root can't
 # write to the labuser-owned venv at /home/labuser/.venv.
 USER labuser
-RUN uv pip install --no-cache ruff==0.14.7
+RUN uv pip install --no-cache ruff pyright
 USER root
 
 COPY --chown=labuser:labuser ./init ${INIT_LAB_PATH}
