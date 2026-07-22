@@ -31,7 +31,16 @@ align_labuser_and_switch() {
         target_gid=$(stat -c '%g' "$mount_path")
 
         if [ "$target_uid" != "0" ] && [ "$target_uid" != "$(id -u labuser)" ]; then
-            groupmod -g "$target_gid" labuser 2>/dev/null || groupadd -g "$target_gid" labuser_host
+            echo "align-user: remapping labuser -> ${target_uid}:${target_gid} to match owner of ${mount_path}"
+
+            # Try to move labuser's own group to target_gid. This can fail if the
+            # GID is already claimed by another group in the container; in that
+            # case we don't create a redundant group — usermod below sets the
+            # primary group by GID, which is what actually matters for ownership.
+            if ! groupmod -g "$target_gid" labuser; then
+                echo "align-user: could not move labuser group to GID ${target_gid} (likely already in use); binding primary group by GID instead" >&2
+            fi
+
             usermod -u "$target_uid" -g "$target_gid" labuser
             chown -R "$target_uid:$target_gid" /home/labuser
         fi
