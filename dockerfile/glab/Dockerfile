@@ -115,7 +115,16 @@ RUN curl -L https://github.com/conda-forge/miniforge/releases/download/${CUSTOM_
 
 # Create non-root user matching host ubuntu user
 # Configure sudo access via sudoers.d for convenience (security trade-off)
-RUN groupadd -g ${GROUP_ID} labuser && \
+# Ubuntu 24.04 ships a default `ubuntu` user/group already holding uid/gid 1000,
+# so whatever currently owns the requested ids is removed first — otherwise
+# groupadd/useradd abort with "already exists".
+RUN if getent passwd ${USER_ID} > /dev/null; then \
+        userdel -r "$(getent passwd ${USER_ID} | cut -d: -f1)" 2>/dev/null || true; \
+    fi && \
+    if getent group ${GROUP_ID} > /dev/null; then \
+        groupdel "$(getent group ${GROUP_ID} | cut -d: -f1)" 2>/dev/null || true; \
+    fi && \
+    groupadd -g ${GROUP_ID} labuser && \
     useradd -m -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash labuser && \
     echo "labuser ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/labuser && \
     chmod 0440 /etc/sudoers.d/labuser
