@@ -43,7 +43,7 @@ runs:
   using: "composite"
   steps:
     - name: Build and push image
-      uses: docker/build-push-action@v6.19.2
+      uses: docker/build-push-action@v7.3.0
       with:
         context: .
         file: ./dockerfile/${{ inputs.container_name }}/Dockerfile
@@ -59,7 +59,7 @@ runs:
 
     - name: Push Docker Hub description
       if: ${{ inputs.push_description == 'true' }}
-      uses: peter-evans/dockerhub-description@v4.0.2
+      uses: peter-evans/dockerhub-description@v5.0.0
       with:
         username: ${{ inputs.dockerhub_username }}
         password: ${{ inputs.dockerhub_password }}
