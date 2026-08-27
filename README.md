@@ -90,7 +90,7 @@ To run and tests the images, see lab-configurer repository.
 
 ## Testing GPU the docker images
 
-Testing the glab image locally : ```docker build --build-arg IMAGE="nvidia/cuda:12.4.1-runtime-ubuntu22.04" -t glab:gpu -f ./dockerfile/glab/Dockerfile .```
+Testing the glab image locally : ```docker build --build-arg IMAGE="nvidia/cuda:13.3.1-runtime-ubuntu24.04" -t glab:gpu -f ./dockerfile/glab/Dockerfile .```
 
 Testing the codelab image locally : ```docker build --build-arg IMAGE="glab:gpu" -t local-codelab -f ./dockerfile/codelab/Dockerfile .```
 

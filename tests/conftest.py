@@ -27,7 +27,7 @@ def test_config_path(fixtures_dir) -> Path:
 
 
 @pytest.fixture
-def temp_workspace(tmp_path) -> Generator[Path, None, None]:
+def temp_workspace(tmp_path) -> Generator[Path]:
     """Create a temporary workspace that gets cleaned up after the test.
 
     This fixture creates a temporary directory for tests that need to

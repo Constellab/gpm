@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.6
 
 # Build arguments - define before FROM for better visibility
-ARG IMAGE="ubuntu:22.04"
+ARG IMAGE="ubuntu:24.04"
 
 FROM $IMAGE
 
@@ -20,6 +20,8 @@ ENV TZ=UTC \
     # don't name it PIP_VERSION because it will be overwritten by pip
     # version from https://pypi.org/project/pip/
     CUSTOM_PIP_VERSION=26.2.1 \
+    # Version from https://github.com/astral-sh/uv/releases
+    UV_VERSION=0.12.6 \
     # All Python work happens inside a labuser-owned venv at /home/labuser/.venv.
     # Putting its bin dir first on PATH and exporting VIRTUAL_ENV auto-activates
     # the venv for every shell (interactive or not) — `python3`, `pip`, and any
@@ -36,11 +38,17 @@ ENV TZ=UTC \
 # System Package Installation
 # ============================================================================
 
-# install python v 3.10 & base packages
+# install python v 3.13 & base packages
+# Ubuntu 24.04 ships Python 3.12, so 3.13 comes from the deadsnakes PPA, which
+# packages upstream CPython releases for the current LTS.
+# python3-distutils is gone: distutils left the stdlib in 3.12 and has no 3.13
+# package — setuptools provides the replacement (see the pip step below).
 # openssh-server + rsyslog are installed but never started unless
 # ENABLE_SSH_SERVER is enabled at runtime — see the "SSH Server" section below.
 # Use the Azure Ubuntu mirror — GitHub runners are on Azure, so this is much
-# faster than the default archive.ubuntu.com.
+# faster than the default archive.ubuntu.com. 24.04 moved the repo list to the
+# deb822 file /etc/apt/sources.list.d/ubuntu.sources and left sources.list as a
+# stub, so both are rewritten and a missing one is not an error.
 # BuildKit cache mounts persist /var/cache/apt and /var/lib/apt/lists across
 # builds, so apt downloads are reused even when the layer hash changes.
 # The base image's docker-clean config auto-deletes downloaded debs, which
@@ -48,33 +56,47 @@ ENV TZ=UTC \
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     rm -f /etc/apt/apt.conf.d/docker-clean && \
-    sed -i 's|http://archive.ubuntu.com|http://azure.archive.ubuntu.com|g; s|http://security.ubuntu.com|http://azure.archive.ubuntu.com|g' /etc/apt/sources.list && \
+    sed -i 's|http://archive.ubuntu.com|http://azure.archive.ubuntu.com|g; s|http://security.ubuntu.com|http://azure.archive.ubuntu.com|g' \
+        /etc/apt/sources.list /etc/apt/sources.list.d/ubuntu.sources 2>/dev/null || true; \
+    apt-get -y update && \
+    apt-get -y install --no-install-recommends \
+        software-properties-common ca-certificates gnupg && \
+    add-apt-repository -y ppa:deadsnakes/ppa && \
     apt-get -y update && \
     apt-get -y install \
-        python3.10 python3-distutils \
+        python3.13 python3.13-dev \
         git curl zip unzip bzip2 wget rsync nginx sudo pigz \
-        gcc libpq-dev python3-dev build-essential \
+        gcc libpq-dev build-essential \
         openssh-server rsyslog && \
-    ln -s $(which python3) /usr/local/bin/python
+    # /usr/bin/python3 is left as the distro's 3.12 because apt's own python
+    # tooling depends on it. /usr/local/bin precedes /usr/bin on PATH, so
+    # `python` and `python3` are 3.13 everywhere else, venv or not.
+    ln -sf /usr/bin/python3.13 /usr/local/bin/python && \
+    ln -sf /usr/bin/python3.13 /usr/local/bin/python3
 
-# install pip system-wide (as root) so it's available to all users
+# install pip system-wide (as root) so it's available to all users.
+# --break-system-packages: the deadsnakes python3.13 carries Debian's
+# EXTERNALLY-MANAGED marker, which otherwise refuses installs outside a venv.
+# setuptools is what restores `import distutils` on 3.13, via the
+# distutils-precedence.pth shim it installs — that is the replacement for the
+# python3-distutils package dropped above.
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python3 get-pip.py "pip==${CUSTOM_PIP_VERSION}" && \
-    python3 -m pip install --upgrade setuptools && \
+    python3.13 get-pip.py --break-system-packages "pip==${CUSTOM_PIP_VERSION}" && \
+    python3.13 -m pip install --break-system-packages --upgrade setuptools && \
     rm get-pip.py
 
 # Install uv (fast Python package installer) system-wide so it's on PATH
-# for both root and labuser. Pinned version from https://github.com/astral-sh/uv/releases
-ENV UV_VERSION=0.5.11
+# for both root and labuser. Version pinned in the env block above.
 RUN curl -LsSf https://astral.sh/uv/${UV_VERSION}/install.sh | \
     env UV_INSTALL_DIR=/usr/local/bin INSTALLER_NO_MODIFY_PATH=1 sh && \
     uv --version
 
 # ============================================================================
-# Conda/Mamba Installation (includes Python 3.10 and pip)
+# Conda/Mamba Installation (ships its own Python and pip)
 # ============================================================================
 
-# Install miniforge (conda + mamba) with Python 3.10
+# Install miniforge (conda + mamba). It brings its own Python interpreter,
+# independent of the system 3.13, and trails on PATH.
 # Info from https://github.com/conda-forge/miniforge#mambaforge
 # Download installer and its SHA256 checksum, then verify before installation
 # Installing conda and mamba system-wide (as root)
@@ -142,13 +164,13 @@ WORKDIR /home/labuser
 # ============================================================================
 
 # Create the labuser-owned venv that VIRTUAL_ENV/PATH point at, using the
-# system Python 3.10. --system-site-packages lets code in the venv still
+# system Python 3.13. --system-site-packages lets code in the venv still
 # import packages installed system-wide (e.g. pipenv, click copies pip pulls in)
 # when needed. `uv venv` is used instead of `python3 -m venv` because the base
 # image doesn't include python3-venv (the stdlib ensurepip module).
 # align-user.sh's `chown -R /home/labuser` at UID-remap time covers the venv,
 # so it stays writable across host-UID changes.
-RUN uv venv --system-site-packages --python python3 "${VIRTUAL_ENV}"
+RUN uv venv --system-site-packages --python python3.13 "${VIRTUAL_ENV}"
 
 # Install initial dependencies into the venv. uv auto-detects VIRTUAL_ENV and
 # installs into it without any --system / --user / --prefix flag.

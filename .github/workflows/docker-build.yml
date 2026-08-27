@@ -27,7 +27,7 @@ jobs:
       - uses: actions/setup-python@v7.0.0
         with:
           # Matches the python version shipped in the glab image.
-          python-version: '3.10'
+          python-version: '3.13'
           cache: pip
           cache-dependency-path: requirements.txt
 
@@ -49,11 +49,11 @@ jobs:
       matrix:
         include:
           - variant: cpu
-            source: ubuntu:22.04
+            source: ubuntu:24.04
             tag_prefix: ""
             push_description: "true"
           - variant: gpu
-            source: nvidia/cuda:12.4.1-runtime-ubuntu22.04
+            source: nvidia/cuda:13.3.1-runtime-ubuntu24.04
             tag_prefix: gpu-
             push_description: "false"
     steps:
