@@ -14,7 +14,7 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 # =============================================================================
 # OpenVSCode Server configuration
 # Choose version from https://github.com/gitpod-io/openvscode-server
-ARG RELEASE_TAG=openvscode-server-v1.105.1
+ARG RELEASE_TAG=openvscode-server-v1.109.5
 ARG RELEASE_ORG="gitpod-io"
 ARG OPENVSCODE_SERVER_ROOT="/opt/openvscode-server"
 

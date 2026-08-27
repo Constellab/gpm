@@ -16,10 +16,10 @@ LABEL maintainer="Admin <admin@gencovery.com>"
 # ============================================================================
 ENV TZ=UTC \
     # Version from https://github.com/conda-forge/miniforge/releases
-    CUSTOM_MAMBA_VERSION=25.11.0-1 \
+    CUSTOM_MAMBA_VERSION=26.5.3-0 \
     # don't name it PIP_VERSION because it will be overwritten by pip
     # version from https://pypi.org/project/pip/
-    CUSTOM_PIP_VERSION=26.0 \
+    CUSTOM_PIP_VERSION=26.2.1 \
     # All Python work happens inside a labuser-owned venv at /home/labuser/.venv.
     # Putting its bin dir first on PATH and exporting VIRTUAL_ENV auto-activates
     # the venv for every shell (interactive or not) — `python3`, `pip`, and any
