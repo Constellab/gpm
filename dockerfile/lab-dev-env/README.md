@@ -23,6 +23,7 @@ This container is installed and runned by the [lab-manager](https://hub.docker.c
 📋 Here is the list of the main features:
 - Preconfigured python development environment
 - POssibility to develop gws_core or other bricks locally
+- Optional SSH access (port 2222, `labuser`, public-key only): off by default, set `ENABLE_SSH_SERVER=true` to start `sshd`
  
 
 ## 📄 Documentation

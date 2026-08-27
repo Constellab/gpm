@@ -1,6 +1,8 @@
 # Dockerfile to build an image for local lab development.
-# Mirrors codelab's env propagation and UID alignment without OpenVSCode-server
-# or SSH — connect via VS Code's "Attach to running container" Dev Containers flow.
+# Mirrors codelab's env propagation and UID alignment without OpenVSCode-server —
+# connect via VS Code's "Attach to running container" Dev Containers flow.
+# The SSH server inherited from glab stays off unless ENABLE_SSH_SERVER is set to
+# true at runtime (see dockerfile/glab/README.md).
 
 ARG IMAGE="constellab/glab:latest"
 FROM $IMAGE

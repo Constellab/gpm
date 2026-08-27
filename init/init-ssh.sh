@@ -1,5 +1,15 @@
 #!/bin/bash
-
+# Start the SSH server — only if it is explicitly enabled.
+#
+# Shipped by the glab image and shared by glab and codelab. Runs as root,
+# before the entrypoint drops privileges to labuser (see align-user.sh).
+#
+# ENABLE_SSH_SERVER gates everything below. When it is not truthy this script
+# returns immediately: no host key is generated, no sshd and no rsyslog process
+# is started, no port is opened. Installing the openssh-server package alone
+# starts nothing — the container has no init system, this script is the only
+# thing that ever launches sshd.
+#
 # To debug ssh server run :
 # Stop the current SSH service
 # > service ssh stop
@@ -7,24 +17,28 @@
 # > /usr/sbin/sshd -D -d
 # End debug
 
-# Ensure ${LAB_FOLDER} directory structure exists with correct permissions
-# This fixes permissions when ${LAB_FOLDER} is mounted as a volume (volumes are created as root)
-mkdir -p "${LAB_FOLDER}/user"
-# Only chown if needed (avoids slow recursive operation on large directories)
-if [ "$(stat -c %U "${LAB_FOLDER}")" != "labuser" ]; then
-    chown labuser:labuser "${LAB_FOLDER}"
-fi
-if [ "$(stat -c %U "${LAB_FOLDER}/user")" != "labuser" ]; then
-    chown labuser:labuser "${LAB_FOLDER}/user"
-fi
+# Marker so the entrypoint can tell that this script already ran as root
+# (through the align-user.sh hook) instead of re-running it via sudo.
+mkdir -p /run
+touch /run/init-ssh-done
+
+case "${ENABLE_SSH_SERVER:-false}" in
+    true|True|TRUE|1|yes|on)
+        ;;
+    *)
+        echo "SSH server disabled (ENABLE_SSH_SERVER=${ENABLE_SSH_SERVER:-false}), sshd is not started."
+        exit 0
+        ;;
+esac
 
 # Copy the ssh config in the correct location
 # we use copy here because the /etc/ssh directory is mounted from the host
 # and we want to ensure that the sshd_config file is always up to date
 echo "Copying SSH configuration..."
-cp /tmp/sshd_config /etc/ssh/sshd_config
+cp /opt/glab/sshd_config /etc/ssh/sshd_config
 
-# Generate host keys if they don't exist
+# Generate host keys if they don't exist. The image ships without host keys on
+# purpose (they are deleted at build time), so each container gets its own.
 if [ ! -f /etc/ssh/ssh_host_rsa_key ]; then
     echo "Generating SSH host keys..."
     ssh-keygen -A
@@ -58,6 +72,7 @@ echo "SSH server started. Logs available at /var/log/auth.log"
 # Ensure .ssh exists for SSH key auth (separate from the shell-env setup below).
 mkdir -p /home/labuser/.ssh
 chmod 700 /home/labuser/.ssh
+chown labuser:labuser /home/labuser/.ssh
 
 # Propagate container env vars (PATH, VIRTUAL_ENV, etc.) into ~/.bashrc_docker_env
 # so SSH login shells and interactive shells see the same environment.

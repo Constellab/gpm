@@ -39,8 +39,8 @@ WORKDIR /home
 # Install system dependencies:
 # - git: Version control, required for OpenVSCode Server extensions
 # - wget: Download OpenVSCode Server release
-# - openssh-server: Enable SSH access for VS Code Remote
-# - rsyslog: Logging for SSH authentication and debugging
+# openssh-server and rsyslog come from the glab base image (SSH is opt-in there,
+# see ENABLE_SSH_SERVER below).
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt/lists,sharing=locked \
     rm -f /etc/apt/apt.conf.d/docker-clean && \
@@ -48,9 +48,7 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     apt-get update && \
     apt-get install -y --no-install-recommends \
         git \
-        wget \
-        openssh-server \
-        rsyslog && \
+        wget && \
     rm -rf /tmp/* /var/tmp/*
 
 # =============================================================================
@@ -95,27 +93,22 @@ RUN if [ -z "${RELEASE_TAG}" ]; then \
     rm -f "${ARCHIVE}"
 
 # =============================================================================
-# SSH Server Configuration and VS Code Remote Setup
+# VS Code Remote Setup
 # =============================================================================
-# Configure SSH server for VS Code Remote access
-RUN mkdir -p /etc/ssh /home/labuser/.ssh \
-        /home/labuser/.vscode-server \
+RUN mkdir -p /home/labuser/.vscode-server \
         /home/labuser/.openvscode-server && \
-    # Set proper ownership and permissions for SSH directory (mode 700 required)
-    chown labuser:labuser /home/labuser/.ssh && \
-    chmod 700 /home/labuser/.ssh && \
     # Set ownership for VS Code server directories (so they can be used in volume)
     chown labuser:labuser /home/labuser/.vscode-server && \
-    chown labuser:labuser /home/labuser/.openvscode-server && \
-    # Create locale file to avoid PAM environment warnings
-    touch /etc/default/locale && \
-    echo "LANG=C.UTF-8" > /etc/default/locale
+    chown labuser:labuser /home/labuser/.openvscode-server
 
-# Copy SSH and rsyslog configuration files
-# sshd_config: Restricts to labuser, pubkey auth only, enables port forwarding
-# rsyslog.conf: Disables kernel logging (unavailable in containers)
-COPY ./dockerfile/codelab/sshd_config /tmp/sshd_config
-COPY ./dockerfile/codelab/rsyslog.conf /etc/rsyslog.conf
+# =============================================================================
+# SSH Server
+# =============================================================================
+# The SSH server itself (package, sshd_config, init-ssh.sh) lives in the glab
+# base image, where it is disabled by default. Codelab enables it by default
+# because VS Code Remote SSH is one of its features. Set ENABLE_SSH_SERVER to
+# false at runtime to start codelab without any sshd process listening.
+ENV ENABLE_SSH_SERVER=true
 
 # =============================================================================
 # Application Setup

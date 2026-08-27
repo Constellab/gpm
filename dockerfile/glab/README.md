@@ -51,6 +51,21 @@ In `test` mode:
 
 The container exits with the test command's exit code — suitable for CI fan-out across bricks. A MariaDB instance must be reachable via the brick's usual `GWS_TEST_DB_*` env vars; the image does not provision it.
 
+## 🔐 SSH access (optional)
+
+The image ships an SSH server (port `2222`, `labuser` only, public-key authentication only) but **does not start it by default**. It is controlled by a single env var:
+
+| `ENABLE_SSH_SERVER` | Behaviour |
+|---------------------|-----------|
+| unset / `false` (default) | No host key is generated, no `sshd` and no `rsyslog` process is started, nothing listens on port 2222. |
+| `true` (also `1`, `yes`, `on`) | A per-container host key is generated, `rsyslog` and `sshd` start, port 2222 accepts public-key logins as `labuser`. |
+
+The container has no init system, so `/init-lab/init-ssh.sh` — run by the entrypoint — is the only thing that can start `sshd`. With the flag off there is no SSH surface to attack.
+
+To use it, enable the flag, publish port 2222 and add the client public key to `/home/labuser/.ssh/authorized_keys`. Host keys are deliberately not baked into the image, so each container has its own identity.
+
+The `codelab` image sets `ENABLE_SSH_SERVER=true` by default because VS Code Remote SSH is one of its features; set it to `false` at runtime to turn that off.
+
 ## 🤗 Community
 
 🌍 Join the Constellab community [here](https://constellab.community/) to share and explore stories, code snippets and bricks with other users.

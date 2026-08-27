@@ -25,6 +25,8 @@ This container is installed and runned by the [lab-manager](https://hub.docker.c
   - Develop and run your bricks
   - Execute custom code (jupyter notebooks, python, R, etc.)
 - Activate dev environment of lab
+- SSH access for VS Code Remote (port 2222, `labuser`, public-key only)
+  - Enabled by default; set `ENABLE_SSH_SERVER=false` to start the container with no `sshd` process at all
  
 
 To view more information about the lab architecture [here](https://constellab.community/bricks/gws_core/latest/doc/architecture/7a8ec82f-f9d3-4f22-98cc-ee604a0e6b07) 

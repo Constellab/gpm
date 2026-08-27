@@ -4,7 +4,7 @@
 # get the same PATH/VIRTUAL_ENV the Dockerfile defines. Without this, the
 # venv prompt `(.venv)` does not appear and tools may resolve outside the venv.
 #
-# Shared by codelab-init-ssh.sh and entrypoint-local-dev-env.sh.
+# Shared by init-ssh.sh, entrypoint-codelab.sh and entrypoint-local-dev-env.sh.
 
 set -e
 
