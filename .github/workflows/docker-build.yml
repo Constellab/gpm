@@ -12,9 +12,35 @@ env:
   ORGANIZATION: constellab
 
 jobs:
+  # Run the python test suite first; nothing is built or pushed if it fails.
+  # Tests marked requires_network are skipped: they install from real PyPI, so
+  # they are slow and would tie a release to PyPI being up. Everything else,
+  # brick installation included, runs offline against a local git registry.
+  test:
+    name: Run tests
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6.0.2
+
+      - uses: actions/setup-python@v7.0.0
+        with:
+          # Matches the python version shipped in the glab image.
+          python-version: '3.10'
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Pytest
+        run: pytest -m "not requires_network"
+
   # Build the base glab image in both CPU and GPU variants in parallel.
   glab:
     name: Build glab (${{ matrix.variant }})
+    needs: test
     runs-on: ubuntu-24.04
     permissions:
       contents: read

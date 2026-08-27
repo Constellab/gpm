@@ -14,6 +14,7 @@ tests/
 ├── integration/           # Integration tests (future)
 ├── fixtures/              # Test data and configuration
 │   ├── config.json       # Test configuration for GPM
+│   ├── local_brick_registry.py # Local git stand-in for the community API
 │   └── __init__.py
 ├── conftest.py           # Shared pytest fixtures
 ├── __init__.py
@@ -33,6 +34,21 @@ Tests that verify interaction between components (to be added as needed)
 ### Fixtures (`tests/fixtures/`)
 Shared test data and configuration files:
 - **config.json**: Sample GPM configuration for testing
+- **local_brick_registry.py**: Builds throwaway git repositories that stand in for
+  community-hosted bricks, and a `FakeCommunityService` that resolves brick
+  name/version to them over `file://` URLs
+
+## Running offline
+
+The suite runs without network access or credentials by default. `test_gpm.py`
+exercises the real install path — bricks are genuinely cloned, sub-dependencies
+resolved, tags checked out — but against `local_brick_registry` instead of the
+community API, so no `COMMUNITY_API_URL` or `SPACE_API_KEY` is needed. Those
+tests keep the `requires_git` marker because they still shell out to `git`.
+
+The only tests that reach the network are the two `requires_network` ones in
+`test_pip_manager.py`, which install from real PyPI. CI deselects them with
+`pytest -m "not requires_network"`.
 
 ## Writing Tests
 

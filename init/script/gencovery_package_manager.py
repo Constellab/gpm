@@ -32,6 +32,7 @@ class GencoveryPackageManager:
         settings_file_path: str,
         env_mode: str,
         workspace_config: WorkspaceConfig,
+        community_service: CommunityService | None = None,
     ):
         """Initialize the package manager with all components.
 
@@ -40,6 +41,8 @@ class GencoveryPackageManager:
             env_mode: Environment mode (GLAB or CODELAB)
             workspace_config: Workspace configuration (built from env via
                 ``WorkspaceConfig.from_env()`` in production)
+            community_service: Service used to resolve brick clone URLs. Defaults
+                to the real community API; tests inject a local stand-in.
 
         Raises:
             Exception: If env_mode is invalid or None
@@ -79,7 +82,7 @@ class GencoveryPackageManager:
         self.brick_installer = BrickInstaller(
             self.workspace_config,
             self.git_installer,
-            CommunityService(),
+            community_service or CommunityService(),
             self.logger,
         )
 
