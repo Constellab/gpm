@@ -76,7 +76,7 @@ The `codelab` image sets `ENABLE_SSH_SERVER=true` by default because VS Code Rem
 
 ## 🌎 License
 
-```glab``` is completely free and open-source and licensed under the [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html).
+```glab``` is completely free and open-source and licensed under the [GNU Affero General Public License v3.0](https://www.gnu.org/licenses/agpl-3.0.en.html).
 
 <br/>
 
